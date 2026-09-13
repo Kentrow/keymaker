@@ -1,0 +1,77 @@
+name: Bug report
+description: Something in Keymaker does not work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste an application key, application secret or consumer key**, not even
+        truncated, and never paste the content of your `ovh.conf`. Logs are redacted by
+        Keymaker, but check them before posting. If a secret was exposed, revoke the key
+        first.
+
+        Security vulnerabilities do not belong here: report them privately as described in
+        SECURITY.md.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The output of `keymaker --version`, or the version shown in the footer of the interface.
+      placeholder: keymaker 0.1.0 (commit abc1234, built 2026-01-01T00:00:00Z)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: How do you run Keymaker?
+      options:
+        - docker run with the published image
+        - Docker Compose with the published image
+        - Image built locally
+        - Binary built from source
+    validations:
+      required: true
+
+  - type: input
+    id: endpoint
+    attributes:
+      label: OVHcloud endpoint
+      description: The endpoint configured in ovh.conf.
+      placeholder: ovh-eu
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the inventory
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant lines from the process output, checked for secrets. KEYMAKER_LOG_LEVEL=debug adds one line per request.
+      render: text
+    validations:
+      required: false

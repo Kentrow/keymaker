@@ -1,0 +1,567 @@
+<!doctype html>
+<!-- Copyright 2026 Kentrow
+     SPDX-License-Identifier: Apache-2.0 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keymaker</title>
+<meta name="description" content="Local interface to inventory, audit, revoke and create OVHcloud API keys.">
+<link rel="icon" type="image/svg+xml" href="/keymaker-favicon.svg">
+<link rel="stylesheet" href="/app.css">
+<script defer src="/app.js"></script>
+<script defer src="/alpine-csp.min.js"></script>
+</head>
+<body>
+<div x-data="inventory">
+
+  <header class="topbar">
+    <div class="brand">
+      <img class="mark" src="/keymaker-icon.svg" alt="" width="40" height="35">
+      <span class="name">Keymaker</span>
+      <span class="pill mono" x-text="endpoint"></span>
+    </div>
+
+    <nav class="screens">
+      <div class="segmented" role="group" x-bind:aria-label="labels.screenGroup">
+        <button type="button" x-bind:class="screenButtons.inventory" x-on:click="showInventory">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/>
+            <path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/>
+          </svg>
+          <span x-text="labels.screenInventory"></span>
+        </button>
+        <button type="button" x-bind:class="screenButtons.explorer" x-on:click="showExplorer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/>
+          </svg>
+          <span x-text="labels.screenExplorer"></span>
+        </button>
+        <button type="button" x-bind:class="screenButtons.create" x-on:click="showCreate">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/>
+            <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
+          </svg>
+          <span x-text="labels.screenCreate"></span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="tools">
+      <div class="segmented" role="group" x-bind:aria-label="labels.theme">
+        <button type="button" x-bind:class="themeButtons.system" x-bind:title="labels.themeSystem" x-on:click="useSystemTheme">
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <rect x="2.5" y="3.5" width="15" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M7 16.5 h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button type="button" x-bind:class="themeButtons.light" x-bind:title="labels.themeLight" x-on:click="useLightTheme">
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.4 4.4l1.4 1.4M14.2 14.2l1.4 1.4M15.6 4.4l-1.4 1.4M5.8 14.2l-1.4 1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button type="button" x-bind:class="themeButtons.dark" x-bind:title="labels.themeDark" x-on:click="useDarkTheme">
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <path d="M16 12.4A7 7 0 0 1 7.6 4a6.6 6.6 0 1 0 8.4 8.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="language" x-on:keydown.escape.window="closeLanguages">
+        <button type="button" class="quiet picker" x-on:click="toggleLanguages" x-bind:aria-expanded="languagesExpanded" x-bind:title="labels.language">
+          <span x-bind:class="currentLanguage.flagClass"></span>
+          <span x-text="currentLanguage.short"></span>
+          <svg class="caret" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+            <path d="M2.5 4.5 L6 8 L9.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <ul class="menu" x-show="languagesOpen" x-on:click.outside="closeLanguages">
+          <template x-for="language in languages">
+            <li>
+              <button type="button" x-bind:class="language.className" x-on:click="pickLanguage">
+                <span x-bind:class="language.flagClass"></span>
+                <span x-text="language.name"></span>
+              </button>
+            </li>
+          </template>
+        </ul>
+      </div>
+
+      <button type="button" x-bind:class="refreshClass" x-bind:aria-label="refreshLabel" x-on:click="refresh">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>
+          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
+        </svg>
+        <span class="refresh-label" x-text="refreshLabel"></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <div x-show="onInventory">
+
+    <p class="state" x-show="loading" x-text="labels.loading"></p>
+
+    <div class="state done" x-show="noticed">
+      <p class="headline" x-text="notice"></p>
+    </div>
+
+    <div class="state failure" x-show="failed">
+      <p class="headline" x-text="error"></p>
+      <p x-text="labels.errorHint"></p>
+      <div class="recover" x-show="offerRenewal">
+        <a class="button primary" x-bind:href="managementKeyUrl" target="_blank" rel="noopener noreferrer" x-text="labels.renewKey"></a>
+        <p class="remark" x-text="labels.renewHint"></p>
+      </div>
+    </div>
+
+    <section class="overview" x-show="ready">
+      <div class="metrics">
+        <template x-for="tile in metrics" x-bind:key="tile.band">
+          <button type="button" x-bind:class="tile.className" x-bind:title="tile.hint" x-bind:aria-pressed="tile.selected" x-on:click="pickMetric">
+            <span class="figure" x-text="tile.value"></span>
+            <span class="caption" x-text="tile.label"></span>
+          </button>
+        </template>
+      </div>
+      <p class="notice" x-show="summaryNotice" x-text="summaryNotice"></p>
+      <p class="notice" x-show="unreadableNotice" x-text="unreadableNotice"></p>
+
+      <p class="divider" x-show="hasQuickFilters"><span x-text="labels.quickFilters"></span></p>
+
+      <div class="filters" x-show="hasQuickFilters">
+        <template x-for="filter in quickFilters" x-bind:key="filter.key">
+          <button type="button" x-bind:class="filter.className" x-bind:title="filter.hint"
+                  x-bind:aria-pressed="filter.selected" x-on:click="pickFilter">
+            <span x-text="filter.label"></span>
+            <span class="tally" x-text="filter.count"></span>
+          </button>
+        </template>
+      </div>
+
+      <p class="hint explain" x-show="selectedHint" x-text="selectedHint"></p>
+    </section>
+
+    <section class="toolbar" x-show="ready">
+      <label class="field grow">
+        <span x-text="labels.search"></span>
+        <span class="search">
+          <svg class="glass" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M13.2 13.2 17 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+          <input type="search" x-model="search" x-bind:placeholder="labels.searchPlaceholder">
+        </span>
+      </label>
+      <label class="field">
+        <span x-text="labels.status"></span>
+        <span x-bind:class="statusFilterClass">
+          <select x-model="status">
+            <template x-for="option in statusOptions">
+              <option x-bind:value="option.value" x-text="option.label"></option>
+            </template>
+          </select>
+        </span>
+      </label>
+      <label class="field">
+        <span x-text="labels.application"></span>
+        <span x-bind:class="applicationFilterClass">
+          <select x-model="application">
+            <template x-for="option in applicationOptions">
+              <option x-bind:value="option.value" x-text="option.label"></option>
+            </template>
+          </select>
+        </span>
+      </label>
+      <label class="field">
+        <span x-text="labels.sort"></span>
+        <span class="select">
+          <select x-model="sort">
+            <template x-for="option in sortOptions">
+              <option x-bind:value="option.value" x-text="option.label"></option>
+            </template>
+          </select>
+        </span>
+      </label>
+      <span class="rule" aria-hidden="true"></span>
+
+      <div class="field view">
+        <span x-text="labels.view"></span>
+        <div class="segmented tall" role="group" x-bind:aria-label="labels.view">
+          <button type="button" x-bind:class="viewButtons.list" x-bind:title="labels.viewList" x-on:click="useListView">
+            <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button type="button" x-bind:class="viewButtons.grid" x-bind:title="labels.viewGrid" x-on:click="useGridView">
+            <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+              <rect x="11" y="2.5" width="6.5" height="6.5" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+              <rect x="2.5" y="11" width="6.5" height="6.5" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+              <rect x="11" y="11" width="6.5" height="6.5" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="sweep" x-show="hasInactive">
+      <p class="sweep-text">
+        <span class="sweep-count" x-text="inactiveHeadline"></span>
+        <span x-text="labels.sweepWhy"></span>
+      </p>
+      <button type="button" class="danger" x-on:click="askSweep" x-text="labels.sweepAction"></button>
+    </div>
+
+    <div class="results" x-show="ready">
+      <p class="shown" x-text="countLabel"></p>
+      <button type="button" class="link" x-show="filtering" x-on:click="clearFilters" x-text="labels.clearFilters"></button>
+    </div>
+
+    <div class="state" x-show="empty">
+      <p class="headline" x-text="labels.noMatch"></p>
+      <button type="button" class="quiet" x-on:click="clearFilters" x-text="labels.clearFilters"></button>
+    </div>
+
+    <ul x-bind:class="cardsClass" x-show="hasRows">
+      <template x-for="row in visible" x-bind:key="row.id">
+        <li x-bind:class="row.cardClass">
+
+          <div class="head">
+            <span x-bind:class="row.statusClass">
+              <span class="dot"></span>
+              <span x-text="row.statusLabel"></span>
+            </span>
+            <h2 x-text="row.title"></h2>
+            <span class="pill mono reference" x-text="row.reference"></span>
+            <span class="pill self" x-show="row.self" x-text="labels.selfLabel"></span>
+            <span class="pill external" x-show="row.external" x-bind:title="labels.externalHint" x-text="labels.externalLabel"></span>
+
+            <div class="actions">
+              <button type="button" class="quiet" x-on:click="cloneCredential" x-text="labels.replace"></button>
+              <button type="button" class="danger" x-show="row.revokeOffered" x-on:click="askRevoke" x-text="labels.revoke"></button>
+              <button type="button" class="unavailable" x-show="row.revokeRefused" x-bind:aria-expanded="row.reasonExpanded" x-on:click="toggleReason" x-text="labels.revokeUnavailable"></button>
+            </div>
+          </div>
+
+          <p class="description" x-show="row.description" x-text="row.description"></p>
+          <p class="explained" x-show="row.reasonOpen" x-text="row.revokeReason"></p>
+
+          <div class="findings" x-show="row.hasFindings">
+            <template x-for="flag in row.findings" x-bind:key="flag.code">
+              <button type="button" x-bind:class="flag.className" x-bind:aria-expanded="flag.expanded" x-on:click="explainFinding" x-text="flag.label"></button>
+            </template>
+          </div>
+          <p class="explained" x-show="row.explanation" x-text="row.explanation"></p>
+
+          <dl class="meta">
+            <div>
+              <dt x-text="labels.columnCreated"></dt>
+              <dd x-bind:title="row.createdExact" x-text="row.created"></dd>
+            </div>
+            <div>
+              <dt x-text="labels.columnExpires"></dt>
+              <dd x-bind:class="row.expiresClass" x-bind:title="row.expiresExact" x-text="row.expires"></dd>
+            </div>
+            <div>
+              <dt x-text="labels.columnLastUse"></dt>
+              <dd x-bind:title="row.lastUsedExact" x-text="row.lastUsed"></dd>
+            </div>
+            <div>
+              <dt x-text="labels.columnAllowedIps"></dt>
+              <dd x-bind:class="row.ipsClass" x-text="row.allowedIps"></dd>
+            </div>
+          </dl>
+
+          <div class="rules">
+            <div class="rules-head">
+              <span x-text="row.rulesLabel"></span>
+              <button type="button" class="link" x-show="row.collapsible" x-bind:aria-expanded="row.rulesExpanded" x-on:click="toggleRules" x-text="row.toggleLabel"></button>
+            </div>
+            <ul>
+              <template x-for="rule in row.rules">
+                <li>
+                  <span x-bind:class="rule.methodClass" x-text="rule.method"></span>
+                  <code x-text="rule.path"></code>
+                </li>
+              </template>
+            </ul>
+          </div>
+
+        </li>
+      </template>
+    </ul>
+
+    </div>
+
+    <div x-show="onExplorer">
+
+      <section class="explorer-intro">
+        <h1 tabindex="-1" data-screen-title="explorer" x-text="labels.explorerTitle"></h1>
+        <p x-text="labels.explorerIntro"></p>
+        <p class="origin" x-show="catalogueReady" x-text="catalogueOrigin"></p>
+      </section>
+
+      <p class="state" x-show="catalogueFirstLoad" x-text="labels.catalogueLoading"></p>
+
+      <div class="state failure" x-show="catalogueError">
+        <p class="headline" x-text="catalogueError"></p>
+        <button type="button" class="quiet" x-on:click="loadCatalogue" x-text="labels.refresh"></button>
+      </div>
+
+      <section class="toolbar" x-show="catalogueReady">
+        <label class="field grow">
+          <span x-text="labels.routeSearch"></span>
+          <span class="search">
+            <svg class="glass" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M13.2 13.2 17 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+            <input type="search" x-model="routeSearch" autocomplete="off" spellcheck="false">
+          </span>
+        </label>
+        <label class="field">
+          <span x-text="labels.branch"></span>
+          <span x-bind:class="branchFilterClass">
+            <select x-model="routeBranch">
+              <option value="" x-text="labels.branchAll"></option>
+              <template x-for="branch in branchOptions" x-bind:key="branch">
+                <option x-bind:value="branch" x-text="branch"></option>
+              </template>
+            </select>
+          </span>
+        </label>
+        <label class="field">
+          <span x-text="labels.method"></span>
+          <span x-bind:class="methodFilterClass">
+            <select x-model="routeMethod">
+              <option value="" x-text="labels.methodAll"></option>
+              <template x-for="method in methodOptions" x-bind:key="method">
+                <option x-bind:value="method" x-text="method"></option>
+              </template>
+            </select>
+          </span>
+        </label>
+        <label class="check">
+          <input type="checkbox" x-model="routeDeprecated">
+          <span x-text="labels.deprecatedShow"></span>
+        </label>
+      </section>
+
+      <div class="explorer" x-show="catalogueReady">
+
+        <section class="routes">
+          <p class="count" x-text="found.label"></p>
+          <p class="empty" x-show="found.empty" x-text="labels.routesEmpty"></p>
+          <ul class="route-list">
+            <template x-for="route in found.routes" x-bind:key="route.key">
+              <li x-bind:class="route.className">
+                <div class="route-path">
+                  <code x-text="route.rule"></code>
+                  <span class="hint" x-show="route.wildcard" x-text="labels.wildcardHint"></span>
+                  <span class="hint warn" x-show="route.broad" x-text="labels.broadRule"></span>
+                </div>
+                <ul class="operations">
+                  <template x-for="operation in route.operations" x-bind:key="operation.method">
+                    <li>
+                      <button type="button" x-bind:class="operation.rowClass" x-bind:aria-pressed="operation.chosen"
+                              x-bind:title="operation.hint" x-on:click="toggleOperation">
+                        <span x-bind:class="operation.className" x-text="operation.method"></span>
+                        <span class="purpose" x-text="operation.description"></span>
+                        <span class="tag" x-show="operation.deprecated" x-text="labels.deprecatedTag"></span>
+                      </button>
+                    </li>
+                  </template>
+                </ul>
+              </li>
+            </template>
+          </ul>
+          <div class="route-end" id="route-end" x-show="found.more" aria-hidden="true"></div>
+        </section>
+
+        <aside class="selection">
+          <div class="selection-head">
+            <h2 x-text="labels.selectionTitle"></h2>
+            <span class="pill" x-text="selectionLabel"></span>
+          </div>
+
+          <p class="empty" x-show="noSelection" x-text="labels.selectionEmpty"></p>
+
+          <ul class="rule-list">
+            <template x-for="rule in selectedRules" x-bind:key="rule.key">
+              <li x-bind:class="rule.className">
+                <code x-bind:class="rule.methodClass" x-text="rule.method"></code>
+                <code class="path" x-text="rule.path"></code>
+                <button type="button" class="link" x-bind:title="labels.ruleRemove" x-on:click="dropRule">&times;</button>
+              </li>
+            </template>
+          </ul>
+
+          <p class="warning" x-show="selectionBroad" x-text="labels.broadWarning"></p>
+
+          <div class="selection-actions" x-show="hasSelection">
+            <button type="button" class="quiet" x-on:click="clearRules" x-text="labels.rulesClear"></button>
+            <button type="button" class="quiet" x-on:click="copyRules" x-text="labels.rulesCopy"></button>
+          </div>
+          <button type="button" class="primary wide" x-show="hasSelection" x-on:click="useSelection" x-text="labels.screenCreate"></button>
+          <p class="copied" x-show="copyNotice" x-text="copyNotice"></p>
+        </aside>
+
+      </div>
+
+    </div>
+
+    <div x-show="onCreate">
+
+      <section class="explorer-intro">
+        <h1 tabindex="-1" data-screen-title="create" x-text="labels.createTitle"></h1>
+        <p x-text="labels.createIntro"></p>
+      </section>
+
+      <div class="state replacing" x-show="replacingKey">
+        <p class="headline" x-text="replacingTitle"></p>
+        <p class="warning" x-text="labels.replaceWarning"></p>
+        <p x-text="labels.replaceRules"></p>
+        <button type="button" class="link" x-on:click="dropReplacement" x-text="labels.replaceDrop"></button>
+      </div>
+
+      <div class="compose">
+
+        <section class="panel">
+          <h2><span class="step" aria-hidden="true">1</span><span x-text="labels.stepRules"></span></h2>
+
+          <p class="empty" x-show="noSelection" x-text="labels.rulesNone"></p>
+
+          <ul class="rule-list" x-show="hasSelection">
+            <template x-for="rule in selectedRules" x-bind:key="rule.key">
+              <li x-bind:class="rule.className">
+                <code x-bind:class="rule.methodClass" x-text="rule.method"></code>
+                <code class="path" x-text="rule.path"></code>
+              </li>
+            </template>
+          </ul>
+
+          <p class="warning" x-show="selectionBroad" x-text="labels.broadWarning"></p>
+          <button type="button" class="link" x-on:click="backToExplorer" x-text="labels.rulesEdit"></button>
+        </section>
+
+        <section class="panel">
+          <h2><span class="step" aria-hidden="true">2</span><span x-text="labels.handoffTitle"></span></h2>
+
+          <p x-text="labels.handoffBody"></p>
+          <p class="remark" x-text="labels.handoffFields"></p>
+          <p class="remark" x-text="labels.handoffValidity"></p>
+
+          <div class="carried" x-show="replacedRestricted">
+            <h3 x-text="labels.replaceAddressesTitle"></h3>
+            <p class="remark warn" x-text="labels.replaceAddressesHint"></p>
+            <ul class="address-list">
+              <template x-for="entry in replacedAddresses" x-bind:key="entry.key">
+                <li>
+                  <span class="pill mono" x-text="entry.address"></span>
+                  <button type="button" class="copy" x-on:click="copyReplacedAddress" x-text="entry.copyLabel"></button>
+                </li>
+              </template>
+            </ul>
+          </div>
+          <p class="remark" x-show="replacedUnrestricted" x-text="labels.replaceUnrestricted"></p>
+
+          <p class="panel-links" x-show="addressLookup">
+            <button type="button" class="link" x-show="addressUnknown" x-on:click="showAddress" x-text="labels.handoffShowAddress"></button>
+          </p>
+          <p class="settled" x-show="publicAddressKnown">
+            <span x-text="labels.handoffAddress"></span>
+            <span class="pill mono" x-text="publicAddress"></span>
+            <button type="button" class="copy" x-on:click="copyAddress" x-text="addressCopyLabel">
+            </button>
+          </p>
+          <p class="remark warn" x-show="addressError" x-text="addressError"></p>
+
+          <a class="button primary wide" x-bind:href="handoffUrl" target="_blank" rel="noopener noreferrer"
+             x-show="handoffReady" x-on:click="noteHandoffOpened" x-on:auxclick="noteHandoffOpened" x-text="labels.handoffOpen"></a>
+          <p class="remark warn" x-show="handoffProblem" x-text="handoffProblem"></p>
+        </section>
+
+        <section class="panel" x-show="replacingKey">
+          <h2><span class="step" aria-hidden="true">3</span><span x-text="labels.stepHandover"></span></h2>
+
+          <p class="remark" x-text="labels.replaceRevokeHint"></p>
+          <p class="remark" x-show="replacedRevokeLocked" x-text="labels.replaceRevokeLocked"></p>
+          <button type="button" class="danger" x-bind:disabled="replacedRevokeLocked" x-on:click="askRevokeReplaced" x-text="replacingRevokeLabel"></button>
+        </section>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <dialog class="dialog" x-ref="revokeDialog" aria-labelledby="revoke-title" x-on:cancel.prevent="cancelRevoke" x-on:click.self="cancelRevoke">
+    <div class="dialog-body">
+      <h2 id="revoke-title" x-text="labels.revokeTitle"></h2>
+      <p class="subject">
+        <span class="subject-name" x-text="confirmingTitle"></span>
+        <span class="pill mono" x-text="confirmingReference"></span>
+      </p>
+      <p class="warning" x-text="labels.revokeWarning"></p>
+      <label class="field">
+        <span x-text="confirmingPrompt"></span>
+        <input type="text" x-model="confirmText" autocomplete="off" spellcheck="false" inputmode="numeric">
+      </label>
+      <p class="remark" x-show="confirmHint" x-text="confirmHint"></p>
+      <p class="dialog-error" x-show="confirmFailed" x-text="confirmError"></p>
+      <div class="dialog-actions">
+        <button type="button" class="quiet" x-on:click="cancelRevoke" x-text="labels.cancel"></button>
+        <button type="button" class="danger" x-bind:disabled="confirmBlocked" x-on:click="confirmRevoke" x-text="confirmLabel"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="dialog" x-ref="sweepDialog" aria-labelledby="sweep-title" x-on:cancel.prevent="cancelSweep" x-on:click.self="cancelSweep">
+    <div class="dialog-body">
+      <h2 id="sweep-title" x-text="labels.sweepTitle"></h2>
+      <p class="warning" x-text="labels.sweepWarning"></p>
+      <ul class="sweep-list">
+        <template x-for="row in sweepRows" x-bind:key="row.key">
+          <li>
+            <span x-bind:class="row.statusClass">
+              <span class="dot"></span>
+              <span x-text="row.status"></span>
+            </span>
+            <span class="subject-name" x-text="row.title"></span>
+            <span class="pill mono reference" x-text="row.reference"></span>
+          </li>
+        </template>
+      </ul>
+      <p class="dialog-error" x-show="sweepFailed" x-text="sweepError"></p>
+      <div class="dialog-actions">
+        <button type="button" class="quiet" x-on:click="cancelSweep" x-text="labels.cancel"></button>
+        <button type="button" class="danger" x-bind:disabled="sweeping" x-on:click="confirmSweep" x-text="sweepLabel"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <footer>
+    <img class="footer-mark" src="/keymaker-icon.svg" alt="" width="34" height="30">
+    <p class="footer-line">
+      <span class="footer-name">Keymaker</span>
+      <a href="https://github.com/kentrow/keymaker/blob/HEAD/CHANGELOG.md" target="_blank" rel="noopener noreferrer"
+         x-bind:title="labels.changelogLink" x-show="versionLabel" x-text="versionLabel"></a>
+      <span class="footer-dot" aria-hidden="true">·</span>
+      <a href="https://github.com/kentrow/keymaker" target="_blank" rel="noopener noreferrer" x-text="labels.repositoryLink"></a>
+      <span class="footer-dot" aria-hidden="true">·</span>
+      <a href="https://github.com/kentrow/keymaker/blob/HEAD/LICENSE" target="_blank" rel="noopener noreferrer" x-text="labels.licenceLink"></a>
+    </p>
+    <p class="footer-disclaimer" x-text="labels.disclaimer"></p>
+    <p class="footer-line">
+      <span aria-hidden="true">&copy;</span>
+      <span x-text="labels.copyright"></span>
+    </p>
+  </footer>
+
+</div>
+</body>
+</html>

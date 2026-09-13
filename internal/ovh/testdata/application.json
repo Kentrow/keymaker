@@ -1,0 +1,7 @@
+{
+  "applicationId": 128745,
+  "applicationKey": "aBcDeFgHiJkLmNoP",
+  "name": "terraform-prod",
+  "description": "Terraform provider, production account",
+  "status": "active"
+}

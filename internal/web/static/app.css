@@ -1,0 +1,1585 @@
+/* Copyright 2026 Kentrow
+   SPDX-License-Identifier: Apache-2.0 */
+
+:root {
+  /* Neutrals carry a cool cast rather than being grey: it is what keeps a surface from
+     looking dirty next to the accent, and it is the one palette decision the whole screen
+     rests on. Every step is dark enough on its own background to be read, --text-faint
+     included, which is why it stops at a mid slate and not a light one. */
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-sunken: #f1f5f9;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text: #0f172a;
+  --text-soft: #475569;
+  --text-faint: #5f6d82;
+
+  /* One accent, and one step darker for the pressed and hovered states. Tinting by hand
+     rather than with a filter keeps the hover legible in both themes, where brightness
+     moves in opposite directions. */
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --accent-text: #ffffff;
+
+  --risk: #c81e1e;
+  --risk-soft: #fef2f2;
+  --caution: #b45309;
+  --caution-soft: #fffbeb;
+  --ok: #15803d;
+  --ok-soft: #f0fdf4;
+
+  /* Depth comes from a hairline border first and a shadow second. The large one is for
+     what floats above the page and nothing else. */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 16px 40px -12px rgba(15, 23, 42, 0.22), 0 2px 8px rgba(15, 23, 42, 0.06);
+
+  color-scheme: light;
+
+  /* A four pixel base, named rather than multiplied. The previous scale was eight with
+     fractional multipliers, which is a two pixel grid decided one rule at a time. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-10: 40px;
+
+  /* The header sticks, so anything else that sticks has to know how tall it is. */
+  --topbar: 64px;
+
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-full: 999px;
+
+  /* One curve and two durations. Anything that moves uses these, so nothing drifts out of
+     step with the rest. */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --fast: 120ms;
+  --normal: 180ms;
+}
+
+/* The palette is declared three times on purpose: once for light, once for a system set to
+   dark unless the reader chose light, and once for the reader who chose dark. Anything less
+   leaves one of the three states borrowing the wrong colours. The scales above are declared
+   once, because a spacing step does not change with the light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #080c14;
+    --surface: #0f1522;
+    --surface-sunken: #161d2c;
+    --border: #1e2637;
+    --border-strong: #2c3648;
+    --text: #e8edf5;
+    --text-soft: #a3b0c2;
+    --text-faint: #7b8798;
+    --accent: #60a5fa;
+    --accent-strong: #93c5fd;
+    --accent-soft: #12203a;
+    --accent-text: #06111f;
+    --risk: #f87171;
+    --risk-soft: #2a1414;
+    --caution: #fbbf24;
+    --caution-soft: #2a2010;
+    --ok: #4ade80;
+    --ok-soft: #0f2318;
+    --shadow-sm: none;
+    --shadow: none;
+    --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+    --bg: #080c14;
+    --surface: #0f1522;
+    --surface-sunken: #161d2c;
+    --border: #1e2637;
+    --border-strong: #2c3648;
+    --text: #e8edf5;
+    --text-soft: #a3b0c2;
+    --text-faint: #7b8798;
+    --accent: #60a5fa;
+    --accent-strong: #93c5fd;
+    --accent-soft: #12203a;
+    --accent-text: #06111f;
+    --risk: #f87171;
+    --risk-soft: #2a1414;
+    --caution: #fbbf24;
+    --caution-soft: #2a2010;
+    --ok: #4ade80;
+    --ok-soft: #0f2318;
+    --shadow-sm: none;
+    --shadow: none;
+    --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
+    color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+/* The gutter is reserved whether or not a scrollbar is in it. Without this, a view that
+   grows past the fold widens the page by the scrollbar's width and shifts every centred
+   element sideways; the same happens in reverse when it shrinks. Nothing should move
+   because the amount of content changed. */
+html { scrollbar-gutter: stable; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.92em;
+}
+
+/* Header */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: var(--topbar);
+}
+
+.brand { display: flex; align-items: center; gap: var(--space-3); }
+
+/* The mark carries its own colours and is drawn to survive both themes: the key is filled
+   dark and stroked white, so one of the two always reads against the surface behind it. */
+.mark { height: 35px; width: auto; display: block; }
+
+.name { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+
+.tools { display: flex; align-items: center; gap: var(--space-2); }
+
+.brand .pill { white-space: nowrap; }
+
+/* Narrow screens. The header held three groups on one line and pushed the appearance, language
+   and refresh controls off the side of the screen. Below this width the screen switcher takes a
+   line of its own, full width, and the brand and the tools share the line above it, wrapping
+   rather than overflowing when even that is too much. */
+@media (max-width: 760px) {
+  .topbar { flex-wrap: wrap; row-gap: var(--space-2); }
+  .brand { order: 1; }
+  .tools { order: 2; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+  .screens { order: 3; flex: 1 0 100%; }
+  .screens .segmented { width: 100%; }
+  .screens .segmented button { flex: 1; padding-left: 6px; padding-right: 6px; }
+}
+
+/* The refresh button keeps its icon and its accessible name, and gives up the visible word.
+   The header no longer sticks: over two or three lines it would take a sixth of a phone screen
+   for the whole length of the inventory. */
+@media (max-width: 560px) {
+  .topbar { position: static; }
+  .refresh-label { display: none; }
+  .name { display: none; }
+}
+
+@media (max-width: 420px) {
+  .screens .segmented .icon { display: none; }
+}
+
+.screens { display: flex; align-items: center; }
+
+/* Controls */
+
+button {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.25;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background-color var(--fast) var(--ease),
+    border-color var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    box-shadow var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
+}
+
+button.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-sm);
+}
+button.primary:hover { background: var(--accent-strong); }
+button.primary:active { transform: translateY(1px); }
+
+button.quiet {
+  background: var(--surface);
+  color: var(--text-soft);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+button.quiet:hover { color: var(--text); border-color: var(--text-faint); background: var(--surface-sunken); }
+button.quiet:active { transform: translateY(1px); }
+
+button.link {
+  background: none;
+  border: none;
+  padding: 0;
+  min-height: 24px;
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+button.link:hover { text-decoration: underline; }
+
+input, select {
+  font: inherit;
+  font-size: 13.5px;
+  padding: 7px 9px;
+  width: 100%;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+input, select {
+  transition:
+    border-color var(--fast) var(--ease),
+    box-shadow var(--fast) var(--ease);
+}
+
+input:hover, select:hover { border-color: var(--text-faint); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* A field is the one place the ring sits tight: offset from an input it reads as a second
+   border rather than as focus. */
+input:focus-visible, select:focus-visible {
+  outline-offset: 0;
+  border-color: var(--accent);
+}
+
+/* Layout */
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+.state {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  color: var(--text-soft);
+  margin: 0 0 var(--space-4);
+}
+
+.state p { margin: 0 0 4px; }
+.state .headline { color: var(--text); font-weight: 550; }
+.state.failure { border-left: 3px solid var(--risk); }
+.state.failure .headline { color: var(--risk); }
+
+.state button, .state a.button { margin-top: var(--space-2); }
+
+/* Overview */
+
+.overview {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow);
+}
+
+/* The four tiles partition the account: every key sits in exactly one of them, which is
+   why they can be read as a row and clicked as a filter.
+
+   Each band owns a tone, set once as a local property and read by the border, the
+   background, the label and the glyph, so they can never disagree. */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.metric {
+  --tone: var(--text-faint);
+  --tone-soft: var(--surface-sunken);
+  --glyph: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  text-align: left;
+  border: 1px solid var(--tone);
+  border-radius: var(--radius);
+  background: var(--tone-soft);
+}
+
+.metric.all { --tone: var(--accent); --tone-soft: var(--accent-soft); }
+.metric.risk { --tone: var(--risk); --tone-soft: var(--risk-soft); }
+.metric.watch { --tone: var(--caution); --tone-soft: var(--caution-soft); }
+.metric.clean { --tone: var(--ok); --tone-soft: var(--ok-soft); }
+
+/* A glyph sits behind each tile in the band's own tone. It repeats what the label already
+   says, so it is decoration and nothing rests on it: masked rather than drawn, which lets
+   one asset follow the tone in both themes, and taken out of the flow so it cannot move the
+   figure by a pixel. */
+.metric { position: relative; overflow: hidden; }
+
+.metric > * { position: relative; z-index: 1; }
+
+.metric::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  bottom: -12px;
+  width: 72px;
+  height: 72px;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--tone);
+  opacity: 0.13;
+  -webkit-mask-image: var(--glyph);
+  mask-image: var(--glyph);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.metric.all { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z'/%3E%3Ccircle cx='16.5' cy='7.5' r='.5' fill='black'/%3E%3C/svg%3E"); }
+.metric.risk { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M12 16h.01'/%3E%3C/svg%3E"); }
+.metric.watch { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E"); }
+.metric.clean { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E"); }
+
+/* Selection reads as a thicker edge without being one: a wider border would reflow the
+   row every time the reader picks a band. The ring is drawn inside the tile instead. */
+.metric.selected { box-shadow: inset 0 0 0 2px var(--tone); }
+
+/* Hover deepens the fill and leaves the edge alone, so the states stay readable as three:
+   the edge says which band is picked, the fill says which one is under the pointer. The
+   lift comes with it, but nothing rests on it: the shadow token is none in the dark
+   palette, where the fill carries the whole signal. */
+.metric:hover {
+  background: color-mix(in oklab, var(--tone) 10%, var(--tone-soft));
+  box-shadow: var(--shadow);
+}
+
+.metric:hover::after { opacity: 0.18; }
+
+.metric.selected:hover { box-shadow: inset 0 0 0 2px var(--tone), var(--shadow); }
+
+/* A band holding nothing recedes: a full-strength red tile reading zero draws the eye to
+   the one place that needs nothing. */
+.metric.empty { opacity: 0.6; }
+
+/* The figure stays in ink so it reads as a quantity; the label under it carries the band,
+   in the same tone as the border and the glyph. Nothing rests on that colour: the label
+   says "at risk" in words. */
+.figure {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--text);
+}
+
+.caption {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--tone);
+}
+
+/* A quiet heading with a rule running off to the right of it. */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Pills: rounded to the full radius so nothing else on the page reads like them, sized to
+   be scanned in one pass, and filled at rest so they read as something to press. */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.filter {
+  --tone: var(--text-soft);
+  --tone-soft: var(--surface-sunken);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px 6px 5px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  background: var(--tone-soft);
+  color: var(--tone);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* The same division as the tiles: fill for the pointer, edge for the choice. */
+.filter:hover { background: color-mix(in oklab, var(--tone) 12%, var(--tone-soft)); }
+
+/* Pressed is an edge drawn inside, the same trick as the tiles: a wider border would move
+   every neighbour by a pixel on each click. */
+.filter.selected {
+  border-color: var(--tone);
+  box-shadow: inset 0 0 0 1px var(--tone);
+}
+
+.filter .tally {
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--tone);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.filter.risk { --tone: var(--risk); --tone-soft: var(--risk-soft); }
+.filter.caution { --tone: var(--caution); --tone-soft: var(--caution-soft); }
+.filter.note { --tone: var(--accent); --tone-soft: var(--accent-soft); }
+
+/* What the chosen filter means, spelled out once one is on. */
+.explain {
+  margin: var(--space-3) 0 0;
+  font-size: 12.5px;
+  color: var(--text-soft);
+}
+
+.notice {
+  margin: var(--space-4) 0 0;
+  color: var(--text-soft);
+}
+
+/* Toolbar */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.field { display: flex; flex-direction: column; gap: var(--space-1); min-width: 170px; }
+.field.grow { flex: 1 1 260px; }
+
+/* The row holds five controls and is meant to stay one row: each one keeps a floor it will
+   not shrink past, and the search takes whatever the others leave. Below the sum of those
+   floors the row wraps rather than squeezing a select down to its caret. */
+.toolbar .field { flex: 1 1 130px; min-width: 108px; }
+.toolbar .field.grow { flex: 3 1 220px; min-width: 200px; }
+
+/* The view switch is not a filter and is not sized like one: it is as wide as its two
+   buttons. Without this it inherits the column stretch and spreads across a field width. */
+.toolbar .field.view { flex: 0 0 auto; min-width: 0; align-items: flex-start; }
+
+/* What filters and what only rearranges are separated by a line rather than by position
+   alone. */
+.toolbar .rule { align-self: stretch; width: 1px; background: var(--border); }
+
+.search, .select { position: relative; display: block; }
+
+.select {
+  --caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+}
+
+.search .glass {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  margin-top: -7.5px;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+.search input { padding-left: 32px; }
+
+/* The platform draws its own arrow on a select and paints it from the system palette, so it
+   ignores the theme. This one is the caret the language picker already uses, masked so a
+   single asset follows the ink in both themes. */
+.select select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 28px;
+}
+
+.select::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin-top: -5.5px;
+  pointer-events: none;
+  background-color: var(--text-soft);
+  -webkit-mask-image: var(--caret);
+  mask-image: var(--caret);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* A filter that is holding something says so without being read. */
+.select.on select { border-color: var(--accent); color: var(--accent); }
+.select.on::after { background-color: var(--accent); }
+
+.field > span {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+/* Inactive keys are dead weight rather than exposure, so the offer to clear them sits
+   above the list as a statement with an action on it, not as an alert. */
+.sweep {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.sweep-text {
+  margin: 0;
+  flex: 1 1 auto;
+  font-size: 12.5px;
+  color: var(--text-soft);
+}
+
+.sweep-count { font-weight: 600; color: var(--text); }
+
+.sweep button { flex: none; }
+
+.sweep-list {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.sweep-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.results {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.shown {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+
+/* Cards */
+
+.cards { list-style: none; margin: 0; padding: 0; }
+
+.cards > li { background: var(--surface); }
+
+/* An expired or refused key recedes by its ground and its title, not by opacity: fading the
+   whole card took every label on it below a readable contrast, while its actions still work. */
+.cards > li.is-inert { background: var(--surface-sunken); }
+
+.cards > li.is-inert h2 { color: var(--text-soft); }
+
+/* Grid: one card per key, laid out across the width available. The minimum column width is
+   what decides how many fit, so the same rule covers a phone and a wide screen. */
+.cards.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.cards.grid > li {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  box-shadow: var(--shadow);
+}
+
+.cards.grid > li.is-self { border-left: 3px solid var(--accent); }
+
+/* List: one row per key, for scanning many at once. The description and the rules give way
+   to the identity, the findings and the dates. */
+.cards.list {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.cards.list > li {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.cards.list > li:last-child { border-bottom: none; }
+.cards.list > li.is-self { box-shadow: inset 3px 0 0 var(--accent); }
+.cards.list .description { display: none; }
+.cards.list .findings { margin-top: var(--space-2); }
+
+.cards.list .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--space-4);
+  margin-top: var(--space-2);
+  padding-top: 0;
+  border-top: none;
+}
+
+.cards.list .meta > div { flex-direction: row; align-items: baseline; gap: 6px; }
+
+.cards.list .rules {
+  margin-top: var(--space-2);
+  padding-top: 0;
+  border-top: none;
+}
+
+.cards.list .rules-head { margin-bottom: 0; }
+.cards.list .rules ul:empty { display: none; }
+.cards.list .rules ul { margin-top: var(--space-2); }
+
+.head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+
+.head h2 { margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
+
+.pill {
+  display: inline-block;
+  padding: 1px 7px;
+  font-size: 11.5px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  background: var(--surface-sunken);
+}
+
+.pill.self { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+/* A key issued through an application the account does not own, such as the API console.
+   Neutral rather than alarming: where a key came from is context, the findings carry the risk. */
+.pill.external { color: var(--text-soft); border-color: var(--border); background: transparent; }
+
+/* The key's own number is what a revocation is typed against and what a support thread
+   quotes, so it carries the accent rather than sitting in the neutral grey of a label. */
+.pill.reference { color: var(--accent); border-color: transparent; background: var(--accent-soft); }
+
+/* One tag for the state, carrying its own dot: the loose dot beside it said the same thing
+   a second time, in a second place. */
+.pill.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: lowercase;
+}
+
+.pill.status .dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pill.status.active { color: var(--ok); border-color: transparent; background: var(--ok-soft); }
+.pill.status.pending { color: var(--caution); border-color: transparent; background: var(--caution-soft); }
+.pill.status.inactive { color: var(--text-faint); border-color: transparent; background: var(--surface-sunken); }
+
+.description { margin: var(--space-2) 0 0; color: var(--text-soft); }
+
+.findings { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-3); }
+
+.finding {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  font-size: 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  min-height: 24px;
+  font-weight: 500;
+}
+
+.finding[aria-expanded="true"] { box-shadow: inset 0 0 0 1px currentColor; }
+
+/* The sentence a finding or a missing action unfolds into, under the card it belongs to. */
+.explained {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: 13px;
+  color: var(--text-soft);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  max-width: 72ch;
+}
+
+.finding.risk { color: var(--risk); background: var(--risk-soft); border-color: var(--risk); }
+.finding.caution { color: var(--caution); background: var(--caution-soft); border-color: var(--caution); }
+/* The same tone as the quick filter that counts it, so a finding reads the same in both places. */
+.finding.note { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); }
+
+/* Meta */
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.meta > div { display: flex; flex-direction: column; gap: 2px; }
+
+.meta dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+}
+
+.meta dd { margin: 0; font-size: 13.5px; }
+.meta dd.absent { color: var(--caution); }
+
+/* Rules */
+
+.rules { margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+
+/* The count and the switch that unfolds it are one phrase, so they sit together. Pushed to
+   opposite edges the button lost its subject and the eye had to cross the card to pair
+   them. */
+.rules-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+}
+
+.rules-head button { text-transform: none; letter-spacing: normal; }
+
+.rules ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+
+.rules li { display: flex; align-items: baseline; gap: var(--space-2); }
+
+.rules code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 12.5px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* Centred, three lines: what this build is, what it is not, and who holds the copyright.
+   The disclaimer sits on its own line rather than in the run of links, because it is the
+   one sentence in the footer that is not a convenience. */
+footer {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) var(--space-10);
+  border-top: 1px solid var(--border);
+  color: var(--text-faint);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* The mark says nothing the name below it does not, so it is decorative and carries an
+   empty alt: a reader on a screen reader hears "Keymaker" once, not twice. */
+.footer-mark {
+  display: block;
+  margin: 0 auto var(--space-3);
+  opacity: 0.75;
+}
+
+.footer-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.footer-name { font-weight: 600; color: var(--text-soft); }
+
+.footer-dot { color: var(--border-strong); }
+
+.footer-disclaimer {
+  margin: var(--space-2) auto;
+  max-width: 62ch;
+}
+
+footer a { color: var(--text-faint); text-decoration: none; }
+footer a:hover { color: var(--accent); text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .topbar, main, footer { padding-left: var(--space-4); padding-right: var(--space-4); }
+  .metrics { gap: var(--space-6); }
+  .figure { font-size: 26px; }
+}
+
+
+/* Segmented controls */
+
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+}
+
+.segmented button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 11px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-soft);
+}
+
+.segmented.tall button { padding: 6px 11px; }
+
+.segmented button:hover { color: var(--text); }
+
+.segmented button.chosen {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.segmented svg { width: 16px; height: 16px; display: block; }
+
+/* Buttons that carry an icon lay it beside the label rather than in place of it: the icon
+   speeds up recognition, the word is what makes it unambiguous. */
+button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+
+.icon { width: 15px; height: 15px; flex: none; }
+
+/* The icon turns while the request is out. It replaces nothing: the label says the same
+   thing in words, and a reader who asked for reduced motion gets the words alone. */
+button.working .icon { animation: turn 900ms linear infinite; }
+
+@keyframes turn {
+  to { transform: rotate(360deg); }
+}
+
+/* Language menu */
+
+.language { position: relative; }
+
+.picker { display: inline-flex; align-items: center; gap: 7px; }
+.picker .caret { width: 12px; height: 12px; opacity: 0.7; }
+
+.flag {
+  width: 18px;
+  height: 12px;
+  flex: none;
+  border-radius: 2px;
+  background-size: cover;
+  background-position: center;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+.flag-gb {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 30'><clipPath id='s'><path d='M0,0 v30 h60 v-30 z'/></clipPath><clipPath id='t'><path d='M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z'/></clipPath><g clip-path='url(%23s)'><path d='M0,0 v30 h60 v-30 z' fill='%23012169'/><path d='M0,0 L60,30 M60,0 L0,30' stroke='%23fff' stroke-width='6'/><path d='M0,0 L60,30 M60,0 L0,30' clip-path='url(%23t)' stroke='%23C8102E' stroke-width='4'/><path d='M30,0 v30 M0,15 h60' stroke='%23fff' stroke-width='10'/><path d='M30,0 v30 M0,15 h60' stroke='%23C8102E' stroke-width='6'/></g></svg>");
+}
+
+.flag-fr {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'><rect width='3' height='2' fill='%23fff'/><rect width='1' height='2' fill='%23002654'/><rect x='2' width='1' height='2' fill='%23ce1126'/></svg>");
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  min-width: 168px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 24px rgba(20, 23, 31, 0.14);
+}
+
+.menu button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  background: none;
+  color: var(--text-soft);
+  text-align: left;
+}
+
+.menu button:hover { background: var(--surface-sunken); color: var(--text); }
+.menu button.chosen { color: var(--accent); font-weight: 550; }
+
+/* Actions */
+
+/* Revocation belongs beside the name of what it revokes, not at the far end of the card:
+   at the bottom it sat under the access rules, which are the one part of a card that
+   changes height, so the button moved from row to row. */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.actions button { padding: 4px 10px; font-size: 12.5px; }
+
+button.danger {
+  background: var(--surface);
+  color: var(--risk);
+  border-color: var(--risk);
+}
+
+button.danger:hover { background: var(--risk); color: var(--surface); }
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.danger:disabled:hover { background: var(--surface); color: var(--risk); }
+
+/* Why the action is absent, in a word that unfolds into the reason under the card: the
+   sentence is four lines wide and would push the name of the key onto a second row. */
+.actions .unavailable {
+  padding: 0 2px;
+  min-height: 24px;
+  font-size: 12px;
+  color: var(--text-faint);
+  background: none;
+  border: none;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.actions .unavailable:hover { color: var(--text-soft); }
+
+/* A replacement is announced before anything is issued, because what it does is not what
+   the word "edit" leads a reader to expect. */
+.state.replacing { border-left: 3px solid var(--accent); }
+.state.replacing .headline { color: var(--accent); }
+
+.state.done { border-left: 3px solid var(--ok); }
+.state.done .headline { color: var(--ok); }
+
+/* Confirmation */
+
+/* A native modal dialog: the dialog element itself is the whole click target beside the
+   content, so its own padding is zero and the body carries the spacing. A click that lands on
+   the dialog rather than inside the body is a click on the backdrop. */
+.dialog {
+  width: calc(100% - 2 * var(--space-4));
+  max-width: 460px;
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.dialog[open] { animation: rise var(--normal) var(--ease); }
+
+.dialog::backdrop { background: rgba(11, 14, 20, 0.55); }
+
+.dialog-body { padding: var(--space-6); }
+
+/* The page behind a modal does not scroll under it. */
+html:has(.dialog[open]) { overflow: hidden; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+}
+
+.dialog h2 { margin: 0; font-size: 17px; font-weight: 620; }
+
+.subject {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+}
+
+.subject-name { font-weight: 550; }
+
+.warning {
+  margin: var(--space-3) 0 var(--space-5);
+  color: var(--text-soft);
+}
+
+.dialog .field { min-width: 0; }
+
+.dialog-error { margin: var(--space-2) 0 0; color: var(--risk); font-size: 13px; }
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+/* Explorer */
+
+.explorer-intro {
+  margin-bottom: var(--space-4);
+}
+
+/* The title takes the focus on a screen change so assistive technology announces where the
+   reader has arrived; it is not a control, so it draws no ring. */
+.explorer-intro h1:focus { outline: none; }
+
+.explorer-intro h1 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 var(--space-2);
+}
+
+.explorer-intro p {
+  margin: 0;
+  color: var(--text-soft);
+  max-width: 68ch;
+}
+
+.explorer-intro .origin {
+  margin-top: var(--space-2);
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.check input {
+  accent-color: var(--accent);
+}
+
+.explorer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.routes .count {
+  margin: 0 0 var(--space-2);
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+
+.routes .empty,
+.selection .empty {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.route-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The foot of the list, watched rather than shown: reaching it is what asks for the next
+   rows. It keeps a height so it can be reached at all. */
+.route-end { height: var(--space-4); }
+
+.route {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-3);
+  box-shadow: var(--shadow);
+}
+
+.route.broad {
+  border-color: var(--risk);
+}
+
+.route-path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.route-path code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86rem;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.hint {
+  font-size: 0.74rem;
+  color: var(--text-faint);
+}
+
+.hint.warn {
+  color: var(--risk);
+}
+
+.operations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.operations li { display: flex; }
+
+/* The row is one button: the verb, what the operation does, and its deprecation tag are all
+   the same target. */
+.operation {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 3px 6px;
+  text-align: left;
+  font-weight: 400;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+}
+
+.operation:hover { background: var(--surface-sunken); }
+
+.purpose {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--caution);
+  background: var(--caution-soft);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+}
+
+/* One component for every HTTP method on the page: the rules of a key, the operations in
+   the explorer, the rules being assembled. The hues are SwaggerUI's, which is the reference
+   anyone reading an API already has in their eye - blue reads, green creates, orange
+   replaces, red destroys. They come from that convention rather than from the palette
+   above, so they do not follow the theme and are written here as literals.
+
+   The tag is a tint of its hue rather than a block of it: a rules list holds several at
+   once, and five saturated blocks in a column read as five warnings. It also leaves the
+   filled form free to mean something. */
+.method {
+  --verb: var(--text-faint);
+  --verb-ink: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  padding: 2px 8px;
+  flex: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid color-mix(in oklab, var(--verb) 40%, var(--surface));
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklab, var(--verb) 16%, var(--surface));
+  color: color-mix(in oklab, var(--verb) 65%, var(--text));
+}
+
+.method-get { --verb: #61affe; }
+.method-post { --verb: #49cc90; }
+.method-put { --verb: #fca130; }
+.method-delete { --verb: #f93e3e; }
+.method-patch { --verb: #50e3c2; }
+
+/* In the explorer the same tag is a switch: filled is taken, tinted is available, so the
+   two states differ by weight of one colour rather than by colour. The row around it is
+   what takes the press, so the tag follows the row's hover rather than its own. */
+.operation:hover .method {
+  background: color-mix(in oklab, var(--verb) 28%, var(--surface));
+  border-color: var(--verb);
+}
+
+/* Filled, the label is the page's dark ink and not white: white on these hues lands between
+   1.6:1 and 3.6:1, below what a ten pixel label can carry, while the ink clears 4.9:1 on all
+   five. */
+.explorer .method.chosen {
+  background: var(--verb);
+  border-color: var(--verb);
+  color: var(--verb-ink);
+}
+
+.method.deprecated {
+  opacity: 0.72;
+}
+
+/* The panel follows the page, so it has to clear the header it would otherwise slide under,
+   and it has to stop at the bottom of the screen: a selection longer than the viewport used
+   to run past it, taking the actions with it. The list inside is what scrolls, so the count
+   at the top and the buttons at the bottom stay put. */
+.selection {
+  position: sticky;
+  top: calc(var(--topbar) + var(--space-3));
+  max-height: calc(100vh - var(--topbar) - var(--space-6));
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  box-shadow: var(--shadow);
+}
+
+.selection .rule-list {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.selection-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.selection-head h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* The rules a reader is picking, listed back to them. Named apart from the .rules block of
+   a credential card: two components under one class let the later one quietly restyle the
+   earlier. */
+.rule-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.rule {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.rule:last-child {
+  border-bottom: none;
+}
+
+.rule .path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+}
+
+.rule .path {
+  color: var(--text-soft);
+  word-break: break-all;
+}
+
+.rule.broad .path {
+  color: var(--risk);
+}
+
+.selection .warning {
+  margin: var(--space-2) 0 0;
+  font-size: 0.8rem;
+  color: var(--risk);
+  background: var(--risk-soft);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+}
+
+.selection-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.selection-actions button {
+  flex: 1;
+}
+
+.copied {
+  margin: var(--space-2) 0 0;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+
+@media (max-width: 860px) {
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .explorer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .selection {
+    position: static;
+    order: -1;
+  }
+}
+
+/* Creation */
+
+.compose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--space-4);
+}
+
+.panel:last-child { margin-bottom: 0; }
+
+/* The panels are steps and are numbered as such: the page reads as a sequence without
+   hiding any of it, which matters for a creation that cannot be edited afterwards. */
+.panel h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-3);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* One application is not a choice, so the step says what will happen rather than offering
+   a menu of one. */
+.settled {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--text-soft);
+}
+
+/* Sits against the value it copies rather than under it: the two are one thing, and the
+   button is as quiet as the label beside it until it is reached for. */
+.copy {
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-faint);
+  background: var(--surface-sunken);
+  border-color: var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.copy:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+/* The restriction of the key being replaced, set apart inside the step because it is the one
+   thing the link cannot carry and the one a reader is least likely to remember. */
+.carried {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+}
+
+.carried .remark { margin-top: 0; }
+
+.address-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.address-list li { display: flex; align-items: center; gap: var(--space-2); }
+
+.panel-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: var(--space-3) 0 0;
+}
+
+.panel h3 {
+  margin: 0 0 var(--space-1);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.panel > .field { margin-bottom: var(--space-3); }
+
+.panel > button { margin-top: var(--space-2); }
+
+.panel > a.button { margin-top: var(--space-3); }
+
+.remark {
+  margin: var(--space-2) 0 0;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  max-width: 72ch;
+}
+
+.remark.warn { color: var(--risk); }
+button.wide, a.button.wide { width: 100%; }
+
+a.button {
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.2;
+  padding: 7px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+}
+
+a.button.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-sm);
+}
+
+a.button.primary:hover { background: var(--accent-strong); }
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.recover {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.recover .remark { margin-top: var(--space-2); }
+
+/* Motion is decoration here: nothing in this interface conveys meaning by moving. A reader
+   who asked their system for less gets none of it, rather than a shortened version. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

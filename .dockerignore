@@ -1,0 +1,8 @@
+# The build context is an allowlist: everything is excluded, then only what the
+# Dockerfile compiles is let back in. The repository metadata (.git, .github),
+# the documentation and any local artefact or ovh.conf stay out of the context.
+*
+!cmd/
+!internal/
+!go.mod
+!go.sum

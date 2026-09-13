@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest a change or an addition to Keymaker.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keymaker stays small on purpose: it persists nothing, calls a closed list of
+        OVHcloud endpoints and has a single runtime dependency. Proposals that keep those
+        properties are the easiest to accept.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What would you like Keymaker to do? Mention any OVHcloud API endpoint it would need.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false

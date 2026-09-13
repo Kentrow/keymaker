@@ -1,0 +1,37 @@
+; Keymaker reads the file the official OVHcloud SDKs already read. Copy this to ovh.conf,
+; fill in the three values of the management credential, and keep it to yourself:
+;
+;   cp ovh.conf.example ovh.conf
+;   chmod 600 ovh.conf
+;
+; The file is mounted read-only and is never written back. Nothing else is read from it,
+; and no secret ever leaves it: Keymaker holds these values in memory for the length of a
+; run and writes none of them anywhere.
+
+[default]
+; The region of your account, as the official SDKs name it: ovh-eu, ovh-ca or ovh-us.
+; The Kimsufi and SoYouStart endpoints are not accepted, because they resolve to hosts
+; outside api.ovh.com.
+endpoint=ovh-eu
+
+[ovh-eu]
+; The credential Keymaker authenticates with, to read and revoke the keys of the account.
+; It needs these access rules and nothing more:
+;
+;   GET    /me/api/credential
+;   GET    /me/api/credential/*
+;   GET    /me/api/application/*
+;   DELETE /me/api/credential/*
+;
+; Never grant it /me/* and never /*. The DELETE rule is optional: without it Keymaker runs
+; read-only and says so on each key rather than failing on the action.
+;
+; This link opens the OVHcloud page with exactly those rules prefilled:
+; https://eu.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application/*&DELETE=/me/api/credential/*
+application_key=
+application_secret=
+consumer_key=
+
+; Creating a key needs nothing in this file. It happens on the OVHcloud page, which issues
+; the application and the key together, and none of the three values it hands back passes
+; through Keymaker.

@@ -1,0 +1,36 @@
+# Binaries and build output
+/keymaker
+/dist/
+/bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test and coverage output
+*.test
+*.out
+coverage.*
+*.coverprofile
+
+# Local configuration and environment. ovh.conf holds a real API credential and
+# must never be committed; the fixture used by the test suite is the exception.
+.env
+.env.*
+!.env.example
+ovh.conf
+*.ovh.conf
+!/internal/config/testdata/ovh.conf
+
+# Go workspace
+/vendor/
+go.work
+go.work.sum
+
+# Editors and operating systems
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db

@@ -1,0 +1,15 @@
+The Keymaker mascot, drawn in keymaker-icon.svg and keymaker-favicon.svg, is a gopher
+holding a key. It is not a copy of any published gopher file: it is a separate drawing of the
+character, which is what the licence below allows and what the credit below acknowledges.
+
+The mascot of Keymaker is licensed under the Creative Commons Attribution 4.0 licence.
+https://creativecommons.org/licenses/by/4.0/
+
+The mascot of Keymaker was inspired by the Go gopher, designed by Renee French.
+https://reneefrench.blogspot.com/
+
+The Go gopher artwork is licensed under the Creative Commons Attribution 4.0 licence.
+https://go.dev/blog/gopher
+
+The Go name and the Go logo are trademarks of Google LLC and are not used here. The gopher
+is the mascot of the language, distributed under the licence above; the mark is not.

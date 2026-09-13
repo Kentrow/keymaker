@@ -1,0 +1,69 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - ineffassign
+    - unused
+    - gosec
+    - misspell
+    # An unclosed response body and a request made without a context are the two
+    # mistakes an HTTP client invites.
+    - bodyclose
+    - noctx
+    - errorlint
+    # Two invariants of the project, made mechanical rather than a matter of review:
+    # forbidigo keeps every output going through log/slog, where secrets are redacted,
+    # and depguard keeps the dependency tree to what a reader can audit.
+    - forbidigo
+    - depguard
+
+  settings:
+    forbidigo:
+      forbid:
+        - pattern: ^fmt\.Print.*$
+          msg: write through log/slog so that redaction applies
+        - pattern: ^print(ln)?$
+          msg: write through log/slog so that redaction applies
+
+    depguard:
+      rules:
+        main:
+          list-mode: lax
+          allow:
+            - $gostd
+            - github.com/kentrow/keymaker
+            - github.com/ovh/go-ovh
+
+    gosec:
+      excludes:
+        # Duplicated by errcheck, which reports unchecked errors with more precision.
+        - G104
+
+  exclusions:
+    rules:
+      # In tests these fire on fixtures rather than on real findings: G101 matches
+      # identifier names, so a route table whose keys contain the word credential reads as
+      # a hardcoded secret; G304 flags opening a fixture named by a variable; G124 judges
+      # cookies attached to a request, where the response attributes it looks for have no
+      # meaning. A real secret committed in a test is caught by gitleaks.
+      - path: _test\.go
+        linters:
+          - gosec
+        text: G101|G304|G124
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/kentrow/keymaker
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

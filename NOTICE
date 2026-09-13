@@ -1,0 +1,54 @@
+Keymaker
+Copyright 2026 Kentrow
+
+This product is licensed under the Apache License, Version 2.0. See LICENSE.
+
+-------------------------------------------------------------------------------
+Third-party components embedded in the binary
+-------------------------------------------------------------------------------
+
+Alpine.js, CSP build, version 3.17.2
+  License:  MIT
+  File:     internal/web/static/alpine-csp.min.js
+  Notice:   internal/web/static/alpine-csp.LICENSE.txt
+  Source:   https://github.com/alpinejs/alpine
+  The minified build bundles @vue/shared 3.5.41 and @vue/reactivity 3.5.41
+  (MIT, (c) 2018-present Yuxi (Evan) You and Vue contributors),
+  https://github.com/vuejs/core. Their license notice is kept at the end of the
+  minified file.
+
+Lucide icons
+  License:  ISC
+  Files:    inline SVG in internal/web/static/index.html and data URIs in
+            internal/web/static/app.css
+  Notice:   internal/web/static/lucide.LICENSE.txt
+  Source:   https://lucide.dev
+  The embedded paths of the list, compass, key-round, refresh-cw, shield-alert,
+  eye and shield-check icons are identical to lucide-static 0.543.0 through
+  1.45.0.
+
+Keymaker mascot
+  License:  Creative Commons Attribution 4.0
+  Files:    internal/web/static/keymaker-icon.svg,
+            internal/web/static/keymaker-favicon.svg
+  Notice:   internal/web/static/keymaker-logo.LICENSE.txt
+  The mascot was inspired by the Go gopher, designed by Renee French, whose
+  artwork is licensed under the Creative Commons Attribution 4.0 license
+  (https://go.dev/blog/gopher). The Go name and logo are trademarks of Google
+  LLC and are not used.
+
+-------------------------------------------------------------------------------
+Data
+-------------------------------------------------------------------------------
+
+internal/catalog/snapshot.json.gz and internal/catalog/testdata/ are derived from
+the public API descriptions (schemas) published by OVHcloud at
+https://eu.api.ovh.com/1.0/.
+
+-------------------------------------------------------------------------------
+Trademarks and affiliation
+-------------------------------------------------------------------------------
+
+Keymaker is an independent project. It is not affiliated with, endorsed by or
+sponsored by OVHcloud. OVHcloud is a trademark of its owner, used here only to
+identify the API this software works with.

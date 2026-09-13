@@ -1,0 +1,24 @@
+# The Go hooks run against the toolchain already installed, rather than through a
+# mirror repository, so that what runs locally is what runs in CI.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        # gofmt -l exits zero even when it lists a file, so the listing itself is the
+        # failure condition.
+        entry: bash -c 'out=$(gofmt -l "$@"); if [ -n "$out" ]; then echo "$out"; exit 1; fi' --
+        language: system
+        types: [go]
+
+      - id: go-vet
+        name: go vet
+        entry: go vet ./...
+        language: system
+        types: [go]
+        pass_filenames: false

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="250 120 650 650">
+  <title>Keymaker logo</title>
+  <g>
+    <path fill="#35B5E5" d="
+      M270 485
+      C245 430 238 365 250 300
+      C262 230 315 175 385 145
+      C438 122 505 112 570 120
+      C635 128 692 150 738 184
+      C760 169 780 159 801 162
+      C838 168 860 199 853 232
+      C848 257 831 275 806 282
+      C814 325 814 372 805 418
+      C792 482 765 528 724 560
+      L690 595 L315 595
+      C292 575 279 537 270 485 Z"/>
+    <circle cx="286" cy="214" r="53" fill="#35B5E5"/>
+    <circle cx="750" cy="214" r="53" fill="#35B5E5"/>
+    <circle cx="385" cy="285" r="73" fill="#FFFFFF"/>
+    <circle cx="650" cy="285" r="73" fill="#FFFFFF"/>
+    <circle cx="410" cy="293" r="25" fill="#18324A"/>
+    <circle cx="674" cy="293" r="25" fill="#18324A"/>
+    <ellipse cx="518" cy="366" rx="38" ry="24" fill="#18324A"/>
+    <path fill="#FFFFFF" d="M488 394 h28 v54 q0 17-14 17t-14-17z"/>
+    <path fill="#FFFFFF" d="M522 394 h28 v54 q0 17-14 17t-14-17z"/>
+    <path fill="#18324A" stroke="#FFFFFF" stroke-width="12" stroke-linejoin="round" d="
+      M315 575
+      L655 405
+      C660 342 710 296 774 296
+      C842 296 897 351 897 418
+      C897 486 842 541 774 541
+      C741 541 711 529 688 509
+      L620 543
+      L641 583
+      L595 606
+      L570 564
+      L523 587
+      L541 625
+      L490 650
+      L468 608
+      L420 632
+      L435 670
+      L386 694
+      L357 639
+      L326 655
+      C307 664 286 656 276 638
+      C263 614 273 589 294 578 Z"/>
+    <circle cx="775" cy="418" r="43" fill="#FFFFFF"/>
+    <ellipse cx="315" cy="604" rx="49" ry="42" fill="#35B5E5" stroke="#FFFFFF" stroke-width="10"/>
+    <ellipse cx="646" cy="535" rx="42" ry="50" fill="#35B5E5" stroke="#FFFFFF" stroke-width="10"/>
+  </g>
+</svg>
