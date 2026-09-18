@@ -23,6 +23,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   without them the section says which rule is missing, and a key issued before this version
   keeps working.
 
+- An Understand screen, in English and French, explaining what an application, a key and an
+  access rule each are, on an invented example, and what follows from the way they fit
+  together. It reads nothing from the account.
+
 ### Changed
 
 - The quick start gives the ready-made management key link for each of the three endpoints

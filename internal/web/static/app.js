@@ -214,6 +214,34 @@ const dictionaries = {
     handoffBlocked: 'Choose at least one access rule in the explorer first.',
     rulesNone: 'No rule chosen yet. Open the explorer and pick the routes this key needs.',
     rulesEdit: 'Change them in the explorer',
+    screenGuide: 'Understand',
+    guideTitle: 'What an OVHcloud API key is made of',
+    guideIntro: 'What everyone calls a key is three things, created in one move and living apart afterwards: an application, a key issued under it, and the access rules that key carries. What this tool offers, refuses or flags follows from how the three fit together. The example below is invented.',
+    guideFigureTitle: 'One application, two keys',
+    guideFigureHint: 'Invented identifiers, in the shape the inventory shows when two keys were issued under one application.',
+    guideKindApplication: 'Application',
+    guideKindKey: 'Key',
+    guideAppKey: 'Application key',
+    guideAppSecret: 'The application secret goes with it, and OVHcloud displayed it once.',
+    guideFrom: 'Allowed address',
+    guideKeyRenewal: 'the machine that renews the certificate',
+    guideKeyReader: 'a second machine, which only reads',
+    guideApplicationTitle: 'The application is the program, not the permission',
+    guideApplicationBody: 'An application is what a program presents as its identity: an application key that names it, and an application secret that proves it. It is created once, it outlives every key issued under it, and on its own it opens nothing at all. Two unrelated programs have no reason to share one.',
+    guideApplicationNote: 'In the inventory, the application is the name above a key. Several keys can carry the same one.',
+    guideKeyTitle: 'The key is the permission, and the only thing a revocation removes',
+    guideKeyBody: 'A key, the consumer key, is an account holder saying yes to one application: for these rules, from these addresses, until this date. It proves nothing by itself, since the application key, the application secret and the consumer key sign every call together. Revoking it withdraws that yes and leaves the application where it was.',
+    guideKeyNote: 'A key is pending validation until the account holder validates it on the OVHcloud page. Until then it opens nothing either.',
+    guideRulesTitle: 'The rules are settled when the key is issued',
+    guideRulesBody: 'A rule is a method and a path, such as GET /domain/zone/*, where * stands for any identifier. A key carries the rules chosen at its creation, and the API has no endpoint to change them afterwards. A key that needs other rules is another key, which is what Replace prepares: the old rules as a starting point, a new key, and the old one revoked last.',
+    guideRulesNote: 'A rule such as GET /* reaches the whole account. That is what this audit calls a key at risk.',
+    guideExternalTitle: 'Applications the account does not own',
+    guideExternalBody: 'Some keys were issued under an application belonging to someone else, the OVHcloud API console and its mobile application among them. The account holder validated those keys like any other and can revoke them from here, but the application behind them cannot be read or deleted from this account. The inventory marks them as external.',
+    guideStoryTitle: 'The life of one application',
+    guideStoryOne: 'A script has to edit one DNS zone. The OVHcloud page creates the application and its first key in the same move, and displays the three values once.',
+    guideStoryTwo: 'A second machine needs the same access. It asks OVHcloud for a key of its own under that application, the account holder validates it, and the application now holds two keys, each with its own rules and addresses.',
+    guideStoryThree: 'The first machine is decommissioned, so its key is revoked. The application stays behind, key and secret intact, and a new key can still be requested under it. No inventory of keys can show that, which is why this tool lists the applications holding none.',
+    guideStoryFour: 'The day the script is gone for good, the application is deleted too. OVHcloud revokes every key still under it in the same move, which is why deleting one that still holds a key is refused here.',
     screenInventory: 'Inventory',
     screenExplorer: 'Explorer',
     explorerTitle: 'Build a set of access rules',
@@ -433,6 +461,34 @@ const dictionaries = {
     handoffBlocked: 'Choisissez d’abord au moins un droit d’accès dans l’explorateur.',
     rulesNone: 'Aucun droit retenu. Ouvrez l’explorateur et choisissez les routes dont cette clé a besoin.',
     rulesEdit: 'Les modifier dans l’explorateur',
+    screenGuide: 'Comprendre',
+    guideTitle: 'De quoi se compose une clé d’API OVHcloud',
+    guideIntro: 'Ce que tout le monde appelle une clé, ce sont trois choses créées d’un seul geste puis vivant séparément : une application, une clé émise sous elle, et les droits d’accès que porte cette clé. Ce que cet outil propose, refuse ou signale découle de la façon dont ces trois-là s’emboîtent. L’exemple ci-dessous est inventé.',
+    guideFigureTitle: 'Une application, deux clés',
+    guideFigureHint: 'Identifiants inventés, dans la forme que montre l’inventaire quand deux clés ont été émises sous une même application.',
+    guideKindApplication: 'Application',
+    guideKindKey: 'Clé',
+    guideAppKey: 'Clé d’application',
+    guideAppSecret: 'Le secret d’application va avec, et OVHcloud ne l’a affiché qu’une fois.',
+    guideFrom: 'Adresse autorisée',
+    guideKeyRenewal: 'la machine qui renouvelle le certificat',
+    guideKeyReader: 'une deuxième machine, qui ne fait que lire',
+    guideApplicationTitle: 'L’application, c’est le programme, pas la permission',
+    guideApplicationBody: 'Une application est ce qu’un programme présente comme identité : une clé d’application qui le nomme, et un secret d’application qui le prouve. Elle est créée une fois, elle survit à toutes les clés émises sous elle, et seule elle n’ouvre rien du tout. Deux programmes sans rapport n’ont aucune raison d’en partager une.',
+    guideApplicationNote: 'Dans l’inventaire, l’application est le nom au-dessus d’une clé. Plusieurs clés peuvent porter la même.',
+    guideKeyTitle: 'La clé, c’est la permission, et la seule chose qu’une révocation enlève',
+    guideKeyBody: 'Une clé, la consumer key, c’est le titulaire du compte qui dit oui à une application : pour ces droits, depuis ces adresses, jusqu’à cette date. Elle ne prouve rien seule, puisque la clé d’application, le secret d’application et la consumer key signent ensemble chaque appel. La révoquer retire ce oui et laisse l’application où elle était.',
+    guideKeyNote: 'Une clé reste en attente de validation tant que le titulaire du compte ne l’a pas validée sur la page OVHcloud. D’ici là, elle n’ouvre rien non plus.',
+    guideRulesTitle: 'Les droits sont figés au moment où la clé est émise',
+    guideRulesBody: 'Un droit d’accès, c’est une méthode et un chemin, par exemple GET /domain/zone/*, où * tient lieu de n’importe quel identifiant. Une clé porte les droits choisis à sa création, et l’API n’a aucune route pour les modifier ensuite. Une clé qui a besoin d’autres droits est une autre clé : c’est ce que prépare Remplacer, les anciens droits comme point de départ, une nouvelle clé, et l’ancienne révoquée en dernier.',
+    guideRulesNote: 'Un droit comme GET /* atteint l’ensemble du compte. C’est ce que cet audit appelle une clé à risque.',
+    guideExternalTitle: 'Les applications que le compte ne possède pas',
+    guideExternalBody: 'Certaines clés ont été émises sous une application appartenant à quelqu’un d’autre, dont la console API d’OVHcloud et son application mobile. Le titulaire du compte les a validées comme les autres et peut les révoquer d’ici, mais l’application derrière elles ne peut être ni lue ni supprimée depuis ce compte. L’inventaire les signale comme externes.',
+    guideStoryTitle: 'La vie d’une application',
+    guideStoryOne: 'Un script doit modifier une zone DNS. La page OVHcloud crée l’application et sa première clé d’un seul geste, et affiche les trois valeurs une fois.',
+    guideStoryTwo: 'Une deuxième machine a besoin du même accès. Elle demande à OVHcloud une clé à elle sous cette application, le titulaire du compte la valide, et l’application porte maintenant deux clés, chacune avec ses droits et ses adresses.',
+    guideStoryThree: 'La première machine est mise hors service, sa clé est donc révoquée. L’application reste derrière, clé et secret intacts, et une nouvelle clé peut encore être demandée sous elle. Aucun inventaire de clés ne peut le montrer, et c’est pourquoi cet outil liste les applications qui n’en portent aucune.',
+    guideStoryFour: 'Le jour où le script disparaît pour de bon, l’application est supprimée elle aussi. OVHcloud révoque du même geste toutes les clés encore sous elle, et c’est pourquoi supprimer une application qui en porte encore une est refusé ici.',
     screenInventory: 'Inventaire',
     screenExplorer: 'Explorateur',
     explorerTitle: 'Composer un jeu de droits d’accès',
@@ -1144,8 +1200,85 @@ document.addEventListener('alpine:init', () => {
       this.switchScreen('inventory')
     },
 
+    showGuide () {
+      this.switchScreen('guide')
+    },
+
+    // The guide is the one screen with nothing behind it. Its example is invented and lives
+    // here rather than in the markup, so that both languages tell the same story and the
+    // identifiers stay recognisably made up.
+    get guideApplication () {
+      // The application key is shortened the way the interface shortens anything that looks
+      // like a credential value: the example is about the shape of the thing, and a full one
+      // written here would be a secret-shaped string in a public repository.
+      return { name: 'dns-renewal', reference: '#5210987', key: '4f3c…45ec' }
+    },
+
+    get guideKeys () {
+      return [
+        {
+          key: 'renewal',
+          reference: '#118820304',
+          note: this.labels.guideKeyRenewal,
+          address: '203.0.113.4',
+          rules: [
+            { key: 'zone', method: 'GET', path: '/domain/zone/*', methodClass: 'method method-get' },
+            { key: 'record', method: 'POST', path: '/domain/zone/*/record', methodClass: 'method method-post' }
+          ]
+        },
+        {
+          key: 'reader',
+          reference: '#118820517',
+          note: this.labels.guideKeyReader,
+          address: '203.0.113.9',
+          rules: [
+            { key: 'zone', method: 'GET', path: '/domain/zone/*', methodClass: 'method method-get' }
+          ]
+        }
+      ]
+    },
+
+    get guideCards () {
+      return [
+        {
+          key: 'application',
+          title: this.labels.guideApplicationTitle,
+          body: this.labels.guideApplicationBody,
+          note: this.labels.guideApplicationNote
+        },
+        {
+          key: 'credential',
+          title: this.labels.guideKeyTitle,
+          body: this.labels.guideKeyBody,
+          note: this.labels.guideKeyNote
+        },
+        {
+          key: 'rules',
+          title: this.labels.guideRulesTitle,
+          body: this.labels.guideRulesBody,
+          note: this.labels.guideRulesNote
+        },
+        {
+          key: 'external',
+          title: this.labels.guideExternalTitle,
+          body: this.labels.guideExternalBody,
+          note: ''
+        }
+      ]
+    },
+
+    get guideStory () {
+      return [
+        { key: 'one', step: '1', body: this.labels.guideStoryOne },
+        { key: 'two', step: '2', body: this.labels.guideStoryTwo },
+        { key: 'three', step: '3', body: this.labels.guideStoryThree },
+        { key: 'four', step: '4', body: this.labels.guideStoryFour }
+      ]
+    },
+
     // One reload for every screen. A button that appears and disappears moves the rest of
-    // the header under the pointer, and reloading is meaningful on all three.
+    // the header under the pointer, so it stays, and each screen reloads what it reads. The
+    // guide reads nothing, and refreshes the inventory the reader will come back to.
     refresh () {
       if (this.screen === 'explorer') {
         this.loadCatalogue()
@@ -1240,7 +1373,8 @@ document.addEventListener('alpine:init', () => {
       return {
         inventory: this.screen === 'inventory' ? 'segment chosen' : 'segment',
         explorer: this.screen === 'explorer' ? 'segment chosen' : 'segment',
-        create: this.screen === 'create' ? 'segment chosen' : 'segment'
+        create: this.screen === 'create' ? 'segment chosen' : 'segment',
+        guide: this.screen === 'guide' ? 'segment chosen' : 'segment'
       }
     },
 
@@ -1250,6 +1384,10 @@ document.addEventListener('alpine:init', () => {
 
     get onExplorer () {
       return this.screen === 'explorer'
+    },
+
+    get onGuide () {
+      return this.screen === 'guide'
     },
 
     get catalogueReady () {

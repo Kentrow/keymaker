@@ -45,6 +45,13 @@
           </svg>
           <span x-text="labels.screenCreate"></span>
         </button>
+        <button type="button" x-bind:class="screenButtons.guide" x-on:click="showGuide">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M12 7v14"/>
+            <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>
+          </svg>
+          <span x-text="labels.screenGuide"></span>
+        </button>
       </div>
     </nav>
 
@@ -521,6 +528,77 @@
         </section>
 
       </div>
+
+    </div>
+
+    <div class="guide" x-show="onGuide">
+
+      <section class="explorer-intro">
+        <h1 tabindex="-1" data-screen-title="guide" x-text="labels.guideTitle"></h1>
+        <p x-text="labels.guideIntro"></p>
+      </section>
+
+      <section class="panel">
+        <h2 x-text="labels.guideFigureTitle"></h2>
+        <p class="remark" x-text="labels.guideFigureHint"></p>
+
+        <div class="guide-app">
+          <p class="guide-head">
+            <span class="guide-kind" x-text="labels.guideKindApplication"></span>
+            <span class="subject-name" x-text="guideApplication.name"></span>
+            <span class="pill mono reference" x-text="guideApplication.reference"></span>
+          </p>
+          <p class="guide-pair">
+            <span x-text="labels.guideAppKey"></span>
+            <span class="pill mono" x-text="guideApplication.key"></span>
+          </p>
+          <p class="remark" x-text="labels.guideAppSecret"></p>
+
+          <ul class="guide-keys">
+            <template x-for="item in guideKeys" x-bind:key="item.key">
+              <li class="guide-key">
+                <p class="guide-head">
+                  <span class="guide-kind" x-text="labels.guideKindKey"></span>
+                  <span class="pill mono reference" x-text="item.reference"></span>
+                  <span class="purpose" x-text="item.note"></span>
+                </p>
+                <ul class="rule-list">
+                  <template x-for="rule in item.rules" x-bind:key="rule.key">
+                    <li class="rule">
+                      <code x-bind:class="rule.methodClass" x-text="rule.method"></code>
+                      <code class="path" x-text="rule.path"></code>
+                    </li>
+                  </template>
+                </ul>
+                <p class="guide-pair">
+                  <span x-text="labels.guideFrom"></span>
+                  <span class="pill mono" x-text="item.address"></span>
+                </p>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </section>
+
+      <template x-for="card in guideCards" x-bind:key="card.key">
+        <section class="panel">
+          <h2 x-text="card.title"></h2>
+          <p x-text="card.body"></p>
+          <p class="remark" x-show="card.note" x-text="card.note"></p>
+        </section>
+      </template>
+
+      <section class="panel">
+        <h2 x-text="labels.guideStoryTitle"></h2>
+        <ol class="guide-story">
+          <template x-for="stage in guideStory" x-bind:key="stage.key">
+            <li>
+              <span class="step" aria-hidden="true" x-text="stage.step"></span>
+              <span x-text="stage.body"></span>
+            </li>
+          </template>
+        </ol>
+      </section>
 
     </div>
 

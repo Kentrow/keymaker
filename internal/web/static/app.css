@@ -1609,6 +1609,88 @@ button:disabled {
 
 .recover .remark { margin-top: var(--space-2); }
 
+/* The guide holds no data: it is the one screen written to be read, so it is laid out for
+   reading. The worked example is built from the same rule rows the other screens use, which
+   is the point of putting it there rather than in a picture. */
+.guide {
+  max-width: 82ch;
+  margin: 0 auto;
+}
+
+.guide-app {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+}
+
+.guide-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.guide-kind {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.guide-app > .remark { margin-top: var(--space-2); }
+
+/* The keys hang off the application rather than sitting beside it: the nesting is the whole
+   point of the example, and a reader who only looks at the shape should still get it. */
+.guide-keys {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0 0 0 var(--space-4);
+  border-left: 2px solid var(--border-strong);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.guide-key {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.guide-key .purpose { color: var(--text-soft); }
+
+.guide-key .rule-list { margin-top: var(--space-2); }
+
+.guide-pair {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.guide-story {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.guide-story li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  color: var(--text-soft);
+}
+
 /* Motion is decoration here: nothing in this interface conveys meaning by moving. A reader
    who asked their system for less gets none of it, rather than a shortened version. */
 @media (prefers-reduced-motion: reduce) {
