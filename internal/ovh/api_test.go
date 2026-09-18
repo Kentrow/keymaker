@@ -310,6 +310,29 @@ func TestTheCreateTokenLinkCarriesTheRulesReadably(t *testing.T) {
 	}
 }
 
+// The quick start of both READMEs hands out one ready-made link per endpoint, and a reader
+// follows it before anything of this code runs. A rule added or removed here would leave those
+// links asking for the wrong set, which is the one mistake nobody would notice: the page would
+// simply issue a key the tool then reports as missing a rule.
+func TestTheReadmeLinksAskForTheManagementRules(t *testing.T) {
+	for _, name := range []string{"../../README.md", "../../README.fr.md"} {
+		readme, err := os.ReadFile(name)
+		if err != nil {
+			t.Fatalf("read %s: %v", name, err)
+		}
+
+		for _, endpoint := range supportedEndpoints {
+			link, err := CreateTokenURL(endpoint, ManagementRules)
+			if err != nil {
+				t.Fatalf("CreateTokenURL(%q): %v", endpoint, err)
+			}
+			if !strings.Contains(string(readme), link) {
+				t.Errorf("%s does not carry the %s link:\n%s", name, endpoint, link)
+			}
+		}
+	}
+}
+
 // A rule is what the reader is agreeing to on that page. Anything that could change its
 // meaning has to be escaped, even though nothing in the documented set contains one.
 func TestAnUnusualRulePathIsEscaped(t *testing.T) {

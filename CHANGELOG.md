@@ -23,6 +23,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   without them the section says which rule is missing, and a key issued before this version
   keeps working.
 
+### Changed
+
+- The quick start gives the ready-made management key link for each of the three endpoints
+  instead of `ovh-eu` alone, so an account on `ovh-ca` or `ovh-us` no longer has to rebuild the
+  address by hand. A test ties those links to the rules the code asks for.
+
 ## [0.1.0] - 2026-09-13
 
 First public release.

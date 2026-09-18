@@ -92,13 +92,25 @@ Trois droits sont facultatifs, et Keymaker indique lequel manque au lieu d’éc
 applications restées sans clé, et `DELETE /me/api/application/*` pour les supprimer. N’accordez
 jamais `/me/*` ni `/*` à cette clé.
 
-Pour l’endpoint `ovh-eu`, ce lien ouvre la page OVHcloud avec ces droits déjà remplis :
+Chacun des liens ci-dessous ouvre la page OVHcloud d’un endpoint avec ces droits déjà remplis.
+Prenez celui qui correspond à la région de votre compte, telle que la nomment les SDK officiels.
+
+**`ovh-eu`**
 
 <https://eu.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
 
-Pour `ovh-ca` et `ovh-us`, utilisez le même chemin sur `ca.api.ovh.com` ou
-`api.us.ovhcloud.com`. Keymaker propose aussi le bon lien pour son endpoint chaque fois que
-l’API refuse sa clé.
+**`ovh-ca`**
+
+<https://ca.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
+
+**`ovh-us`**
+
+<https://api.us.ovhcloud.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
+
+La page demande aussi une durée de validité. Une clé sans expiration est précisément ce que
+l’audit de Keymaker signale : donnez à celle-ci une expiration que vous accepterez de
+renouveler. Keymaker propose le bon lien pour son propre endpoint chaque fois que l’API refuse
+sa clé.
 
 ### 2. Écrire `ovh.conf`
 
