@@ -125,6 +125,26 @@ func TestCredentialDecodesEveryDisplayedField(t *testing.T) {
 	if got.CreatedAt.IsZero() || got.ExpiresAt.IsZero() || got.LastUsedAt.IsZero() {
 		t.Errorf("timestamps not decoded: %+v", got)
 	}
+	if got.IssuedBySupport {
+		t.Error("IssuedBySupport = true for a credential the account holder created")
+	}
+}
+
+// A credential the support team created carries the same shape as any other, and the one
+// field that says so is easy to drop on the way through: nothing else in the payload
+// distinguishes it.
+func TestACredentialCreatedBySupportIsMarked(t *testing.T) {
+	client, _ := newFakeAPI(t, map[string]string{
+		"GET /1.0/me/api/credential/4210989": "credential_support.json",
+	})
+
+	got, err := client.Credential(context.Background(), 4210989)
+	if err != nil {
+		t.Fatalf("Credential: %v", err)
+	}
+	if !got.IssuedBySupport {
+		t.Errorf("IssuedBySupport = false, want true for %+v", got)
+	}
 }
 
 func TestCredentialWithoutExpiryOrUse(t *testing.T) {

@@ -39,7 +39,7 @@ function preferredLanguage () {
   return navigator.language && navigator.language.startsWith('fr') ? 'fr' : 'en'
 }
 
-const findingOrder = ['broad-access', 'no-ip-restriction', 'no-expiry', 'never-used', 'dormant', 'no-description']
+const findingOrder = ['broad-access', 'support-issued', 'no-ip-restriction', 'no-expiry', 'never-used', 'dormant', 'no-description']
 
 const severityRank = { risk: 3, caution: 2, note: 1 }
 
@@ -188,6 +188,11 @@ const dictionaries = {
         label: 'no description',
         explanation: 'Nothing records what this key is for, which makes it hard to decide whether it can go.',
         clause: n => n === 1 ? 'One key has no description.' : `${n} keys have no description.`
+      },
+      'support-issued': {
+        label: 'issued by support',
+        explanation: 'OVHcloud support created this key, not you, usually while working on a ticket. Once the ticket is closed it has no reason to stay.',
+        clause: n => n === 1 ? 'One key was created by OVHcloud support.' : `${n} keys were created by OVHcloud support.`
       }
     },
     renewKey: 'Issue a new management key',
@@ -435,6 +440,11 @@ const dictionaries = {
         label: 'sans description',
         explanation: 'Rien n’indique à quoi sert cette clé, ce qui rend difficile de décider si elle peut disparaître.',
         clause: n => n === 1 ? 'Une clé n’a pas de description.' : `${n} clés n’ont pas de description.`
+      },
+      'support-issued': {
+        label: 'créée par le support',
+        explanation: 'C’est le support OVHcloud qui a créé cette clé, pas vous, en général pendant le traitement d’un ticket. Une fois le ticket clos, elle n’a plus de raison de rester.',
+        clause: n => n === 1 ? 'Une clé a été créée par le support OVHcloud.' : `${n} clés ont été créées par le support OVHcloud.`
       }
     },
     renewKey: 'Émettre une nouvelle clé de gestion',

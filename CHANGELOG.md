@@ -7,6 +7,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- The audit flags a key the OVHcloud support team created rather than the account holder. The
+  API has always returned that fact and the interface dropped it, so such a key looked like any
+  other. It is counted, explained and usable as a filter like the other findings.
+
 ### Fixed
 
 - Fix the mascot logo in the interface and in the READMEs.

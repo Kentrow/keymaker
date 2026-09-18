@@ -32,6 +32,7 @@ const (
 	NeverUsed       Code = "never-used"
 	Dormant         Code = "dormant"
 	NoDescription   Code = "no-description"
+	SupportIssued   Code = "support-issued"
 )
 
 // unusedGrace keeps a key that was only just issued out of the never-used count: it has
@@ -82,6 +83,13 @@ func Inspect(c credential.Credential, now time.Time) []Finding {
 
 	if strings.TrimSpace(c.Application.Description) == "" {
 		add(NoDescription, SeverityNote)
+	}
+
+	// A key the account holder did not issue is not wrong in itself: support creates one to
+	// work on a ticket. It is flagged because it outlives the ticket, and because it is the
+	// one kind of key nobody on this side decided to keep.
+	if c.IssuedBySupport {
+		add(SupportIssued, SeverityCaution)
 	}
 
 	return findings

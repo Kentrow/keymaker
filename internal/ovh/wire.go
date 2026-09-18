@@ -66,6 +66,11 @@ func (c apiCredential) toDomain() (credential.Credential, error) {
 		CreatedAt:   c.Creation,
 		ExpiresAt:   optionalTime(c.Expiration),
 		LastUsedAt:  optionalTime(c.LastUse),
+
+		// The published schema words this field as whether the credential "has been created
+		// by yourself or by the OVH support team", so it says who issued the key and not who
+		// may use it.
+		IssuedBySupport: c.OvhSupport,
 	}, nil
 }
 
