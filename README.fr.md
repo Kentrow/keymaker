@@ -50,6 +50,10 @@ d’application et une consumer key.
   lesquels une nouvelle clé peut être demandée. Elles se suppriment depuis l’outil ; une
   application qui porte encore une clé ne l’est jamais, car OVHcloud révoquerait cette clé
   avec elle. La suppression se fait une par une ou en une passe pour toutes.
+- **Un écran Comprendre** qui pose ce que sont une application, une clé et un droit d’accès,
+  sur un exemple inventé, et ce qui en découle : pourquoi une révocation laisse une application
+  derrière elle, pourquoi les droits ne se modifient pas, et pourquoi certaines applications ne
+  se suppriment pas depuis l’outil.
 - **Rien n’est écrit sur disque** : aucune base, aucun cache, et un fichier de configuration
   monté en lecture seule.
 - Interface en anglais et en français, thèmes clair et sombre, affichage en liste ou en cartes.

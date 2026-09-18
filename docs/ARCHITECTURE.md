@@ -14,6 +14,8 @@ file needs fixing.
   in one pass.
 - Help build a new key: browse the published API routes, choose access rules, and hand them
   to the OVHcloud page that issues the key.
+- Explain the model the rest of the screens rest on: an application, the keys issued under
+  it, and the access rules each key carries.
 - Stay small enough to be audited by someone who does not trust it.
 
 ## Non-goals

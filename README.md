@@ -49,6 +49,9 @@ a consumer key.
   still be requested under. They can be deleted from here, one at a time or all at once, and an
   application still holding a key never is, because OVHcloud would revoke that key along with
   it.
+- **An Understand screen** that lays out what an application, a key and an access rule each
+  are, on a made-up example, and what follows from it: why a revocation leaves an application
+  behind, why rules cannot be edited, and why some applications cannot be deleted from here.
 - **Nothing written to disk**: no database, no cache, and a configuration file mounted
   read-only.
 - English and French interface, light and dark themes, list and card layouts.
