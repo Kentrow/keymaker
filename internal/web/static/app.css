@@ -601,6 +601,44 @@ main {
 
 .sweep button { flex: none; }
 
+/* Applications no key points at. Same shape as the inactive keys banner: a statement and one
+   control, since nothing here can be acted on from this tool yet. */
+.keyless {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  margin: 0 0 var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.keyless button { flex: none; }
+
+.keyless-detail {
+  padding: var(--space-4);
+  margin: calc(-1 * var(--space-3)) 0 var(--space-4);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.keyless-detail .remark { max-width: 76ch; }
+
+/* The list is read, not scrolled past: it stands on its own page rather than in a dialog, so
+   it keeps no height limit of its own. */
+.keyless-detail .sweep-list { max-height: none; overflow: visible; margin-top: 0; }
+
+.keyless-detail .purpose { color: var(--text-soft); margin-right: auto; }
+
+.keyless-detail .sweep-list li { gap: var(--space-3); }
+
+.keyless-detail .danger { padding: 2px 10px; font-size: 12.5px; }
+
+.keyless-detail .unavailable { font-size: 12px; color: var(--text-faint); }
+
 .sweep-list {
   list-style: none;
   margin: var(--space-3) 0 0;

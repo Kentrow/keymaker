@@ -43,8 +43,17 @@ type Client interface {
 	// DeleteCredential issues DELETE /me/api/credential/{id}.
 	DeleteCredential(ctx context.Context, id int64) error
 
+	// ListApplicationIDs issues GET /me/api/application. It is the only call that sees an
+	// application no credential points at.
+	ListApplicationIDs(ctx context.Context) ([]int64, error)
+
 	// Application issues GET /me/api/application/{id}.
 	Application(ctx context.Context, id int64) (credential.Application, error)
+
+	// DeleteApplication issues DELETE /me/api/application/{id}. The API revokes every
+	// credential of that application with it, which is why the caller has to know there is
+	// none before asking.
+	DeleteApplication(ctx context.Context, id int64) error
 
 	// Index issues GET /1.0/ and returns the response unparsed. The catalogue package
 	// owns its interpretation.

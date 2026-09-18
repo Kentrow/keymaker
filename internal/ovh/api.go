@@ -135,13 +135,24 @@ func (c *APIClient) DeleteCredential(ctx context.Context, id int64) error {
 	return c.sdk.DeleteWithContext(ctx, CredentialPath(id), nil)
 }
 
+func (c *APIClient) ListApplicationIDs(ctx context.Context) ([]int64, error) {
+	var ids []int64
+	if err := c.sdk.GetWithContext(ctx, "/me/api/application", &ids); err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
 func (c *APIClient) Application(ctx context.Context, id int64) (credential.Application, error) {
 	var response apiApplication
-	path := "/me/api/application/" + strconv.FormatInt(id, 10)
-	if err := c.sdk.GetWithContext(ctx, path, &response); err != nil {
+	if err := c.sdk.GetWithContext(ctx, ApplicationPath(id), &response); err != nil {
 		return credential.Application{}, err
 	}
 	return response.toDomain(), nil
+}
+
+func (c *APIClient) DeleteApplication(ctx context.Context, id int64) error {
+	return c.sdk.DeleteWithContext(ctx, ApplicationPath(id), nil)
 }
 
 func (c *APIClient) Index(ctx context.Context) ([]byte, error) {
@@ -158,6 +169,13 @@ func (c *APIClient) Schema(ctx context.Context, path string) ([]byte, error) {
 		return nil, err
 	}
 	return raw, nil
+}
+
+// ApplicationPath is the route a call about one application takes, exported for the same
+// reason as CredentialPath: the code deciding whether a rule covers the call and the code
+// making it must not drift apart.
+func ApplicationPath(id int64) string {
+	return "/me/api/application/" + strconv.FormatInt(id, 10)
 }
 
 // CredentialPath is the route a call about one credential takes. It is exported so that
@@ -184,13 +202,17 @@ func parsePrefix(value string) (netip.Prefix, error) {
 // list of them. They are declared here, beside the calls that use them,
 // so the permissions asked for and the permissions exercised cannot drift apart.
 //
-// The delete rule is the one optional entry: without it the tool runs read-only and says
-// so on each card rather than failing on the action.
+// Three entries are optional, and a key issued without them keeps working: the credential
+// delete rule, without which revocation is not offered, the application listing, without which
+// the applications holding no key cannot be shown, and the application delete rule, without
+// which they cannot be deleted from here. Each says so on screen rather than failing.
 var ManagementRules = []credential.AccessRule{
 	{Method: http.MethodGet, Path: "/me/api/credential"},
 	{Method: http.MethodGet, Path: "/me/api/credential/*"},
+	{Method: http.MethodGet, Path: "/me/api/application"},
 	{Method: http.MethodGet, Path: "/me/api/application/*"},
 	{Method: http.MethodDelete, Path: "/me/api/credential/*"},
+	{Method: http.MethodDelete, Path: "/me/api/application/*"},
 }
 
 // CreateTokenURL is the OVHcloud page that issues a credential, with rules prefilled.

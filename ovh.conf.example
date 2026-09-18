@@ -20,14 +20,18 @@ endpoint=ovh-eu
 ;
 ;   GET    /me/api/credential
 ;   GET    /me/api/credential/*
+;   GET    /me/api/application
 ;   GET    /me/api/application/*
 ;   DELETE /me/api/credential/*
+;   DELETE /me/api/application/*
 ;
-; Never grant it /me/* and never /*. The DELETE rule is optional: without it Keymaker runs
-; read-only and says so on each key rather than failing on the action.
+; Never grant it /me/* and never /*. Three rules are optional, and Keymaker says which one is
+; missing rather than failing: DELETE on credentials for revoking keys, GET /me/api/application
+; for listing the applications left without a key, and DELETE on applications for deleting
+; those.
 ;
 ; This link opens the OVHcloud page with exactly those rules prefilled:
-; https://eu.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application/*&DELETE=/me/api/credential/*
+; https://eu.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*
 application_key=
 application_secret=
 consumer_key=

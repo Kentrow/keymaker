@@ -95,6 +95,9 @@ Every request goes through the same chain of handlers, outermost first:
 | `GET /healthz` | Fixed `ok` body for probes. Discloses no version, configuration or state. |
 | `GET /api/session` | Page token, endpoint, version, whether the address lookup is enabled, and the link that issues a management key. |
 | `GET /api/inventory` | Every credential with its application, findings and revocation offer, plus summary counts. |
+| `GET /api/applications` | Every application of the account with how many credentials point at it, so the interface can show those holding none. |
+| `DELETE /api/applications/{id}` | Deletes an application that holds no credential. |
+| `POST /api/applications/keyless/deletions` | Deletes every application holding no credential. The request carries no list. |
 | `GET /api/catalogue` | The route catalogue and whether it is live or the embedded snapshot. |
 | `DELETE /api/credentials/{id}` | Revokes one credential. |
 | `POST /api/credentials/inactive/revocations` | Revokes every expired or refused credential. The request carries no list. |
@@ -116,9 +119,11 @@ that makes it; no request parameter ever becomes a URL.
 | `GET` | `/auth/time` | Clock synchronisation, handled by `go-ovh` |
 | `GET` | `/me/api/credential` | Listing credential identifiers |
 | `GET` | `/me/api/credential/{id}` | Reading one credential |
+| `GET` | `/me/api/application` | Listing the applications of the account, including those no credential points at |
 | `GET` | `/me/api/application/{id}` | Reading an application the account owns |
 | `GET` | `/me/api/credential/{id}/application` | Reading an application the account does not own, such as the OVHcloud API console |
 | `DELETE` | `/me/api/credential/{id}` | Revoking a credential |
+| `DELETE` | `/me/api/application/{id}` | Deleting an application that holds no credential |
 | `GET` | `/1.0/` and the `*.json` schemas it lists | Building the route catalogue, without authentication |
 
 Accepted endpoints are `ovh-eu`, `ovh-ca` and `ovh-us`. The Kimsufi and SoYouStart entries of
@@ -130,9 +135,15 @@ to a call the client makes, and every call under `/me` to a rule.
 ```text
 GET    /me/api/credential
 GET    /me/api/credential/*
+GET    /me/api/application
 GET    /me/api/application/*
-DELETE /me/api/credential/*     optional: without it, revocation is disabled
+DELETE /me/api/credential/*
+DELETE /me/api/application/*     optional: without it, revocation is disabled
 ```
+
+`DELETE /me/api/credential/*`, `GET /me/api/application` and `DELETE /me/api/application/*` are
+optional: without them the affected screen says which rule is missing instead of showing a
+refused call.
 
 Some constraints of the API shape the interface:
 
@@ -154,6 +165,27 @@ a refused call fails the whole listing, because it means the management key lack
 
 Applications are read once each, also in parallel. When the application route answers 404,
 the credential route is tried and the application is marked external.
+
+### Applications without a key
+
+Revoking a credential leaves its application behind, and an application is a key and a secret
+under which a new credential can be requested; that request is only usable once the account
+holder validates it on the OVHcloud page. The credential routes never name an application no
+credential points at, so the listing is the only way to see one. The interface reads it after
+the inventory, counts the credentials of each application from the same listing the inventory
+shows, and names the ones holding none.
+
+Deleting one is offered for those only. `DELETE /me/api/application/{id}` revokes every
+credential of the application along with it, which would cut a working access, so the provider
+counts them against the API at the moment of the call rather than trusting what the screen
+showed, and refuses an application still holding one.
+
+Deleting all of them at once takes the same path, once per application. The request carries no
+list: the set is selected on the server from the listing and the inventory, as the credential
+sweep selects its keys, so nothing reaching the endpoint can name an application of its own.
+The credentials are listed once for the whole set and the identity read once, while the guard
+and the rule check stay per application. One refusal does not end the pass, and the response
+names what was deleted and what was refused, with a code for each refusal.
 
 ### Revocation
 

@@ -44,6 +44,11 @@ a consumer key.
   listed to be entered again, and revoking it is the last step.
 - **Revocation** behind typing the key's identifier, refused for the key Keymaker uses, and in
   one pass for every expired or refused key.
+- **Applications left without a key**, which no inventory of keys can show. Revoking a key
+  leaves its application behind, and an application is a key and a secret a new credential can
+  still be requested under. They can be deleted from here, one at a time or all at once, and an
+  application still holding a key never is, because OVHcloud would revoke that key along with
+  it.
 - **Nothing written to disk**: no database, no cache, and a configuration file mounted
   read-only.
 - English and French interface, light and dark themes, list and card layouts.
@@ -75,16 +80,20 @@ applications:
 ```text
 GET    /me/api/credential
 GET    /me/api/credential/*
+GET    /me/api/application
 GET    /me/api/application/*
 DELETE /me/api/credential/*
+DELETE /me/api/application/*
 ```
 
-The `DELETE` rule is optional. Without it Keymaker runs read-only and says on each key why
-revocation is not offered. Never grant this key `/me/*` or `/*`.
+Three rules are optional, and Keymaker says which one is missing instead of failing:
+`DELETE /me/api/credential/*` for revoking keys, `GET /me/api/application` for listing the
+applications holding no key, and `DELETE /me/api/application/*` for deleting those. Never grant
+this key `/me/*` or `/*`.
 
 For the `ovh-eu` endpoint, this link opens the OVHcloud page with those rules filled in:
 
-<https://eu.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application/*&DELETE=/me/api/credential/*>
+<https://eu.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
 
 For `ovh-ca` and `ovh-us`, use the same path on `ca.api.ovh.com` or `api.us.ovhcloud.com`.
 Keymaker also offers the right link for its endpoint whenever the API refuses its key.

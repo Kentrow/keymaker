@@ -61,6 +61,98 @@ func (p *Provider) Get(ctx context.Context, id int64) (credential.Credential, er
 	return one[0], nil
 }
 
+// Applications lists the applications of the account.
+//
+// Revoking a credential leaves its application behind, and an application holds the key and
+// the secret a new credential can be requested under. The credential routes only ever name an
+// application a credential already points at, so this listing is the only way to see the ones
+// left with no key at all.
+func (p *Provider) Applications(ctx context.Context) ([]credential.Application, error) {
+	ids, err := p.client.ListApplicationIDs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list applications: %w", translate(err))
+	}
+
+	fetched := make([]credential.Application, len(ids))
+	failures := make([]error, len(ids))
+
+	work := make(chan int)
+	var workers sync.WaitGroup
+	for range min(fanOut, len(ids)) {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			for i := range work {
+				found, err := p.client.Application(ctx, ids[i])
+				if err != nil {
+					failures[i] = fmt.Errorf("application %d: %w", ids[i], translate(err))
+					continue
+				}
+				fetched[i] = found
+			}
+		}()
+	}
+	for i := range ids {
+		work <- i
+	}
+	close(work)
+	workers.Wait()
+
+	applications := make([]credential.Application, 0, len(ids))
+	unreadable := 0
+	for i := range ids {
+		if failures[i] != nil {
+			unreadable++
+			continue
+		}
+		applications = append(applications, fetched[i])
+	}
+
+	if joined := errors.Join(failures...); joined != nil {
+		if len(applications) == 0 {
+			return nil, joined
+		}
+		return applications, &credential.IncompleteError{Unreadable: unreadable, Err: joined}
+	}
+	return applications, nil
+}
+
+// DeleteApplication deletes an application that holds no credential.
+//
+// The API revokes every credential of an application along with it, so the count is read from
+// the API at the moment of the call rather than taken from what a screen was showing: an
+// application that gained a key since the listing must not be deleted by a click meant for an
+// empty one.
+func (p *Provider) DeleteApplication(ctx context.Context, id int64) error {
+	credentials, err := p.List(ctx, "")
+	if credentials == nil {
+		return fmt.Errorf("check what the application holds: %w", err)
+	}
+	return p.DeleteApplicationAgainst(ctx, credentials, id)
+}
+
+// DeleteApplicationAgainst is DeleteApplication for a caller that listed the credentials at the
+// start of the same request. Deleting a set of applications then reads that listing once rather
+// than once per application; the guard itself is unchanged.
+func (p *Provider) DeleteApplicationAgainst(ctx context.Context, credentials []credential.Credential, id int64) error {
+	for _, c := range credentials {
+		if c.Application.ID == id {
+			return credential.ErrApplicationInUse
+		}
+	}
+
+	if err := p.client.DeleteApplication(ctx, id); err != nil {
+		return fmt.Errorf("delete application %d: %w", id, translate(err))
+	}
+	return nil
+}
+
+// DeletableApplication reads the rules of the credential in use against the very route the
+// deletion would take.
+func (p *Provider) DeletableApplication(current credential.Credential, id int64) bool {
+	return current.Permits(http.MethodDelete, ovh.ApplicationPath(id))
+}
+
 func (p *Provider) Current(ctx context.Context) (credential.Credential, error) {
 	found, err := p.client.CurrentCredential(ctx)
 	if err != nil {

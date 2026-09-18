@@ -83,6 +83,28 @@ const dictionaries = {
     sweepDone: n => n === 1 ? '1 key revoked.' : `${n} keys revoked.`,
     sweepPartly: (done, refused) => `${done} revoked, ${refused} refused. The ones refused are still listed, each with its reason.`,
     sweepNone: 'No key was revoked.',
+    keylessTitle: n => n === 1 ? '1 application without a key' : `${n} applications without a key`,
+    keylessWhy: 'Revoking a key leaves its application behind. An application is a key and a secret a new credential can be requested under, and that request only needs your validation to become a working key. Delete the ones nothing uses.',
+    keylessShow: 'Show them',
+    keylessHide: 'Hide them',
+    keylessHowTo: 'Deleting an application here removes its key and its secret for good. It is only offered for the ones holding no key: OVHcloud revokes every key of an application along with it.',
+    keylessUnreadable: n => n === 1 ? '1 application could not be read.' : `${n} applications could not be read.`,
+    keylessMissingRule: 'The management key cannot list applications: it holds no GET /me/api/application rule. Issue a key with that rule to see the applications left without one.',
+    appDelete: 'Delete',
+    appDeleteUnavailable: 'deletion unavailable',
+    appDeleteUnavailableRule: 'The management key has no DELETE rule for this application.',
+    appDeleteUnavailableInUse: 'This application still holds a key. Deleting it would revoke that key.',
+    appDeleteTitle: 'Delete this application?',
+    appDeleteWarning: 'This cannot be undone. The application key and secret disappear with it, so nothing can request a new key under this application again. No existing key is affected: this is only offered for applications holding none.',
+    appDeleted: reference => `Application ${reference} deleted.`,
+    appDeleting: 'Deleting...',
+    appSweepAction: 'Delete them all',
+    appSweepTitle: 'Delete every application without a key?',
+    appSweepWarning: 'This cannot be undone. Each application key and secret disappears, so nothing can request a new key under them again. No existing key is touched: applications still holding one are left alone.',
+    appSweepConfirm: n => n === 1 ? 'Delete 1 application' : `Delete ${n} applications`,
+    appSweepDone: n => n === 1 ? '1 application deleted.' : `${n} applications deleted.`,
+    appSweepPartly: (done, refused) => `${done} deleted, ${refused} refused. The ones refused are still listed, each with its reason.`,
+    appSweepNone: 'No application was deleted.',
     replace: 'Replace',
     replaceTitle: reference => `Replacing key ${reference}`,
     replaceWarning: 'A key is not edited. What this does is issue a second one, with values of its own application key, secret and consumer key to deploy everywhere the first is used. The key being replaced keeps working until you revoke it, which is the last step below and yours to take once the new one is in place.',
@@ -238,6 +260,8 @@ const dictionaries = {
       'lookup-failed': 'The address could not be looked up. The process log carries the detail.',
       'bad-identifier': 'That credential identifier is not a number.',
       'already-revoked': 'This key no longer exists: it was already revoked.',
+      'application-in-use': 'This application still holds a key. Deleting it would revoke that key, so it is refused. Revoke the key first if that is what you want.',
+      'application-gone': 'This application no longer exists: it was already deleted.',
       'missing-token': 'This request did not carry the token handed to the page. Reload and try again.'
     },
     disclaimer: 'Unofficial project. Not affiliated with OVHcloud, and neither operated, maintained nor supported by OVHcloud.',
@@ -278,6 +302,28 @@ const dictionaries = {
     sweepDone: n => n === 1 ? '1 clé révoquée.' : `${n} clés révoquées.`,
     sweepPartly: (done, refused) => `${done} révoquée${done > 1 ? 's' : ''}, ${refused} refusée${refused > 1 ? 's' : ''}. Celles refusées restent listées, chacune avec sa raison.`,
     sweepNone: 'Aucune clé n’a été révoquée.',
+    keylessTitle: n => n <= 1 ? `${n} application sans clé` : `${n} applications sans clé`,
+    keylessWhy: 'Révoquer une clé laisse son application derrière elle. Une application, c’est une clé et un secret sous lesquels une nouvelle clé peut être demandée, et cette demande n’attend que votre validation pour devenir une clé utilisable. Supprimez celles qui ne servent plus.',
+    keylessShow: 'Les afficher',
+    keylessHide: 'Les masquer',
+    keylessHowTo: 'Supprimer une application ici efface définitivement sa clé et son secret. Ce n’est proposé que pour celles qui ne portent aucune clé : OVHcloud révoque toutes les clés d’une application en même temps qu’elle.',
+    keylessUnreadable: n => n <= 1 ? `${n} application n’a pas pu être lue.` : `${n} applications n’ont pas pu être lues.`,
+    keylessMissingRule: 'La clé de gestion ne peut pas lister les applications : elle n’a pas le droit GET /me/api/application. Émettez une clé avec ce droit pour voir les applications restées sans clé.',
+    appDelete: 'Supprimer',
+    appDeleteUnavailable: 'suppression indisponible',
+    appDeleteUnavailableRule: 'La clé de gestion n’a pas le droit DELETE sur cette application.',
+    appDeleteUnavailableInUse: 'Cette application porte encore une clé. La supprimer révoquerait cette clé.',
+    appDeleteTitle: 'Supprimer cette application ?',
+    appDeleteWarning: 'L’opération est irréversible. La clé d’application et son secret disparaissent avec elle : plus aucune clé ne pourra être demandée sous cette application. Aucune clé existante n’est touchée : la suppression n’est proposée que pour les applications qui n’en portent aucune.',
+    appDeleted: reference => `Application ${reference} supprimée.`,
+    appDeleting: 'Suppression...',
+    appSweepAction: 'Toutes les supprimer',
+    appSweepTitle: 'Supprimer toutes les applications sans clé ?',
+    appSweepWarning: 'L’opération est irréversible. Chaque clé d’application et son secret disparaissent : plus aucune clé ne pourra être demandée sous elles. Aucune clé existante n’est touchée : les applications qui en portent une sont laissées de côté.',
+    appSweepConfirm: n => n <= 1 ? `Supprimer ${n} application` : `Supprimer ${n} applications`,
+    appSweepDone: n => n <= 1 ? `${n} application supprimée.` : `${n} applications supprimées.`,
+    appSweepPartly: (done, refused) => `${done} supprimée${done > 1 ? 's' : ''}, ${refused} refusée${refused > 1 ? 's' : ''}. Celles refusées restent listées, chacune avec sa raison.`,
+    appSweepNone: 'Aucune application n’a été supprimée.',
     replace: 'Remplacer',
     replaceTitle: reference => `Remplacement de la clé ${reference}`,
     replaceWarning: 'Une clé ne se modifie pas. Ce que vous faites ici, c’est en émettre une seconde, avec ses propres valeurs à déployer partout où la première est utilisée. La clé remplacée continue de fonctionner jusqu’à ce que vous la révoquiez, ce qui est la dernière étape ci-dessous et vous revient une fois la nouvelle en place.',
@@ -433,6 +479,8 @@ const dictionaries = {
       'lookup-failed': 'L’adresse n’a pas pu être obtenue. Le détail est dans le journal du processus.',
       'bad-identifier': 'Cet identifiant de credential n’est pas un nombre.',
       'already-revoked': 'Cette clé n’existe plus : elle a déjà été révoquée.',
+      'application-in-use': 'Cette application porte encore une clé. La supprimer révoquerait cette clé : l’opération est donc refusée. Révoquez d’abord la clé si c’est bien ce que vous voulez.',
+      'application-gone': 'Cette application n’existe plus : elle a déjà été supprimée.',
       'missing-token': 'Cette requête ne portait pas le jeton remis à la page. Rechargez, puis réessayez.'
     },
     disclaimer: 'Projet non officiel. Sans affiliation avec OVHcloud, et ni exploité, ni maintenu, ni supporté par OVHcloud.',
@@ -491,6 +539,14 @@ document.addEventListener('alpine:init', () => {
     replacing: null,
     sweeping: false,
     sweepError: '',
+    applications: { listed: false, reason: '', applications: [], unreadable: 0 },
+    keylessOpen: false,
+    deletingApplication: null,
+    applicationError: '',
+    applicationBusy: false,
+    appSweepAsked: false,
+    appSweepError: '',
+    appSweeping: false,
     expanded: {},
     reasons: {},
     explained: {},
@@ -523,6 +579,8 @@ document.addEventListener('alpine:init', () => {
       }
       this.$watch('confirming', target => this.toggleDialog(this.$refs.revokeDialog, target !== null))
       this.$watch('sweepAsked', asked => this.toggleDialog(this.$refs.sweepDialog, asked))
+      this.$watch('deletingApplication', target => this.toggleDialog(this.$refs.applicationDialog, target !== null))
+      this.$watch('appSweepAsked', asked => this.toggleDialog(this.$refs.applicationSweepDialog, asked))
     },
 
     // The confirmations are native modal dialogs: the browser moves the focus into them, keeps
@@ -585,6 +643,7 @@ document.addEventListener('alpine:init', () => {
         this.current = payload.current
         this.credentials = payload.credentials
         this.summary = payload.summary
+        this.loadApplications()
       } catch (failure) {
         this.error = this.labels.unreachable
       } finally {
@@ -702,6 +761,190 @@ document.addEventListener('alpine:init', () => {
         this.confirmError = this.labels.unreachable
       } finally {
         this.revoking = false
+      }
+    },
+
+    // The applications of the account, which the inventory cannot show: it lists keys, and
+    // these have none. Loaded after the inventory rather than with it, since the screen is
+    // worth showing before this answer arrives.
+    async loadApplications () {
+      try {
+        const response = await fetch('/api/applications', { credentials: 'same-origin' })
+        if (!response.ok) return
+        const payload = await response.json()
+        this.applications = {
+          listed: Boolean(payload.listed),
+          reason: payload.reason || '',
+          applications: payload.applications || [],
+          unreadable: payload.unreadable || 0
+        }
+      } catch (failure) {
+        // The inventory reports an unreachable backend; saying it twice adds nothing.
+      }
+    },
+
+    get keylessApplications () {
+      return this.applications.applications
+        .filter(item => item.credentials === 0)
+        .map(item => ({
+          key: item.id,
+          id: item.id,
+          reference: '#' + item.id,
+          title: item.name || this.labels.unnamedApplication,
+          description: item.description || '',
+          deleteOffered: item.delete.allowed,
+          deleteRefused: !item.delete.allowed,
+          deleteReason: item.delete.reason === 'in-use' ? this.labels.appDeleteUnavailableInUse : this.labels.appDeleteUnavailableRule
+        }))
+    },
+
+    get hasKeylessApplications () {
+      return this.applications.listed && this.keylessApplications.length > 0
+    },
+
+    get keylessHeadline () {
+      return this.labels.keylessTitle(this.keylessApplications.length)
+    },
+
+    get keylessToggleLabel () {
+      return this.keylessOpen ? this.labels.keylessHide : this.labels.keylessShow
+    },
+
+    get keylessExpanded () {
+      return this.keylessOpen ? 'true' : 'false'
+    },
+
+    get keylessUnreadableNotice () {
+      const count = this.applications.unreadable || 0
+      return count > 0 ? this.labels.keylessUnreadable(count) : ''
+    },
+
+    get applicationsRefused () {
+      return this.applications.reason === 'missing-rule'
+    },
+
+    toggleKeyless () {
+      this.keylessOpen = !this.keylessOpen
+    },
+
+    get deletableApplications () {
+      return this.keylessApplications.filter(item => item.deleteOffered)
+    },
+
+    get canSweepApplications () {
+      return this.deletableApplications.length > 0
+    },
+
+    get appSweepLabel () {
+      return this.appSweeping ? this.labels.appDeleting : this.labels.appSweepConfirm(this.deletableApplications.length)
+    },
+
+    get appSweepFailed () {
+      return this.appSweepError !== ''
+    },
+
+    askSweepApplications () {
+      this.appSweepAsked = true
+      this.appSweepError = ''
+      this.notice = ''
+    },
+
+    cancelSweepApplications () {
+      this.appSweepAsked = false
+      this.appSweepError = ''
+    },
+
+    // The request carries no list: the server selects what holds no key from what the API
+    // answers. What was confirmed here is a set, and the report says what became of it.
+    async confirmSweepApplications () {
+      if (this.appSweeping) return
+
+      this.appSweeping = true
+      this.appSweepError = ''
+      await sessionRequest
+      try {
+        const response = await fetch('/api/applications/keyless/deletions', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'X-Keymaker-Csrf': this.csrf }
+        })
+        const payload = await response.json()
+        if (!response.ok) {
+          this.appSweepError = this.wordProblem(payload)
+          return
+        }
+        this.appSweepAsked = false
+        this.notice = this.appSweepOutcome(payload)
+        await this.loadApplications()
+      } catch (failure) {
+        this.appSweepError = this.labels.unreachable
+      } finally {
+        this.appSweeping = false
+      }
+    },
+
+    appSweepOutcome (payload) {
+      const done = (payload.deleted || []).length
+      const refused = (payload.failed || []).length
+      if (refused > 0) return this.labels.appSweepPartly(done, refused)
+      return done > 0 ? this.labels.appSweepDone(done) : this.labels.appSweepNone
+    },
+
+    askDeleteApplication () {
+      this.deletingApplication = this.item
+      this.applicationError = ''
+      this.notice = ''
+    },
+
+    cancelDeleteApplication () {
+      this.deletingApplication = null
+      this.applicationError = ''
+    },
+
+    get deletingApplicationTitle () {
+      return this.deletingApplication ? this.deletingApplication.title : ''
+    },
+
+    get deletingApplicationReference () {
+      return this.deletingApplication ? this.deletingApplication.reference : ''
+    },
+
+    get applicationFailed () {
+      return this.applicationError !== ''
+    },
+
+    get applicationDeleteLabel () {
+      return this.applicationBusy ? this.labels.appDeleting : this.labels.appDelete
+    },
+
+    // Deleting an application is refused by the server for anything still holding a key, which
+    // it counts against the API rather than against this list.
+    async confirmDeleteApplication () {
+      if (this.applicationBusy || !this.deletingApplication) return
+
+      const target = this.deletingApplication
+      this.applicationBusy = true
+      this.applicationError = ''
+      await sessionRequest
+      try {
+        const response = await fetch(`/api/applications/${target.id}`, {
+          method: 'DELETE',
+          credentials: 'same-origin',
+          headers: { 'X-Keymaker-Csrf': this.csrf }
+        })
+        const payload = response.ok ? {} : await response.json().catch(() => ({}))
+        const gone = payload.code === 'application-gone'
+        if (!response.ok && !gone) {
+          this.applicationError = this.wordProblem(payload)
+          return
+        }
+        this.deletingApplication = null
+        this.notice = gone ? this.wordProblem(payload) : this.labels.appDeleted(target.reference)
+        await this.loadApplications()
+      } catch (failure) {
+        this.applicationError = this.labels.unreachable
+      } finally {
+        this.applicationBusy = false
       }
     },
 
