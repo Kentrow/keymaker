@@ -140,8 +140,15 @@ func (s *server) inventory(w http.ResponseWriter, r *http.Request) {
 		response.Current = &current.ID
 	}
 
+	// Read over the whole set rather than per credential: a key is a twin of another or of
+	// none, and neither of them can tell on its own.
+	twins := audit.Twins(credentials)
+
 	for _, c := range credentials {
 		found := audit.Inspect(c, now)
+		if twins[c.ID] {
+			found = append(found, audit.Finding{Code: audit.SameAsAnother, Severity: audit.SeverityCaution})
+		}
 		findings = append(findings, found)
 		response.Credentials = append(response.Credentials, describe(c, current, found, s.revocationOffer(current, c)))
 	}

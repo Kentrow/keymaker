@@ -7,9 +7,11 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/netip"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/kentrow/keymaker/internal/audit"
 	"github.com/kentrow/keymaker/internal/credential"
@@ -151,5 +153,42 @@ func TestAMethodNoRouteAcceptsIsNotReportedAsAMissingToken(t *testing.T) {
 
 	if rec.Code != http.StatusMethodNotAllowed {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusMethodNotAllowed)
+	}
+}
+
+// Twin keys are the one finding no credential can raise on its own: it takes the whole
+// listing to see that two of them are interchangeable, so the inventory is where it is
+// attached.
+func TestTheInventoryFlagsTwoKeysNothingTellsApart(t *testing.T) {
+	same := func(id int64) credential.Credential {
+		return credential.Credential{
+			ID:          id,
+			Status:      credential.StatusValidated,
+			Application: credential.Application{ID: 10, Description: "dns"},
+			Rules:       []credential.AccessRule{{Method: "GET", Path: "/domain/zone/*"}},
+			AllowedIPs:  []netip.Prefix{netip.MustParsePrefix("203.0.113.4/32")},
+			ExpiresAt:   time.Now().Add(24 * time.Hour),
+			LastUsedAt:  time.Now().Add(-time.Hour),
+		}
+	}
+	alone := same(3)
+	alone.Application.ID = 11
+
+	provider := &fakeProvider{credentials: []credential.Credential{same(1), same(2), alone}}
+	payload := decodeInventory(t, newTestServer(t, provider))
+
+	flagged := map[int64]bool{}
+	for _, c := range payload.Credentials {
+		for _, finding := range c.Findings {
+			if finding.Code == string(audit.SameAsAnother) {
+				flagged[c.ID] = true
+			}
+		}
+	}
+	if !flagged[1] || !flagged[2] || flagged[3] {
+		t.Errorf("flagged = %v, want the pair and not the key of another application", flagged)
+	}
+	if got := payload.Summary.Counts[string(audit.SameAsAnother)]; got != 2 {
+		t.Errorf("count = %d, want 2", got)
 	}
 }

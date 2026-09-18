@@ -9,6 +9,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- The audit names two keys of one application that nothing tells apart: same access rules, same
+  allowed addresses. One of them is usually a first attempt nobody revoked, and the interface
+  says so rather than choosing which to keep.
 - The audit reads keys awaiting validation instead of skipping them, and flags the fact. Such a
   key opens nothing until the account holder validates it on the OVHcloud page, which is one
   click away, so what it would be allowed to do is reported before that happens. The checks

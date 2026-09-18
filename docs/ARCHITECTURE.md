@@ -227,6 +227,11 @@ skipped, since it could not have been used.
 | `no-description` | The application has no description | note |
 | `support-issued` | The API marks the credential as created by the provider's support team | caution |
 | `pending-validation` | The credential was never validated and opens nothing yet | caution |
+| `same-as-another` | Another examined credential of the same application carries the same rules and addresses | caution |
+
+Every finding but the last is read from one credential. `same-as-another` takes the whole
+listing, since neither of two interchangeable keys can tell on its own, so `audit.Twins` is
+called once over the set and the HTTP layer attaches the finding to each key it names.
 
 ## Security model
 
