@@ -209,8 +209,13 @@ refresh finishes waits for it at most 15 seconds.
 
 ### Audit
 
-`internal/audit` inspects validated credentials only; an expired, refused or pending key grants
-nothing and belongs to no band.
+`internal/audit` inspects validated credentials and those awaiting validation; an expired or
+refused key grants nothing and belongs to no band.
+
+A credential awaiting validation grants nothing either, until the account holder validates it
+on the OVHcloud page. It is examined because that click is one step away and belongs to them:
+what the key would be allowed to do is reported, while the checks that read its use are
+skipped, since it could not have been used.
 
 | Finding | Raised when | Severity |
 |---|---|---|
@@ -221,6 +226,7 @@ nothing and belongs to no band.
 | `dormant` | Last used more than 180 days ago | caution |
 | `no-description` | The application has no description | note |
 | `support-issued` | The API marks the credential as created by the provider's support team | caution |
+| `pending-validation` | The credential was never validated and opens nothing yet | caution |
 
 ## Security model
 

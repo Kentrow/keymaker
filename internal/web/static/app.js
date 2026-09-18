@@ -39,7 +39,7 @@ function preferredLanguage () {
   return navigator.language && navigator.language.startsWith('fr') ? 'fr' : 'en'
 }
 
-const findingOrder = ['broad-access', 'support-issued', 'no-ip-restriction', 'no-expiry', 'never-used', 'dormant', 'no-description']
+const findingOrder = ['broad-access', 'pending-validation', 'support-issued', 'no-ip-restriction', 'no-expiry', 'never-used', 'dormant', 'no-description']
 
 const severityRank = { risk: 3, caution: 2, note: 1 }
 
@@ -193,6 +193,11 @@ const dictionaries = {
         label: 'issued by support',
         explanation: 'OVHcloud support created this key, not you, usually while working on a ticket. Once the ticket is closed it has no reason to stay.',
         clause: n => n === 1 ? 'One key was created by OVHcloud support.' : `${n} keys were created by OVHcloud support.`
+      },
+      'pending-validation': {
+        label: 'never validated',
+        explanation: 'Nobody ever validated this key on the OVHcloud page, so it opens nothing. It is one click away from working, with the rules listed here: validate it if it is still wanted, revoke it otherwise.',
+        clause: n => n === 1 ? 'One key is still waiting to be validated.' : `${n} keys are still waiting to be validated.`
       }
     },
     renewKey: 'Issue a new management key',
@@ -201,7 +206,7 @@ const dictionaries = {
     metricClean: 'Nothing flagged',
     bandRiskHint: 'Keys reaching the whole account. One of these leaking costs you everything you can do.',
     bandWatchHint: 'Keys with something worth knowing about, none of it reaching the whole account.',
-    bandCleanHint: 'Usable keys this audit has no reservation about. It does not mean they are needed. Expired, refused and pending keys are not audited and are not counted here.',
+    bandCleanHint: 'Usable keys this audit has no reservation about. It does not mean they are needed. Expired and refused keys are not audited and are not counted here.',
     bandAllHint: 'Every key on the account.',
     screenGroup: 'Screen',
     screenCreate: 'New key',
@@ -445,6 +450,11 @@ const dictionaries = {
         label: 'créée par le support',
         explanation: 'C’est le support OVHcloud qui a créé cette clé, pas vous, en général pendant le traitement d’un ticket. Une fois le ticket clos, elle n’a plus de raison de rester.',
         clause: n => n === 1 ? 'Une clé a été créée par le support OVHcloud.' : `${n} clés ont été créées par le support OVHcloud.`
+      },
+      'pending-validation': {
+        label: 'jamais validée',
+        explanation: 'Personne n’a jamais validé cette clé sur la page OVHcloud, elle n’ouvre donc rien. Elle est à un clic de fonctionner, avec les droits listés ici : validez-la si elle sert encore, révoquez-la sinon.',
+        clause: n => n === 1 ? 'Une clé attend toujours d’être validée.' : `${n} clés attendent toujours d’être validées.`
       }
     },
     renewKey: 'Émettre une nouvelle clé de gestion',
@@ -453,7 +463,7 @@ const dictionaries = {
     metricClean: 'Sans réserve',
     bandRiskHint: 'Clés qui atteignent l’ensemble du compte. Si l’une fuite, elle coûte tout ce que vous pouvez faire.',
     bandWatchHint: 'Clés qui méritent un coup d’œil, sans atteindre l’ensemble du compte.',
-    bandCleanHint: 'Clés utilisables sur lesquelles cet audit n’a pas de réserve. Cela ne veut pas dire qu’elles sont utiles. Les clés expirées, refusées ou en attente ne sont pas auditées et ne sont pas comptées ici.',
+    bandCleanHint: 'Clés utilisables sur lesquelles cet audit n’a pas de réserve. Cela ne veut pas dire qu’elles sont utiles. Les clés expirées et refusées ne sont pas auditées et ne sont pas comptées ici.',
     bandAllHint: 'Toutes les clés du compte.',
     screenGroup: 'Écran',
     screenCreate: 'Nouvelle clé',

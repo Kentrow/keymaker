@@ -7,9 +7,11 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
+	"github.com/kentrow/keymaker/internal/audit"
 	"github.com/kentrow/keymaker/internal/credential"
 )
 
@@ -90,16 +92,32 @@ func TestTheInventorySaysWhenAnApplicationIsNotTheAccountsOwn(t *testing.T) {
 // An expired key has no findings because the audit does not read it, not because it is
 // sound. Counted among the keys with nothing flagged, it made the one reassuring figure on
 // screen a key that grants nothing.
-func TestAnInactiveKeyIsNotCountedAsExamined(t *testing.T) {
+//
+// A key awaiting validation is read, on the other hand, and always carries at least the
+// finding that says so, so it never lands in that figure either.
+func TestAnExpiredKeyIsNotCountedAsExaminedAndAPendingOneIs(t *testing.T) {
 	provider := &fakeProvider{credentials: []credential.Credential{
 		{ID: 1, Status: credential.StatusValidated, Application: credential.Application{Description: "dns"}},
 		{ID: 2, Status: credential.StatusExpired},
-		{ID: 3, Status: credential.StatusPendingValidation},
+		{ID: 3, Status: credential.StatusPendingValidation, Application: credential.Application{Description: "dns"}},
 	}}
 
-	summary := decodeInventory(t, newTestServer(t, provider)).Summary
-	if summary.Total != 3 || summary.Examined != 1 {
-		t.Errorf("total = %d, examined = %d, want 3 and 1", summary.Total, summary.Examined)
+	payload := decodeInventory(t, newTestServer(t, provider))
+	if payload.Summary.Total != 3 || payload.Summary.Examined != 2 {
+		t.Errorf("total = %d, examined = %d, want 3 and 2", payload.Summary.Total, payload.Summary.Examined)
+	}
+
+	for _, c := range payload.Credentials {
+		if c.ID != 3 {
+			continue
+		}
+		var codes []string
+		for _, finding := range c.Findings {
+			codes = append(codes, finding.Code)
+		}
+		if !slices.Contains(codes, string(audit.PendingValidation)) {
+			t.Errorf("the key awaiting validation: findings = %v, want %s", codes, audit.PendingValidation)
+		}
 	}
 }
 
