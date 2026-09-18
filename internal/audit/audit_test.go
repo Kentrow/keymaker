@@ -104,7 +104,7 @@ func TestBroadAccessLooksAtTheFixedPartOfThePath(t *testing.T) {
 
 // An expired or refused key grants nothing, so reporting on it would be noise.
 func TestOnlyUsableKeysAreExamined(t *testing.T) {
-	for _, status := range []credential.Status{credential.StatusExpired, credential.StatusRefused, credential.StatusPendingValidation} {
+	for _, status := range []credential.Status{credential.StatusExpired, credential.StatusRefused} {
 		c := wellKept()
 		c.Status = status
 		c.AllowedIPs = nil
@@ -113,6 +113,50 @@ func TestOnlyUsableKeysAreExamined(t *testing.T) {
 		if got := Inspect(c, now); len(got) != 0 {
 			t.Errorf("%s: findings = %v, want none", status, codes(got))
 		}
+	}
+}
+
+// A key nobody validated opens nothing yet, and an inventory of keys is where anyone would
+// look for it. It is read rather than skipped, so that the account holder knows what sits
+// there waiting for one click.
+func TestAKeyAwaitingValidationIsFlagged(t *testing.T) {
+	c := wellKept()
+	c.Status = credential.StatusPendingValidation
+
+	got := codes(Inspect(c, now))
+	if !slices.Contains(got, PendingValidation) {
+		t.Fatalf("findings = %v, want %s", got, PendingValidation)
+	}
+	if !Examines(c) {
+		t.Error("Examines = false, so the key would be counted as unexamined")
+	}
+}
+
+// What a key awaiting validation has never done says nothing about it: it could not have
+// been used. Reporting it as never used would be noise on every single one of them.
+func TestAKeyAwaitingValidationIsNotReportedAsUnused(t *testing.T) {
+	c := wellKept()
+	c.Status = credential.StatusPendingValidation
+	c.LastUsedAt = time.Time{}
+	c.CreatedAt = now.Add(-400 * 24 * time.Hour)
+
+	got := codes(Inspect(c, now))
+	for _, unwanted := range []Code{NeverUsed, Dormant} {
+		if slices.Contains(got, unwanted) {
+			t.Errorf("findings = %v, want no %s", got, unwanted)
+		}
+	}
+}
+
+// What it would be allowed to do the moment someone validates it is worth knowing before
+// that happens, which is the whole reason it is examined at all.
+func TestAKeyAwaitingValidationStillReportsWhatItWouldAllow(t *testing.T) {
+	c := wellKept()
+	c.Status = credential.StatusPendingValidation
+	c.Rules = []credential.AccessRule{{Method: "GET", Path: "/*"}}
+
+	if got := codes(Inspect(c, now)); !slices.Contains(got, BroadAccess) {
+		t.Errorf("findings = %v, want %s", got, BroadAccess)
 	}
 }
 

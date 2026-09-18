@@ -33,6 +33,11 @@ const (
 	Dormant         Code = "dormant"
 	NoDescription   Code = "no-description"
 	SupportIssued   Code = "support-issued"
+
+	// PendingValidation is raised on a key nobody ever validated. It is the one finding
+	// about a key that grants nothing yet, which is why the others are read differently
+	// for it: see Inspect.
+	PendingValidation Code = "pending-validation"
 )
 
 // unusedGrace keeps a key that was only just issued out of the never-used count: it has
@@ -50,8 +55,13 @@ type Finding struct {
 
 // Inspect reports what is wrong with one credential.
 //
-// Only a usable credential is examined. An expired or refused one grants nothing, so
-// reporting that it has no expiry or no IP restriction would be noise.
+// An expired or refused credential grants nothing and is not examined: reporting that it has
+// no expiry or no IP restriction would be noise.
+//
+// A credential awaiting validation is examined, with one difference. It grants nothing until
+// the account holder validates it on the provider's page, so what it has never done says
+// nothing about it, and the checks that read its use are skipped. What it would be allowed to
+// do the moment it is validated is worth knowing before that happens, so the rest are not.
 func Inspect(c credential.Credential, now time.Time) []Finding {
 	if !Examines(c) {
 		return nil
@@ -60,6 +70,10 @@ func Inspect(c credential.Credential, now time.Time) []Finding {
 	findings := []Finding{}
 	add := func(code Code, severity Severity) {
 		findings = append(findings, Finding{Code: code, Severity: severity})
+	}
+
+	if c.Status == credential.StatusPendingValidation {
+		add(PendingValidation, SeverityCaution)
 	}
 
 	if hasBroadRule(c.Rules) {
@@ -72,13 +86,15 @@ func Inspect(c credential.Credential, now time.Time) []Finding {
 		add(NoExpiry, SeverityCaution)
 	}
 
-	switch {
-	case c.LastUsedAt.IsZero():
-		if !c.CreatedAt.IsZero() && now.Sub(c.CreatedAt) > unusedGrace {
-			add(NeverUsed, SeverityCaution)
+	if c.Status != credential.StatusPendingValidation {
+		switch {
+		case c.LastUsedAt.IsZero():
+			if !c.CreatedAt.IsZero() && now.Sub(c.CreatedAt) > unusedGrace {
+				add(NeverUsed, SeverityCaution)
+			}
+		case now.Sub(c.LastUsedAt) > dormantAfter:
+			add(Dormant, SeverityCaution)
 		}
-	case now.Sub(c.LastUsedAt) > dormantAfter:
-		add(Dormant, SeverityCaution)
 	}
 
 	if strings.TrimSpace(c.Application.Description) == "" {
@@ -98,8 +114,12 @@ func Inspect(c credential.Credential, now time.Time) []Finding {
 // Examines reports whether Inspect reads a credential at all. A credential it does not read
 // has no findings, which is not the same as having nothing wrong with it, and a summary has to
 // be able to tell the two apart.
+//
+// A credential awaiting validation is read: it is one click on the provider's page away from
+// working, and that click belongs to the account holder, who is better told beforehand what
+// they would be validating.
 func Examines(c credential.Credential) bool {
-	return c.Status == credential.StatusValidated
+	return c.Status == credential.StatusValidated || c.Status == credential.StatusPendingValidation
 }
 
 // hasBroadRule reports whether any rule reaches everything, or the whole account.

@@ -9,6 +9,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- The audit reads keys awaiting validation instead of skipping them, and flags the fact. Such a
+  key opens nothing until the account holder validates it on the OVHcloud page, which is one
+  click away, so what it would be allowed to do is reported before that happens. The checks
+  that read how a key was used are skipped for it, since it could not have been used.
 - The audit flags a key the OVHcloud support team created rather than the account holder. The
   API has always returned that fact and the interface dropped it, so such a key looked like any
   other. It is counted, explained and usable as a filter like the other findings.
