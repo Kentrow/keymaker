@@ -51,6 +51,7 @@ func TestEachFindingIsRaisedOnItsOwn(t *testing.T) {
 		Dormant:         func(c *credential.Credential) { c.LastUsedAt = now.Add(-200 * 24 * time.Hour) },
 		NeverUsed:       func(c *credential.Credential) { c.LastUsedAt = time.Time{} },
 		BroadAccess:     func(c *credential.Credential) { c.Rules = []credential.AccessRule{{Method: "GET", Path: "/*"}} },
+		SupportIssued:   func(c *credential.Credential) { c.IssuedBySupport = true },
 	}
 
 	for code, break_ := range cases {

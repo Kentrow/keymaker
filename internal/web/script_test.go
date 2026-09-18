@@ -201,3 +201,88 @@ func usedClass(source, class string, prefixes []string) bool {
 	word := regexp.MustCompile(`(?:^|[^A-Za-z0-9_-])` + regexp.QuoteMeta(class) + `(?:$|[^A-Za-z0-9_-])`)
 	return word.MatchString(source)
 }
+
+var (
+	findingOrderList = regexp.MustCompile(`(?m)^const findingOrder = \[([^\]]*)\]`)
+	findingKey       = regexp.MustCompile(`'?([a-z][a-z-]*)'?\s*:\s*\{`)
+	quoted           = regexp.MustCompile(`'([a-z-]+)'`)
+	auditCode        = regexp.MustCompile(`(?m)^\t[A-Z][A-Za-z]*\s+Code = "([a-z-]+)"`)
+)
+
+// findingDictionaries returns the finding codes each language words.
+func findingDictionaries(t *testing.T, script string) map[int][]string {
+	t.Helper()
+
+	found := map[int][]string{}
+	for i, start := range regexp.MustCompile(`(?m)^    findings: \{$`).FindAllStringIndex(script, -1) {
+		block := script[start[0] : start[0]+balanced(script[start[0]:])]
+		var codes []string
+		for _, match := range findingKey.FindAllStringSubmatch(block, -1) {
+			if match[1] != "findings" {
+				codes = append(codes, match[1])
+			}
+		}
+		found[i] = codes
+	}
+	if len(found) != 2 {
+		t.Fatalf("found %d finding dictionaries, want 2", len(found))
+	}
+	return found
+}
+
+// A finding is a contract between the audit and the two dictionaries, the same way an error
+// code is between the handlers and the interface. A code the audit raises and no dictionary
+// words shows as an empty chip; a code worded and never raised is a filter for something that
+// cannot happen. Neither fails anywhere.
+func TestFindingCodesMatchWhatTheAuditRaises(t *testing.T) {
+	script := readAsset(t, "app.js")
+
+	source, err := os.ReadFile(filepath.Join("..", "audit", "audit.go"))
+	if err != nil {
+		t.Fatalf("read the audit source: %v", err)
+	}
+	raised := map[string]bool{}
+	for _, match := range auditCode.FindAllStringSubmatch(string(source), -1) {
+		raised[match[1]] = true
+	}
+	if len(raised) == 0 {
+		t.Fatal("no finding code found in internal/audit")
+	}
+
+	order := findingOrderList.FindStringSubmatch(script)
+	if order == nil {
+		t.Fatal("no findingOrder in app.js")
+	}
+	ordered := map[string]bool{}
+	for _, match := range quoted.FindAllStringSubmatch(order[1], -1) {
+		ordered[match[1]] = true
+	}
+
+	for code := range raised {
+		if !ordered[code] {
+			t.Errorf("the audit raises %q and findingOrder does not list it", code)
+		}
+	}
+	for code := range ordered {
+		if !raised[code] {
+			t.Errorf("findingOrder lists %q and the audit never raises it", code)
+		}
+	}
+
+	for language, codes := range findingDictionaries(t, script) {
+		worded := map[string]bool{}
+		for _, code := range codes {
+			worded[code] = true
+		}
+		for code := range raised {
+			if !worded[code] {
+				t.Errorf("dictionary %d does not word the finding %q", language, code)
+			}
+		}
+		for code := range worded {
+			if !raised[code] {
+				t.Errorf("dictionary %d words %q, which the audit never raises", language, code)
+			}
+		}
+	}
+}

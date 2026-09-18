@@ -220,6 +220,7 @@ nothing and belongs to no band.
 | `never-used` | Never used and created more than 30 days ago | caution |
 | `dormant` | Last used more than 180 days ago | caution |
 | `no-description` | The application has no description | note |
+| `support-issued` | The API marks the credential as created by the provider's support team | caution |
 
 ## Security model
 

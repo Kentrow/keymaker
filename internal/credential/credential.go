@@ -61,6 +61,11 @@ type Credential struct {
 	CreatedAt   time.Time
 	ExpiresAt   time.Time
 	LastUsedAt  time.Time
+
+	// IssuedBySupport marks a credential the account holder did not create themselves: the
+	// provider's support staff did, typically while working on a ticket. It is worth knowing
+	// about for the same reason a forgotten key is, except that nobody on this side chose it.
+	IssuedBySupport bool
 }
 
 // Permits reports whether the rules of this credential cover a call.
