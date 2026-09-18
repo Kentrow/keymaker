@@ -39,7 +39,7 @@ function preferredLanguage () {
   return navigator.language && navigator.language.startsWith('fr') ? 'fr' : 'en'
 }
 
-const findingOrder = ['broad-access', 'pending-validation', 'support-issued', 'no-ip-restriction', 'no-expiry', 'never-used', 'dormant', 'no-description']
+const findingOrder = ['broad-access', 'pending-validation', 'support-issued', 'same-as-another', 'no-ip-restriction', 'no-expiry', 'never-used', 'dormant', 'no-description']
 
 const severityRank = { risk: 3, caution: 2, note: 1 }
 
@@ -193,6 +193,11 @@ const dictionaries = {
         label: 'issued by support',
         explanation: 'OVHcloud support created this key, not you, usually while working on a ticket. Once the ticket is closed it has no reason to stay.',
         clause: n => n === 1 ? 'One key was created by OVHcloud support.' : `${n} keys were created by OVHcloud support.`
+      },
+      'same-as-another': {
+        label: 'same as another',
+        explanation: 'Another key of the same application carries the same rules and the same addresses, so nothing tells the two apart. One of them is usually a first attempt nobody revoked. Compare the last use dates and keep one.',
+        clause: n => n === 1 ? 'One key is indistinguishable from another.' : `${n} keys are indistinguishable from another.`
       },
       'pending-validation': {
         label: 'never validated',
@@ -450,6 +455,11 @@ const dictionaries = {
         label: 'créée par le support',
         explanation: 'C’est le support OVHcloud qui a créé cette clé, pas vous, en général pendant le traitement d’un ticket. Une fois le ticket clos, elle n’a plus de raison de rester.',
         clause: n => n === 1 ? 'Une clé a été créée par le support OVHcloud.' : `${n} clés ont été créées par le support OVHcloud.`
+      },
+      'same-as-another': {
+        label: 'identique à une autre',
+        explanation: 'Une autre clé de la même application porte les mêmes droits et les mêmes adresses : rien ne distingue les deux. L’une est en général un premier essai que personne n’a révoqué. Comparez les dates de dernier usage et n’en gardez qu’une.',
+        clause: n => n === 1 ? 'Une clé est indiscernable d’une autre.' : `${n} clés sont indiscernables d’une autre.`
       },
       'pending-validation': {
         label: 'jamais validée',

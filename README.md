@@ -34,8 +34,8 @@ a consumer key.
   marked.
 - **Audit** that flags keys reaching the whole account, working from any address, never
   expiring, never used, dormant for six months, created by OVHcloud support rather than by
-  you, never validated, or without a description, and sorts them into "at risk", "to watch"
-  and "nothing flagged".
+  you, never validated, indistinguishable from another key of the same application, or
+  without a description, and sorts them into "at risk", "to watch" and "nothing flagged".
 - **Route explorer** over the whole published API, searchable by route or by purpose, to
   build a set of access rules, with a warning when a rule reaches the whole account.
 - **Key creation** through the OVHcloud `createToken` page, opened with the chosen rules

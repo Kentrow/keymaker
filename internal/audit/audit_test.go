@@ -192,3 +192,95 @@ func TestSummaryCountsCredentialsPerFinding(t *testing.T) {
 		t.Errorf("no expiry = %d, want 1", summary.Counts[NoExpiry])
 	}
 }
+
+// twin builds a credential of the given identity: same application, same rules and same
+// addresses as its sibling unless a case changes one of them.
+func twin(id int64) credential.Credential {
+	c := wellKept()
+	c.ID = id
+	c.Application = credential.Application{ID: 10, Name: "dns-acme", Description: "certbot"}
+	return c
+}
+
+func TestTwinsFindKeysNothingTellsApart(t *testing.T) {
+	got := Twins([]credential.Credential{twin(1), twin(2), func() credential.Credential {
+		other := twin(3)
+		other.Application.ID = 11
+		return other
+	}()})
+
+	if !got[1] || !got[2] {
+		t.Errorf("twins = %v, want 1 and 2 paired", got)
+	}
+	if got[3] {
+		t.Errorf("twins = %v, want the key of another application left out", got)
+	}
+}
+
+// The API returns both lists in the order it pleases, and two keys created the same way
+// would otherwise look different for no reason.
+func TestTwinsIgnoreTheOrderOfRulesAndAddresses(t *testing.T) {
+	first, second := twin(1), twin(2)
+	first.Rules = []credential.AccessRule{
+		{Method: "GET", Path: "/domain/zone/*"},
+		{Method: "POST", Path: "/domain/zone/*/record"},
+	}
+	second.Rules = []credential.AccessRule{
+		{Method: "POST", Path: "/domain/zone/*/record"},
+		{Method: "GET", Path: "/domain/zone/*"},
+	}
+	first.AllowedIPs = []netip.Prefix{netip.MustParsePrefix("203.0.113.4/32"), netip.MustParsePrefix("203.0.113.9/32")}
+	second.AllowedIPs = []netip.Prefix{netip.MustParsePrefix("203.0.113.9/32"), netip.MustParsePrefix("203.0.113.4/32")}
+
+	if got := Twins([]credential.Credential{first, second}); !got[1] || !got[2] {
+		t.Errorf("twins = %v, want both", got)
+	}
+}
+
+// One rule apart, or one address apart, and the two keys are not interchangeable: whichever
+// is dropped, something loses an access.
+func TestTwinsRequireEveryRuleAndAddressToMatch(t *testing.T) {
+	cases := map[string]func(c *credential.Credential){
+		"one rule more": func(c *credential.Credential) {
+			c.Rules = append(c.Rules, credential.AccessRule{Method: "DELETE", Path: "/domain/zone/*"})
+		},
+		"another address": func(c *credential.Credential) {
+			c.AllowedIPs = []netip.Prefix{netip.MustParsePrefix("198.51.100.7/32")}
+		},
+		"no address at all": func(c *credential.Credential) { c.AllowedIPs = nil },
+	}
+
+	for name, change := range cases {
+		t.Run(name, func(t *testing.T) {
+			second := twin(2)
+			change(&second)
+
+			if got := Twins([]credential.Credential{twin(1), second}); len(got) != 0 {
+				t.Errorf("twins = %v, want none", got)
+			}
+		})
+	}
+}
+
+// An expired key grants nothing, so it is nobody's twin: reporting a live key as a duplicate
+// of a dead one would send the reader to revoke the wrong one.
+func TestAnExpiredKeyIsNobodysTwin(t *testing.T) {
+	dead := twin(2)
+	dead.Status = credential.StatusExpired
+
+	if got := Twins([]credential.Credential{twin(1), dead}); len(got) != 0 {
+		t.Errorf("twins = %v, want none", got)
+	}
+}
+
+// An application that could not be read leaves every credential pointing at the same zero
+// identifier, which would pair keys that have nothing to do with each other.
+func TestCredentialsWithAnUnreadableApplicationAreNotPaired(t *testing.T) {
+	first, second := twin(1), twin(2)
+	first.Application = credential.Application{}
+	second.Application = credential.Application{}
+
+	if got := Twins([]credential.Credential{first, second}); len(got) != 0 {
+		t.Errorf("twins = %v, want none", got)
+	}
+}

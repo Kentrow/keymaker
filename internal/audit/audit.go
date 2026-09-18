@@ -9,6 +9,8 @@
 package audit
 
 import (
+	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -33,6 +35,10 @@ const (
 	Dormant         Code = "dormant"
 	NoDescription   Code = "no-description"
 	SupportIssued   Code = "support-issued"
+
+	// SameAsAnother is raised over a set rather than over one credential, which is why
+	// Inspect cannot raise it: see Twins.
+	SameAsAnother Code = "same-as-another"
 
 	// PendingValidation is raised on a key nobody ever validated. It is the one finding
 	// about a key that grants nothing yet, which is why the others are read differently
@@ -141,6 +147,57 @@ func hasBroadRule(rules []credential.AccessRule) bool {
 		}
 	}
 	return false
+}
+
+// Twins reports the credentials that another credential of the set is indistinguishable
+// from: same application, same access rules, same allowed addresses. Nothing tells them
+// apart, so whatever one of them can do, the other can do too.
+//
+// Two such keys are almost always a first attempt nobody revoked, and one of them is an
+// access nobody is watching. Which one to keep is not a decision this can make: the dates on
+// the cards are what settles it, and they belong to the reader.
+//
+// It takes the whole set, which is why it sits beside Inspect rather than inside it. Only
+// credentials Inspect examines are compared; an expired key is nobody's twin.
+func Twins(credentials []credential.Credential) map[int64]bool {
+	seen := map[string][]int64{}
+	for _, c := range credentials {
+		if !Examines(c) || c.Application.ID == 0 {
+			continue
+		}
+		key := fingerprint(c)
+		seen[key] = append(seen[key], c.ID)
+	}
+
+	twins := map[int64]bool{}
+	for _, ids := range seen {
+		if len(ids) < 2 {
+			continue
+		}
+		for _, id := range ids {
+			twins[id] = true
+		}
+	}
+	return twins
+}
+
+// fingerprint is what makes two credentials interchangeable. Order carries no meaning in
+// either list, so both are sorted before they are read: the API returns them in the order it
+// pleases, and two keys created the same way would otherwise look different.
+func fingerprint(c credential.Credential) string {
+	rules := make([]string, 0, len(c.Rules))
+	for _, rule := range c.Rules {
+		rules = append(rules, strings.ToUpper(rule.Method)+" "+rule.Path)
+	}
+	slices.Sort(rules)
+
+	addresses := make([]string, 0, len(c.AllowedIPs))
+	for _, prefix := range c.AllowedIPs {
+		addresses = append(addresses, prefix.String())
+	}
+	slices.Sort(addresses)
+
+	return fmt.Sprintf("%d\n%s\n%s", c.Application.ID, strings.Join(rules, "\n"), strings.Join(addresses, "\n"))
 }
 
 // Summary counts how many credentials raised each finding, so that the interface can offer
