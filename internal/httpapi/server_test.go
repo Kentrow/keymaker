@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"net/netip"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -41,6 +42,12 @@ type fakeProvider struct {
 	// identities counts the calls that read the credential in use, which a sweep makes
 	// once for the whole set.
 	identities int
+
+	applications       []credential.Application
+	applicationsErr    error
+	deletedApplication []int64
+	deleteAppErr       error
+	appDeletable       func(current credential.Credential, id int64) bool
 }
 
 var _ credential.Provider = (*fakeProvider)(nil)
@@ -67,6 +74,36 @@ func (f *fakeProvider) RevokeAgainst(_ context.Context, current credential.Crede
 	}
 	f.revoked = append(f.revoked, id)
 	return nil
+}
+
+func (f *fakeProvider) Applications(context.Context) ([]credential.Application, error) {
+	return f.applications, f.applicationsErr
+}
+
+func (f *fakeProvider) DeleteApplication(_ context.Context, id int64) error {
+	if f.deleteAppErr != nil {
+		return f.deleteAppErr
+	}
+	f.deletedApplication = append(f.deletedApplication, id)
+	return nil
+}
+
+// DeleteApplicationAgainst carries the guard of the real provider: an application still named
+// by one of the credentials the caller listed is refused, however the caller reached it.
+func (f *fakeProvider) DeleteApplicationAgainst(ctx context.Context, credentials []credential.Credential, id int64) error {
+	for _, c := range credentials {
+		if c.Application.ID == id {
+			return credential.ErrApplicationInUse
+		}
+	}
+	return f.DeleteApplication(ctx, id)
+}
+
+func (f *fakeProvider) DeletableApplication(current credential.Credential, id int64) bool {
+	if f.appDeletable != nil {
+		return f.appDeletable(current, id)
+	}
+	return current.Permits(http.MethodDelete, "/me/api/application/"+strconv.FormatInt(id, 10))
 }
 
 func (f *fakeProvider) Current(context.Context) (credential.Credential, error) {

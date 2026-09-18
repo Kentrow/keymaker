@@ -92,6 +92,25 @@ type Provider interface {
 	// exactly as Revoke does, without reading the identity again for every key of a set.
 	RevokeAgainst(ctx context.Context, current Credential, id int64) error
 
+	// Applications lists every application of the account, including the ones no credential
+	// points at, which the credential routes never reveal.
+	Applications(ctx context.Context) ([]Application, error)
+
+	// DeleteApplication deletes an application the account owns. The API revokes every
+	// credential of that application with it, so the implementation refuses one that still
+	// holds any: what looks like tidying up would cut a working access.
+	DeleteApplication(ctx context.Context, id int64) error
+
+	// DeleteApplicationAgainst deletes an application on behalf of a caller that has already
+	// listed the credentials of the account in the same request. It refuses an application
+	// holding one exactly as DeleteApplication does, without listing them again for every
+	// application of a set.
+	DeleteApplicationAgainst(ctx context.Context, credentials []Credential, id int64) error
+
+	// DeletableApplication reports whether current, the credential the tool authenticates
+	// with, holds what deleting an application needs, the way Revocable does for a key.
+	DeletableApplication(current Credential, id int64) bool
+
 	// Current returns the credential the tool itself authenticates with. The revocation
 	// path refuses it and the inventory marks it.
 	Current(ctx context.Context) (Credential, error)
@@ -136,6 +155,11 @@ func matchPath(pattern, path string) bool {
 	}
 	return strings.HasSuffix(path, segments[last])
 }
+
+// ErrApplicationInUse is returned when a deletion targets an application that still holds a
+// credential. Deleting it would revoke that credential, which is never what tidying up
+// applications is meant to do.
+var ErrApplicationInUse = errors.New("the application still holds a credential")
 
 // ErrNotFound is returned when the API no longer knows a credential, typically because it
 // was revoked between the moment it was listed and the call about it.

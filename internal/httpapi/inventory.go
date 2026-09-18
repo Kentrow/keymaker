@@ -101,6 +101,8 @@ const (
 	codeBadIdentifier    = "bad-identifier"
 	codeMissingToken     = "missing-token"
 	codeAlreadyRevoked   = "already-revoked"
+	codeApplicationInUse = "application-in-use"
+	codeApplicationGone  = "application-gone"
 	// #nosec G101 -- an error code the interface words in the reader's language, not a
 	// credential. The name matches the pattern gosec looks for, the value is a constant
 	// string sent in a JSON field.

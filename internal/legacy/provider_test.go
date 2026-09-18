@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"slices"
 	"sync"
 	"testing"
 
@@ -42,7 +43,11 @@ type fakeClient struct {
 	byCredentialErr error
 	byCredentialLog []int64
 
-	identityCalls int
+	identityCalls        int
+	applicationIDsErr    error
+	applicationErrs      map[int64]error
+	deleteApplicationErr error
+	deletedApplications  []int64
 }
 
 var discard = slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -71,6 +76,9 @@ func (f *fakeClient) Application(_ context.Context, id int64) (credential.Applic
 	f.applicationCall++
 	if f.applicationErr != nil {
 		return credential.Application{}, f.applicationErr
+	}
+	if err, ok := f.applicationErrs[id]; ok {
+		return credential.Application{}, err
 	}
 	found, ok := f.applications[id]
 	if !ok {
@@ -108,6 +116,31 @@ func (f *fakeClient) CredentialApplication(_ context.Context, id int64) (credent
 		return credential.Application{}, apiError(http.StatusNotFound)
 	}
 	return found, nil
+}
+
+func (f *fakeClient) ListApplicationIDs(context.Context) ([]int64, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.applicationIDsErr != nil {
+		return nil, f.applicationIDsErr
+	}
+	ids := make([]int64, 0, len(f.applications))
+	for id := range f.applications {
+		ids = append(ids, id)
+	}
+	slices.Sort(ids)
+	return ids, nil
+}
+
+func (f *fakeClient) DeleteApplication(_ context.Context, id int64) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.deleteApplicationErr != nil {
+		return f.deleteApplicationErr
+	}
+	f.deletedApplications = append(f.deletedApplications, id)
+	delete(f.applications, id)
+	return nil
 }
 
 func (f *fakeClient) Index(context.Context) ([]byte, error) {
@@ -436,5 +469,116 @@ func TestRevokingACredentialThatIsGoneIsNamedAsSuch(t *testing.T) {
 	err := New(client, discard).Revoke(context.Background(), 1)
 	if !errors.Is(err, credential.ErrNotFound) {
 		t.Errorf("err = %v, want ErrNotFound", err)
+	}
+}
+
+// Revoking a key leaves its application behind. The listing is the only call that sees one no
+// credential points at, and the provider reads each of them.
+func TestApplicationsListsEveryApplicationOfTheAccount(t *testing.T) {
+	client := inventory()
+	client.applications[12] = credential.Application{ID: 12, Key: "cccc", Name: "left-behind"}
+
+	applications, err := New(client, discard).Applications(context.Background())
+	if err != nil {
+		t.Fatalf("Applications: %v", err)
+	}
+	if len(applications) != 3 {
+		t.Fatalf("applications = %d, want 3", len(applications))
+	}
+	names := map[int64]string{}
+	for _, a := range applications {
+		names[a.ID] = a.Name
+	}
+	if names[12] != "left-behind" {
+		t.Errorf("applications = %v, want the one no credential points at", names)
+	}
+}
+
+func TestApplicationsFailWhenTheListingIsRefused(t *testing.T) {
+	client := inventory()
+	client.applicationIDsErr = apiError(http.StatusForbidden)
+
+	applications, err := New(client, discard).Applications(context.Background())
+	if applications != nil || !errors.Is(err, credential.ErrPermissionDenied) {
+		t.Errorf("applications = %v, err = %v, want a refusal", applications, err)
+	}
+}
+
+// One application the account cannot read does not hide the others; the count says how many
+// are missing, as it does for credentials.
+func TestApplicationsReturnWhatCouldBeReadAndCountTheRest(t *testing.T) {
+	client := inventory()
+	client.applications[12] = credential.Application{ID: 12}
+	client.applicationErrs = map[int64]error{12: apiError(http.StatusInternalServerError)}
+
+	applications, err := New(client, discard).Applications(context.Background())
+	var incomplete *credential.IncompleteError
+	if !errors.As(err, &incomplete) || incomplete.Unreadable != 1 || len(applications) != 2 {
+		t.Errorf("applications = %d, err = %v, want two read and one counted", len(applications), err)
+	}
+}
+
+// The API revokes every credential of an application along with it, so the provider counts
+// them against the API before deleting, whatever the screen was showing.
+func TestDeletingAnApplicationThatStillHoldsAKeyIsRefused(t *testing.T) {
+	client := inventory()
+
+	err := New(client, discard).DeleteApplication(context.Background(), 10)
+	if !errors.Is(err, credential.ErrApplicationInUse) {
+		t.Fatalf("err = %v, want ErrApplicationInUse", err)
+	}
+	if len(client.deletedApplications) != 0 {
+		t.Errorf("deleted = %v, want none", client.deletedApplications)
+	}
+}
+
+func TestDeletingAnApplicationWithoutKeysGoesThrough(t *testing.T) {
+	client := inventory()
+	client.applications[12] = credential.Application{ID: 12, Name: "left-behind"}
+
+	if err := New(client, discard).DeleteApplication(context.Background(), 12); err != nil {
+		t.Fatalf("DeleteApplication: %v", err)
+	}
+	if len(client.deletedApplications) != 1 || client.deletedApplications[0] != 12 {
+		t.Errorf("deleted = %v, want [12]", client.deletedApplications)
+	}
+}
+
+func TestDeletableApplicationReadsTheRulesOfTheCredentialInUse(t *testing.T) {
+	provider := New(inventory(), discard)
+
+	withRule := credential.Credential{Rules: []credential.AccessRule{{Method: "DELETE", Path: "/me/api/application/*"}}}
+	if !provider.DeletableApplication(withRule, 12) {
+		t.Error("a credential holding the delete rule was read as unable to delete")
+	}
+	readOnly := credential.Credential{Rules: []credential.AccessRule{{Method: "GET", Path: "/me/api/application/*"}}}
+	if provider.DeletableApplication(readOnly, 12) {
+		t.Error("a read-only credential was read as able to delete")
+	}
+}
+
+// The batched variant carries the same guard, read from the listing the caller made at the
+// start of the request rather than from one of its own: deleting a set of applications reads
+// the credentials once, and each application is still weighed against them.
+func TestDeletingAnApplicationAgainstAListingKeepsTheGuard(t *testing.T) {
+	client := inventory()
+	provider := New(client, discard)
+
+	listed := []credential.Credential{
+		{ID: 1, Application: credential.Application{ID: 10}},
+	}
+
+	if err := provider.DeleteApplicationAgainst(context.Background(), listed, 10); !errors.Is(err, credential.ErrApplicationInUse) {
+		t.Fatalf("err = %v, want ErrApplicationInUse", err)
+	}
+	if len(client.deletedApplications) != 0 {
+		t.Fatalf("deleted = %v, want none", client.deletedApplications)
+	}
+
+	if err := provider.DeleteApplicationAgainst(context.Background(), listed, 12); err != nil {
+		t.Fatalf("DeleteApplicationAgainst: %v", err)
+	}
+	if !slices.Equal(client.deletedApplications, []int64{12}) {
+		t.Errorf("deleted = %v, want [12]", client.deletedApplications)
 	}
 }

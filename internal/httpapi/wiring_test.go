@@ -54,8 +54,10 @@ func (c *readOnlyClient) CredentialApplication(context.Context, int64) (credenti
 	return credential.Application{}, nil
 }
 
-func (c *readOnlyClient) Index(context.Context) ([]byte, error)          { return nil, nil }
-func (c *readOnlyClient) Schema(context.Context, string) ([]byte, error) { return nil, nil }
+func (c *readOnlyClient) DeleteApplication(context.Context, int64) error      { return nil }
+func (c *readOnlyClient) ListApplicationIDs(context.Context) ([]int64, error) { return nil, nil }
+func (c *readOnlyClient) Index(context.Context) ([]byte, error)               { return nil, nil }
+func (c *readOnlyClient) Schema(context.Context, string) ([]byte, error)      { return nil, nil }
 
 // emptyCatalog satisfies the option; this test is about the revocation offer, which the
 // catalogue plays no part in.

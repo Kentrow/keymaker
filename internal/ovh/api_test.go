@@ -201,6 +201,7 @@ func TestApplicationDecoding(t *testing.T) {
 	client, _ := newFakeAPI(t, map[string]string{
 		"GET /1.0/me/api/credential/4210987/application": "application.json",
 		"GET /1.0/me/api/application/128745":             "application.json",
+		"GET /1.0/me/api/application":                    "application_ids.json",
 	})
 
 	fromCredential, err := client.CredentialApplication(context.Background(), 4210987)
@@ -217,6 +218,14 @@ func TestApplicationDecoding(t *testing.T) {
 	}
 	if direct != fromCredential {
 		t.Errorf("Application = %+v, CredentialApplication = %+v", direct, fromCredential)
+	}
+
+	ids, err := client.ListApplicationIDs(context.Background())
+	if err != nil {
+		t.Fatalf("ListApplicationIDs: %v", err)
+	}
+	if len(ids) != 2 || ids[0] != 128745 {
+		t.Errorf("ids = %v, want the two the account lists", ids)
 	}
 }
 
@@ -292,8 +301,10 @@ func TestTheCreateTokenLinkCarriesTheRulesReadably(t *testing.T) {
 	want := "https://eu.api.ovh.com/createToken/" +
 		"?GET=/me/api/credential" +
 		"&GET=/me/api/credential/*" +
+		"&GET=/me/api/application" +
 		"&GET=/me/api/application/*" +
-		"&DELETE=/me/api/credential/*"
+		"&DELETE=/me/api/credential/*" +
+		"&DELETE=/me/api/application/*"
 	if got != want {
 		t.Errorf("link =\n%q\nwant\n%q", got, want)
 	}
@@ -316,7 +327,7 @@ func TestAnUnusualRulePathIsEscaped(t *testing.T) {
 // The rules asked for on that page are the rules the tool actually calls, in both
 // directions: every signed call under /me is covered by one of them, and every one of them
 // covers a call the client makes. A rule covering nothing asks the reader for more than the
-// tool uses, which is how GET /me/api/application outlived the listing that needed it.
+// tool uses.
 func TestEveryManagementRuleCoversACallAndEveryCallIsCovered(t *testing.T) {
 	client, seen := newFakeAPI(t, map[string]string{})
 	ctx := context.Background()
@@ -325,7 +336,9 @@ func TestEveryManagementRuleCoversACallAndEveryCallIsCovered(t *testing.T) {
 	_, _ = client.Credential(ctx, 1)
 	_, _ = client.CredentialApplication(ctx, 1)
 	_ = client.DeleteCredential(ctx, 1)
+	_, _ = client.ListApplicationIDs(ctx)
 	_, _ = client.Application(ctx, 1)
+	_ = client.DeleteApplication(ctx, 1)
 
 	granted := credential.Credential{Rules: ManagementRules}
 	covered := make([]bool, len(ManagementRules))

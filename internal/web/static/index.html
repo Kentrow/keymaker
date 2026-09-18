@@ -216,6 +216,33 @@
       <button type="button" class="danger" x-on:click="askSweep" x-text="labels.sweepAction"></button>
     </div>
 
+    <div class="keyless" x-show="hasKeylessApplications">
+      <p class="sweep-text">
+        <span class="sweep-count" x-text="keylessHeadline"></span>
+        <span x-text="labels.keylessWhy"></span>
+      </p>
+      <button type="button" class="quiet" x-bind:aria-expanded="keylessExpanded" x-on:click="toggleKeyless" x-text="keylessToggleLabel"></button>
+      <button type="button" class="danger" x-show="canSweepApplications" x-on:click="askSweepApplications" x-text="labels.appSweepAction"></button>
+    </div>
+
+    <div class="keyless-detail" x-show="keylessOpen">
+      <ul class="sweep-list">
+        <template x-for="item in keylessApplications" x-bind:key="item.key">
+          <li>
+            <span class="subject-name" x-text="item.title"></span>
+            <span class="pill mono reference" x-text="item.reference"></span>
+            <span class="purpose" x-text="item.description"></span>
+            <button type="button" class="danger" x-show="item.deleteOffered" x-on:click="askDeleteApplication" x-text="labels.appDelete"></button>
+            <span class="unavailable" x-show="item.deleteRefused" x-bind:title="item.deleteReason" x-text="labels.appDeleteUnavailable"></span>
+          </li>
+        </template>
+      </ul>
+      <p class="remark" x-text="labels.keylessHowTo"></p>
+      <p class="remark" x-show="keylessUnreadableNotice" x-text="keylessUnreadableNotice"></p>
+    </div>
+
+    <p class="notice" x-show="applicationsRefused" x-text="labels.keylessMissingRule"></p>
+
     <div class="results" x-show="ready">
       <p class="shown" x-text="countLabel"></p>
       <button type="button" class="link" x-show="filtering" x-on:click="clearFilters" x-text="labels.clearFilters"></button>
@@ -516,6 +543,42 @@
       <div class="dialog-actions">
         <button type="button" class="quiet" x-on:click="cancelRevoke" x-text="labels.cancel"></button>
         <button type="button" class="danger" x-bind:disabled="confirmBlocked" x-on:click="confirmRevoke" x-text="confirmLabel"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="dialog" x-ref="applicationSweepDialog" aria-labelledby="application-sweep-title" x-on:cancel.prevent="cancelSweepApplications" x-on:click.self="cancelSweepApplications">
+    <div class="dialog-body">
+      <h2 id="application-sweep-title" x-text="labels.appSweepTitle"></h2>
+      <p class="warning" x-text="labels.appSweepWarning"></p>
+      <ul class="sweep-list">
+        <template x-for="item in deletableApplications" x-bind:key="item.key">
+          <li>
+            <span class="subject-name" x-text="item.title"></span>
+            <span class="pill mono reference" x-text="item.reference"></span>
+          </li>
+        </template>
+      </ul>
+      <p class="dialog-error" x-show="appSweepFailed" x-text="appSweepError"></p>
+      <div class="dialog-actions">
+        <button type="button" class="quiet" x-on:click="cancelSweepApplications" x-text="labels.cancel"></button>
+        <button type="button" class="danger" x-bind:disabled="appSweeping" x-on:click="confirmSweepApplications" x-text="appSweepLabel"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="dialog" x-ref="applicationDialog" aria-labelledby="application-title" x-on:cancel.prevent="cancelDeleteApplication" x-on:click.self="cancelDeleteApplication">
+    <div class="dialog-body">
+      <h2 id="application-title" x-text="labels.appDeleteTitle"></h2>
+      <p class="subject">
+        <span class="subject-name" x-text="deletingApplicationTitle"></span>
+        <span class="pill mono" x-text="deletingApplicationReference"></span>
+      </p>
+      <p class="warning" x-text="labels.appDeleteWarning"></p>
+      <p class="dialog-error" x-show="applicationFailed" x-text="applicationError"></p>
+      <div class="dialog-actions">
+        <button type="button" class="quiet" x-on:click="cancelDeleteApplication" x-text="labels.cancel"></button>
+        <button type="button" class="danger" x-bind:disabled="applicationBusy" x-on:click="confirmDeleteApplication" x-text="applicationDeleteLabel"></button>
       </div>
     </div>
   </dialog>

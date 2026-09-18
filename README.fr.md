@@ -45,6 +45,11 @@ d’application et une consumer key.
   dernière étape.
 - **Révocation** après saisie de l’identifiant de la clé, refusée pour la clé qu’utilise
   Keymaker, et en une passe pour toutes les clés expirées ou refusées.
+- **Applications restées sans clé**, qu’aucun inventaire de clés ne peut montrer. Révoquer une
+  clé laisse son application derrière elle, et une application reste une clé et un secret sous
+  lesquels une nouvelle clé peut être demandée. Elles se suppriment depuis l’outil ; une
+  application qui porte encore une clé ne l’est jamais, car OVHcloud révoquerait cette clé
+  avec elle. La suppression se fait une par une ou en une passe pour toutes.
 - **Rien n’est écrit sur disque** : aucune base, aucun cache, et un fichier de configuration
   monté en lecture seule.
 - Interface en anglais et en français, thèmes clair et sombre, affichage en liste ou en cartes.
@@ -76,17 +81,20 @@ vos clés et à vos applications :
 ```text
 GET    /me/api/credential
 GET    /me/api/credential/*
+GET    /me/api/application
 GET    /me/api/application/*
 DELETE /me/api/credential/*
+DELETE /me/api/application/*
 ```
 
-Le droit `DELETE` est facultatif. Sans lui, Keymaker fonctionne en lecture seule et indique sur
-chaque clé pourquoi la révocation n’est pas proposée. N’accordez jamais `/me/*` ni `/*` à cette
-clé.
+Trois droits sont facultatifs, et Keymaker indique lequel manque au lieu d’échouer :
+`DELETE /me/api/credential/*` pour révoquer les clés, `GET /me/api/application` pour lister les
+applications restées sans clé, et `DELETE /me/api/application/*` pour les supprimer. N’accordez
+jamais `/me/*` ni `/*` à cette clé.
 
 Pour l’endpoint `ovh-eu`, ce lien ouvre la page OVHcloud avec ces droits déjà remplis :
 
-<https://eu.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application/*&DELETE=/me/api/credential/*>
+<https://eu.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
 
 Pour `ovh-ca` et `ovh-us`, utilisez le même chemin sur `ca.api.ovh.com` ou
 `api.us.ovhcloud.com`. Keymaker propose aussi le bon lien pour son endpoint chaque fois que

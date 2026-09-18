@@ -7,6 +7,22 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Applications left without a key are listed under the inventory, with what they still allow:
+  revoking a key leaves its application behind, and an application is a key and a secret a new
+  credential can be requested under.
+- Deletion of an application that holds no key, behind a confirmation. An application still
+  holding one is never offered, because OVHcloud revokes every key of an application along with
+  it; the count is checked against the API at the moment of the deletion.
+- Deletion of every application holding no key in one pass, behind a confirmation listing them.
+  The request carries no list: the set is selected on the server from what the API answers, and
+  the report says which applications were deleted and which were refused.
+- The management key can hold `GET /me/api/application` and `DELETE /me/api/application/*`,
+  which the listing and the deletion need. Both are optional, like the credential delete rule:
+  without them the section says which rule is missing, and a key issued before this version
+  keeps working.
+
 ## [0.1.0] - 2026-09-13
 
 First public release.
