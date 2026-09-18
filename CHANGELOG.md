@@ -7,6 +7,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-18
+
 ### Added
 
 - Applications left without a key are listed under the inventory, with what they still allow:
@@ -22,7 +24,6 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   which the listing and the deletion need. Both are optional, like the credential delete rule:
   without them the section says which rule is missing, and a key issued before this version
   keeps working.
-
 - An Understand screen, in English and French, explaining what an application, a key and an
   access rule each are, on an invented example, and what follows from the way they fit
   together. It reads nothing from the account.
@@ -84,5 +85,6 @@ First public release.
 - Distroless, non-root container image for `linux/amd64` and `linux/arm64`, published to
   `ghcr.io/kentrow/keymaker` with provenance and SBOM attestations.
 
-[Unreleased]: https://github.com/kentrow/keymaker/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/kentrow/keymaker/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/kentrow/keymaker/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kentrow/keymaker/releases/tag/v0.1.0
