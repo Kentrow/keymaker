@@ -91,12 +91,24 @@ Three rules are optional, and Keymaker says which one is missing instead of fail
 applications holding no key, and `DELETE /me/api/application/*` for deleting those. Never grant
 this key `/me/*` or `/*`.
 
-For the `ovh-eu` endpoint, this link opens the OVHcloud page with those rules filled in:
+Each link below opens the OVHcloud page of one endpoint with those rules filled in. Take the
+one matching the region of your account, as the official SDKs name it.
+
+**`ovh-eu`**
 
 <https://eu.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
 
-For `ovh-ca` and `ovh-us`, use the same path on `ca.api.ovh.com` or `api.us.ovhcloud.com`.
-Keymaker also offers the right link for its endpoint whenever the API refuses its key.
+**`ovh-ca`**
+
+<https://ca.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
+
+**`ovh-us`**
+
+<https://api.us.ovhcloud.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
+
+The page also asks for a validity. A key that never expires is one Keymaker's own audit flags,
+so give this one an expiry you are willing to renew. Keymaker offers the right link for its own
+endpoint whenever the API refuses its key.
 
 ### 2. Write `ovh.conf`
 
