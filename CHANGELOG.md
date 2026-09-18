@@ -7,6 +7,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix the mascot logo in the interface and in the READMEs.
+
 ## [0.2.0] - 2026-09-18
 
 ### Added
