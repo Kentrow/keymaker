@@ -1516,6 +1516,11 @@ html:has(.dialog[open]) { overflow: hidden; }
 
 .panel:last-child { margin-bottom: 0; }
 
+/* The measure of a remark, given to every paragraph of a panel: a panel is as wide as the
+   screen allows, and a sentence running the full width of it is tiring to read. Setting it
+   here rather than on each paragraph means a new panel inherits it. */
+.panel p { max-width: 72ch; }
+
 /* The panels are steps and are numbered as such: the page reads as a sequence without
    hiding any of it, which matters for a creation that cannot be edited afterwards. */
 .panel h2 {

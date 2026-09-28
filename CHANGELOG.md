@@ -37,6 +37,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Paragraphs in the panels of the New key and Understand screens keep a readable line length
+  instead of running the full width of a wide screen.
 - The New key screen no longer greets the reader with a red message before anything is wrong.
   An empty selection is explained once, in the first step, and red is kept for real errors.
 - Changing screens moves the focus to the title of the new screen every time. It was sometimes
