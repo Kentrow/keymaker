@@ -34,7 +34,7 @@ a consumer key.
   marked, and any rule it holds beyond what Keymaker needs is named.
 - **Audit** that flags keys reaching the whole account, able to change who can access it or
   reaching billing and payments, working from any address, never expiring or expiring within a
-  month, never used, dormant for six months, created by OVHcloud support rather than by you,
+  week, never used, dormant for six months, created by OVHcloud support rather than by you,
   never validated, indistinguishable from another key of the same application, or without a
   description, and sorts them into "at risk", "to watch" and "nothing flagged".
 - **Route explorer** over the whole published API, searchable by route or by purpose, to

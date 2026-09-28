@@ -176,8 +176,8 @@ const dictionaries = {
       },
       'expires-soon': {
         label: 'expires soon',
-        explanation: 'This key expires within a month. Whatever uses it stops working that day, without a warning of its own. If it is still needed, issue its replacement and deploy it before then.',
-        clause: n => n === 1 ? 'One key expires within a month.' : `${n} keys expire within a month.`
+        explanation: 'This key expires within a week. Whatever uses it stops working that day, without a warning of its own. If it is still needed, issue its replacement and deploy it before then.',
+        clause: n => n === 1 ? 'One key expires within a week.' : `${n} keys expire within a week.`
       },
       'never-used': {
         label: 'never used',
@@ -462,8 +462,8 @@ const dictionaries = {
       },
       'expires-soon': {
         label: 'expire bientôt',
-        explanation: 'Cette clé expire dans moins d’un mois. Ce qui l’utilise cesse de fonctionner ce jour-là, sans prévenir. Si elle sert encore, émettez sa remplaçante et déployez-la avant.',
-        clause: n => n === 1 ? 'Une clé expire dans moins d’un mois.' : `${n} clés expirent dans moins d’un mois.`
+        explanation: 'Cette clé expire dans moins d’une semaine. Ce qui l’utilise cesse de fonctionner ce jour-là, sans prévenir. Si elle sert encore, émettez sa remplaçante et déployez-la avant.',
+        clause: n => n === 1 ? 'Une clé expire dans moins d’une semaine.' : `${n} clés expirent dans moins d’une semaine.`
       },
       'never-used': {
         label: 'jamais utilisée',
