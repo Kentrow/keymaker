@@ -249,6 +249,8 @@ const dictionaries = {
     handoffBlocked: 'Choose at least one access rule in the explorer first.',
     rulesNone: 'No rule chosen yet. Open the explorer and pick the routes this key needs.',
     rulesEdit: 'Change them in the explorer',
+    keylessExplain: 'Why an application outlives its keys',
+    replaceExplain: 'Why the rules of a key cannot be changed',
     screenGuide: 'Understand',
     guideTitle: 'What an OVHcloud API key is made of',
     guideIntro: 'What everyone calls a key is three things, created in one move and living apart afterwards: an application, a key issued under it, and the access rules that key carries. What this tool offers, refuses or flags follows from how the three fit together. The example below is invented.',
@@ -535,6 +537,8 @@ const dictionaries = {
     handoffBlocked: 'Choisissez d’abord au moins un droit d’accès dans l’explorateur.',
     rulesNone: 'Aucun droit retenu. Ouvrez l’explorateur et choisissez les routes dont cette clé a besoin.',
     rulesEdit: 'Les modifier dans l’explorateur',
+    keylessExplain: 'Pourquoi une application survit à ses clés',
+    replaceExplain: 'Pourquoi les droits d’une clé ne se modifient pas',
     screenGuide: 'Comprendre',
     guideTitle: 'De quoi se compose une clé d’API OVHcloud',
     guideIntro: 'Ce que tout le monde appelle une clé, ce sont trois choses créées d’un seul geste puis vivant séparément : une application, une clé émise sous elle, et les droits d’accès que porte cette clé. Ce que cet outil propose, refuse ou signale découle de la façon dont ces trois-là s’emboîtent. L’exemple ci-dessous est inventé.',
@@ -1278,9 +1282,21 @@ document.addEventListener('alpine:init', () => {
       this.screen = screen
       this.$nextTick(() => {
         window.scrollTo(0, 0)
-        const title = document.querySelector(`[data-screen-title="${screen}"]`)
-        if (title) title.focus({ preventScroll: true })
+        this.whenShown(() => document.querySelector(`[data-screen-title="${screen}"]`), title => title.focus({ preventScroll: true }))
       })
+    },
+
+    // Alpine's next tick can come before a screen shown by x-show is laid out, and a focus or
+    // a scroll aimed at an element still hidden is dropped without a word: the focus falls
+    // back to the page and the reader lands nowhere. This waits a few frames for the element
+    // to be shown before acting on it, and gives up quietly on one that never is.
+    whenShown (find, act, frames = 10) {
+      const element = find()
+      if (element && element.offsetParent !== null) {
+        act(element)
+        return
+      }
+      if (frames > 0) requestAnimationFrame(() => this.whenShown(find, act, frames - 1))
     },
 
     showInventory () {
@@ -1289,6 +1305,27 @@ document.addEventListener('alpine:init', () => {
 
     showGuide () {
       this.switchScreen('guide')
+    },
+
+    // A link from a screen that leans on this vocabulary lands on the paragraph that answers
+    // the question, not at the top of the guide. The screen change scrolls to the top first;
+    // this runs after it and takes the reader further down, focus included, so that a
+    // keyboard or a screen reader lands where the eye does.
+    showGuideAt (anchor) {
+      this.switchScreen('guide')
+      this.$nextTick(() => this.whenShown(() => document.getElementById(anchor), section => {
+        section.scrollIntoView({ block: 'start' })
+        const title = section.querySelector('h2')
+        if (title) title.focus({ preventScroll: true })
+      }))
+    },
+
+    explainKeyless () {
+      this.showGuideAt('guide-story')
+    },
+
+    explainReplacement () {
+      this.showGuideAt('guide-rules')
     },
 
     // The guide is the one screen with nothing behind it. Its example is invented and lives
@@ -1329,24 +1366,28 @@ document.addEventListener('alpine:init', () => {
       return [
         {
           key: 'application',
+          anchor: 'guide-application',
           title: this.labels.guideApplicationTitle,
           body: this.labels.guideApplicationBody,
           note: this.labels.guideApplicationNote
         },
         {
           key: 'credential',
+          anchor: 'guide-key',
           title: this.labels.guideKeyTitle,
           body: this.labels.guideKeyBody,
           note: this.labels.guideKeyNote
         },
         {
           key: 'rules',
+          anchor: 'guide-rules',
           title: this.labels.guideRulesTitle,
           body: this.labels.guideRulesBody,
           note: this.labels.guideRulesNote
         },
         {
           key: 'external',
+          anchor: 'guide-external',
           title: this.labels.guideExternalTitle,
           body: this.labels.guideExternalBody,
           note: ''

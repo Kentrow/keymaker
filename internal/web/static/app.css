@@ -1659,6 +1659,12 @@ button:disabled {
   margin: 0 auto;
 }
 
+/* Other screens link to a section of the guide: it lands below the sticky bar rather than
+   under it, and its title takes the focus without drawing a ring, since it is not a control. */
+.guide > .panel { scroll-margin-top: calc(var(--topbar) + var(--space-4)); }
+
+.guide h2:focus { outline: none; }
+
 .guide-app {
   margin-top: var(--space-3);
   padding: var(--space-4);
