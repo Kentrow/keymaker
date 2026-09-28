@@ -39,7 +39,7 @@ function preferredLanguage () {
   return navigator.language && navigator.language.startsWith('fr') ? 'fr' : 'en'
 }
 
-const findingOrder = ['broad-access', 'account-control', 'billing-access', 'pending-validation', 'support-issued', 'same-as-another', 'no-ip-restriction', 'no-expiry', 'never-used', 'dormant', 'no-description']
+const findingOrder = ['broad-access', 'account-control', 'billing-access', 'pending-validation', 'support-issued', 'same-as-another', 'no-ip-restriction', 'no-expiry', 'expires-soon', 'never-used', 'dormant', 'no-description']
 
 const severityRank = { risk: 3, caution: 2, note: 1 }
 
@@ -173,6 +173,11 @@ const dictionaries = {
         label: 'no expiry',
         explanation: 'The key never expires, so a leak stays useful forever. An end date bounds the damage.',
         clause: n => n === 1 ? 'One key never expires.' : `${n} keys never expire.`
+      },
+      'expires-soon': {
+        label: 'expires soon',
+        explanation: 'This key expires within a month. Whatever uses it stops working that day, without a warning of its own. If it is still needed, issue its replacement and deploy it before then.',
+        clause: n => n === 1 ? 'One key expires within a month.' : `${n} keys expire within a month.`
       },
       'never-used': {
         label: 'never used',
@@ -447,6 +452,11 @@ const dictionaries = {
         label: 'sans expiration',
         explanation: 'La clé n’expire jamais : une fuite reste exploitable indéfiniment. Une date de fin borne les dégâts.',
         clause: n => n === 1 ? 'Une clé n’expire jamais.' : `${n} clés n’expirent jamais.`
+      },
+      'expires-soon': {
+        label: 'expire bientôt',
+        explanation: 'Cette clé expire dans moins d’un mois. Ce qui l’utilise cesse de fonctionner ce jour-là, sans prévenir. Si elle sert encore, émettez sa remplaçante et déployez-la avant.',
+        clause: n => n === 1 ? 'Une clé expire dans moins d’un mois.' : `${n} clés expirent dans moins d’un mois.`
       },
       'never-used': {
         label: 'jamais utilisée',

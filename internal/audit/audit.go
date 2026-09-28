@@ -31,6 +31,7 @@ const (
 	BroadAccess     Code = "broad-access"
 	NoIPRestriction Code = "no-ip-restriction"
 	NoExpiry        Code = "no-expiry"
+	ExpiresSoon     Code = "expires-soon"
 	NeverUsed       Code = "never-used"
 	Dormant         Code = "dormant"
 	NoDescription   Code = "no-description"
@@ -59,6 +60,10 @@ const unusedGrace = 30 * 24 * time.Hour
 
 // dormantAfter is where a key stops looking merely idle and starts looking forgotten.
 const dormantAfter = 180 * 24 * time.Hour
+
+// expiringWithin is how far ahead an expiry is worth a finding. A month leaves time to issue
+// a replacement and to deploy it wherever the key is used, which is rarely a same-day job.
+const expiringWithin = 30 * 24 * time.Hour
 
 type Finding struct {
 	Code     Code
@@ -102,8 +107,14 @@ func Inspect(c credential.Credential, now time.Time) []Finding {
 	if len(c.AllowedIPs) == 0 {
 		add(NoIPRestriction, SeverityCaution)
 	}
-	if c.ExpiresAt.IsZero() {
+	// An expiry is not a risk: it is the opposite of one. It is a date after which whatever
+	// uses the key stops working without a word, the tool's own management key included,
+	// and it is worth seeing while there is still time to act.
+	switch {
+	case c.ExpiresAt.IsZero():
 		add(NoExpiry, SeverityCaution)
+	case c.ExpiresAt.After(now) && c.ExpiresAt.Sub(now) <= expiringWithin:
+		add(ExpiresSoon, SeverityCaution)
 	}
 
 	if c.Status != credential.StatusPendingValidation {

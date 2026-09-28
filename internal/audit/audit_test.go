@@ -24,7 +24,7 @@ func wellKept() credential.Credential {
 		Rules:       []credential.AccessRule{{Method: "GET", Path: "/domain/zone/*"}},
 		AllowedIPs:  []netip.Prefix{netip.MustParsePrefix("203.0.113.4/32")},
 		CreatedAt:   now.Add(-365 * 24 * time.Hour),
-		ExpiresAt:   now.Add(30 * 24 * time.Hour),
+		ExpiresAt:   now.Add(90 * 24 * time.Hour),
 		LastUsedAt:  now.Add(-2 * time.Hour),
 	}
 }
@@ -52,6 +52,7 @@ func TestEachFindingIsRaisedOnItsOwn(t *testing.T) {
 		NeverUsed:       func(c *credential.Credential) { c.LastUsedAt = time.Time{} },
 		BroadAccess:     func(c *credential.Credential) { c.Rules = []credential.AccessRule{{Method: "GET", Path: "/*"}} },
 		SupportIssued:   func(c *credential.Credential) { c.IssuedBySupport = true },
+		ExpiresSoon:     func(c *credential.Credential) { c.ExpiresAt = now.Add(5 * 24 * time.Hour) },
 		AccountControl: func(c *credential.Credential) {
 			c.Rules = []credential.AccessRule{{Method: "POST", Path: "/me/identity/user"}}
 		},
@@ -286,5 +287,41 @@ func TestCredentialsWithAnUnreadableApplicationAreNotPaired(t *testing.T) {
 
 	if got := Twins([]credential.Credential{first, second}); len(got) != 0 {
 		t.Errorf("twins = %v, want none", got)
+	}
+}
+
+// The window is inclusive at a month and says nothing about a key that is already past its
+// date: that key is expired, whatever status the listing gave it a moment ago.
+func TestAnExpiryIsReportedWithinAMonthAndNotBeyond(t *testing.T) {
+	cases := map[string]struct {
+		expires time.Time
+		want    bool
+	}{
+		"in an hour":         {now.Add(time.Hour), true},
+		"in exactly 30 days": {now.Add(30 * 24 * time.Hour), true},
+		"in 31 days":         {now.Add(31 * 24 * time.Hour), false},
+		"an hour ago":        {now.Add(-time.Hour), false},
+	}
+
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			key := wellKept()
+			key.ExpiresAt = c.expires
+
+			if got := slices.Contains(codes(Inspect(key, now)), ExpiresSoon); got != c.want {
+				t.Errorf("expires-soon = %v, want %v", got, c.want)
+			}
+		})
+	}
+}
+
+// A key with no expiry is reported for that, and only that: it cannot also be about to expire.
+func TestAKeyWithoutExpiryIsNotAlsoExpiringSoon(t *testing.T) {
+	key := wellKept()
+	key.ExpiresAt = time.Time{}
+
+	got := codes(Inspect(key, now))
+	if !slices.Contains(got, NoExpiry) || slices.Contains(got, ExpiresSoon) {
+		t.Errorf("findings = %v, want %s alone of the two", got, NoExpiry)
 	}
 }
