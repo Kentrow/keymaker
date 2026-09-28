@@ -66,9 +66,14 @@ const unusedGrace = 30 * 24 * time.Hour
 // dormantAfter is where a key stops looking merely idle and starts looking forgotten.
 const dormantAfter = 180 * 24 * time.Hour
 
-// expiringWithin is how far ahead an expiry is worth a finding. A month leaves time to issue
-// a replacement and to deploy it wherever the key is used, which is rarely a same-day job.
-const expiringWithin = 30 * 24 * time.Hour
+// expiringWithin is how far ahead an expiry is worth a finding.
+//
+// The page that issues keys offers five validities: five minutes, an hour, a day, 30 days, or
+// none. A window of a month would flag every 30-day key from the moment it is issued and for
+// its whole life, which is how a finding teaches its reader to ignore it. A week flags such a
+// key in its last week only, still leaves time to issue and deploy a replacement, and flags a
+// one-day key from the start, which is right: it does expire tomorrow.
+const expiringWithin = 7 * 24 * time.Hour
 
 type Finding struct {
 	Code     Code

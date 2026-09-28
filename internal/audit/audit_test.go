@@ -290,17 +290,17 @@ func TestCredentialsWithAnUnreadableApplicationAreNotPaired(t *testing.T) {
 	}
 }
 
-// The window is inclusive at a month and says nothing about a key that is already past its
+// The window is inclusive at a week and says nothing about a key that is already past its
 // date: that key is expired, whatever status the listing gave it a moment ago.
 func TestAnExpiryIsReportedWithinAMonthAndNotBeyond(t *testing.T) {
 	cases := map[string]struct {
 		expires time.Time
 		want    bool
 	}{
-		"in an hour":         {now.Add(time.Hour), true},
-		"in exactly 30 days": {now.Add(30 * 24 * time.Hour), true},
-		"in 31 days":         {now.Add(31 * 24 * time.Hour), false},
-		"an hour ago":        {now.Add(-time.Hour), false},
+		"in an hour":        {now.Add(time.Hour), true},
+		"in exactly 7 days": {now.Add(7 * 24 * time.Hour), true},
+		"in 8 days":         {now.Add(8 * 24 * time.Hour), false},
+		"an hour ago":       {now.Add(-time.Hour), false},
 	}
 
 	for name, c := range cases {
@@ -312,6 +312,18 @@ func TestAnExpiryIsReportedWithinAMonthAndNotBeyond(t *testing.T) {
 				t.Errorf("expires-soon = %v, want %v", got, c.want)
 			}
 		})
+	}
+}
+
+// The OVHcloud page offers a 30-day validity, and a key issued with it must not be flagged
+// from the day it is issued: a finding raised for the whole life of a normal key is noise.
+func TestAKeyIssuedForThirtyDaysIsNotFlaggedWhenIssued(t *testing.T) {
+	key := wellKept()
+	key.CreatedAt = now
+	key.ExpiresAt = now.Add(30 * 24 * time.Hour)
+
+	if got := codes(Inspect(key, now)); slices.Contains(got, ExpiresSoon) {
+		t.Errorf("findings = %v, want no %s on a 30-day key the day it is issued", got, ExpiresSoon)
 	}
 }
 

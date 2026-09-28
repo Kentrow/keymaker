@@ -35,7 +35,7 @@ d’application et une consumer key.
   porte au-delà de ce dont Keymaker a besoin est nommé.
 - **Audit** qui signale les clés qui atteignent tout le compte, peuvent en modifier les accès
   ou atteignent la facturation et les paiements, fonctionnent depuis n’importe quelle adresse,
-  n’expirent jamais ou expirent dans moins d’un mois, n’ont jamais servi, dorment depuis six
+  n’expirent jamais ou expirent dans moins d’une semaine, n’ont jamais servi, dorment depuis six
   mois, ont été créées par le support OVHcloud plutôt que par vous, n’ont jamais été validées,
   sont indiscernables d’une autre clé de la même application, ou n’ont pas de description, et
   les range en « à risque », « à surveiller » et « sans réserve ».
