@@ -220,6 +220,8 @@ skipped, since it could not have been used.
 | Finding | Raised when | Severity |
 |---|---|---|
 | `broad-access` | A rule has a wildcard whose fixed part is `/` or `/me` | risk |
+| `account-control` | A narrower rule can change access to the account, see below | risk |
+| `billing-access` | A narrower rule reaches billing, orders or payment means, see below | caution |
 | `no-ip-restriction` | No allowed address | caution |
 | `no-expiry` | No expiration date | caution |
 | `never-used` | Never used and created more than 30 days ago | caution |
@@ -232,6 +234,19 @@ skipped, since it could not have been used.
 Every finding but the last is read from one credential. `same-as-another` takes the whole
 listing, since neither of two interchangeable keys can tell on its own, so `audit.Twins` is
 called once over the set and the HTTP layer attaches the finding to each key it names.
+
+`audit.SensitiveBranches` lists the parts of the account a narrow rule can still reach at a
+cost, each with the methods that make it so. The first group manages access to the account:
+IAM users and tokens, OAuth2 clients, sub-account consumer keys, the addresses other keys
+accept, two-factor authentication and login restrictions, password and email changes, SSH
+keys. Every write counts there, since a method cannot tell granting from removing, with one
+exception: revoking API credentials is left out on purpose, because that is what the
+management key itself does. The second group is billing, orders and payment means, where
+reading already counts. A test holds every entry against the embedded route
+catalogue, so that a misspelt path cannot silently protect nothing.
+
+The explorer marks the same operations and warns about the same selection, from the list the
+session serves rather than from a copy in the interface.
 
 ## Security model
 

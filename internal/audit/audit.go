@@ -36,6 +36,12 @@ const (
 	NoDescription   Code = "no-description"
 	SupportIssued   Code = "support-issued"
 
+	// AccountControl and BillingAccess are raised on a scoped rule that reaches one of the
+	// SensitiveBranches. A broad rule reaches all of them and says so already, so neither is
+	// raised beside BroadAccess.
+	AccountControl Code = "account-control"
+	BillingAccess  Code = "billing-access"
+
 	// SameAsAnother is raised over a set rather than over one credential, which is why
 	// Inspect cannot raise it: see Twins.
 	SameAsAnother Code = "same-as-another"
@@ -82,8 +88,16 @@ func Inspect(c credential.Credential, now time.Time) []Finding {
 		add(PendingValidation, SeverityCaution)
 	}
 
-	if hasBroadRule(c.Rules) {
+	broad := hasBroadRule(c.Rules)
+	if broad {
 		add(BroadAccess, SeverityRisk)
+	} else {
+		if reaches(c.Rules, AccountControl) {
+			add(AccountControl, SeverityRisk)
+		}
+		if reaches(c.Rules, BillingAccess) {
+			add(BillingAccess, SeverityCaution)
+		}
 	}
 	if len(c.AllowedIPs) == 0 {
 		add(NoIPRestriction, SeverityCaution)
@@ -144,6 +158,107 @@ func hasBroadRule(rules []credential.AccessRule) bool {
 		switch strings.TrimSuffix(rule.Path[:star], "/") {
 		case "", "/me":
 			return true
+		}
+	}
+	return false
+}
+
+// Branch is a part of the API that deserves a warning even under a narrow rule.
+type Branch struct {
+	// Finding is the code raised on a key holding a rule that reaches the branch.
+	Finding Code
+	Path    string
+
+	// Methods limits the branch to these methods. Empty means every method: reading
+	// invoices is already exposure, while reading the list of IAM users is not a way in.
+	Methods []string
+}
+
+var writes = []string{"POST", "PUT", "DELETE"}
+
+// SensitiveBranches are the parts of the account a narrow rule can still reach at a cost.
+//
+// The first group manages who can get into the account: IAM users, groups and tokens,
+// OAuth2 clients, sub-account consumer keys, the addresses another key accepts, two-factor
+// authentication and the login restrictions, password and email changes, and the SSH keys
+// new servers trust. A write there can let someone in or lock the owner out, beyond the
+// key's own rules, and a method cannot tell the two apart: enabling and disabling a user are
+// both a POST. Every write counts, then, with one exception. Revoking API credentials is what
+// the management key this tool runs with does, and a finding raised on every management key
+// would soon be read as noise.
+//
+// The second group is money: invoices, orders, payment means and balances. Read, it
+// exposes financial data; written, it can pay an order with a registered payment mean.
+//
+// The interface receives this list rather than keeping a copy, so that the explorer warns
+// about the same rules the audit flags.
+var SensitiveBranches = []Branch{
+	{Finding: AccountControl, Path: "/me/accessRestriction", Methods: writes},
+	{Finding: AccountControl, Path: "/me/identity", Methods: writes},
+	{Finding: AccountControl, Path: "/me/subAccount", Methods: []string{"POST", "PUT"}},
+	{Finding: AccountControl, Path: "/me/api/oauth2/client", Methods: []string{"POST", "PUT"}},
+	{Finding: AccountControl, Path: "/me/api/credential", Methods: []string{"PUT"}},
+	{Finding: AccountControl, Path: "/me/changeEmail", Methods: []string{"POST"}},
+	{Finding: AccountControl, Path: "/me/changePassword", Methods: []string{"POST"}},
+	{Finding: AccountControl, Path: "/me/passwordRecover", Methods: []string{"POST"}},
+	{Finding: AccountControl, Path: "/me/sshKey", Methods: []string{"POST", "DELETE"}},
+
+	{Finding: BillingAccess, Path: "/me/autorenew"},
+	{Finding: BillingAccess, Path: "/me/availableAutomaticPaymentMeans"},
+	{Finding: BillingAccess, Path: "/me/bill"},
+	{Finding: BillingAccess, Path: "/me/billing"},
+	{Finding: BillingAccess, Path: "/me/consumption"},
+	{Finding: BillingAccess, Path: "/me/correctiveInvoice"},
+	{Finding: BillingAccess, Path: "/me/credit"},
+	{Finding: BillingAccess, Path: "/me/debtAccount"},
+	{Finding: BillingAccess, Path: "/me/deposit"},
+	{Finding: BillingAccess, Path: "/me/downPaymentInvoice"},
+	{Finding: BillingAccess, Path: "/me/fidelityAccount"},
+	{Finding: BillingAccess, Path: "/me/order"},
+	{Finding: BillingAccess, Path: "/me/ovhAccount"},
+	{Finding: BillingAccess, Path: "/me/payment"},
+	{Finding: BillingAccess, Path: "/me/paymentMean"},
+	{Finding: BillingAccess, Path: "/me/refund"},
+	{Finding: BillingAccess, Path: "/me/reverseBill"},
+	{Finding: BillingAccess, Path: "/me/voucher"},
+	{Finding: BillingAccess, Path: "/me/withdrawal"},
+}
+
+// Reaches reports whether a rule covers at least one route of the branch.
+//
+// A rule without a wildcard names one route, which belongs to the branch when its path is
+// the branch or lies under it. A wildcard covers every path starting with the fixed part
+// before it, so it also reaches a branch that fixed part is only the beginning of: /me/i*
+// covers /me/identity as surely as /me/identity/* does.
+func (b Branch) Reaches(rule credential.AccessRule) bool {
+	if len(b.Methods) > 0 && !slices.ContainsFunc(b.Methods, func(m string) bool { return strings.EqualFold(m, rule.Method) }) {
+		return false
+	}
+
+	star := strings.Index(rule.Path, "*")
+	if star < 0 {
+		return within(rule.Path, b.Path)
+	}
+	fixed := rule.Path[:star]
+	return within(strings.TrimSuffix(fixed, "/"), b.Path) || strings.HasPrefix(b.Path, fixed)
+}
+
+// within reports whether a path is the branch or lies under it. The separator matters:
+// /me/billing is a branch of its own and not a part of /me/bill.
+func within(path, branch string) bool {
+	return path == branch || strings.HasPrefix(path, branch+"/")
+}
+
+// reaches reports whether any of the rules reaches a branch raising the finding.
+func reaches(rules []credential.AccessRule, finding Code) bool {
+	for _, branch := range SensitiveBranches {
+		if branch.Finding != finding {
+			continue
+		}
+		for _, rule := range rules {
+			if branch.Reaches(rule) {
+				return true
+			}
 		}
 	}
 	return false

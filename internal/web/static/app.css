@@ -1285,6 +1285,10 @@ html:has(.dialog[open]) { overflow: hidden; }
   padding: 1px 6px;
 }
 
+/* An operation that can open new access to the account is marked in the colour of a key at
+   risk, which is what a key holding it becomes. */
+.tag.risk { color: var(--risk); background: var(--risk-soft); }
+
 /* One component for every HTTP method on the page: the rules of a key, the operations in
    the explorer, the rules being assembled. The hues are SwaggerUI's, which is the reference
    anyone reading an API already has in their eye - blue reads, green creates, orange
@@ -1422,6 +1426,13 @@ html:has(.dialog[open]) { overflow: hidden; }
   background: var(--risk-soft);
   border-radius: var(--radius-sm);
   padding: var(--space-2);
+}
+
+/* Billing is a caution and not a risk, in the colour its finding carries on a card: red stays
+   for what can cost the whole account. */
+.selection .warning.caution {
+  color: var(--caution);
+  background: var(--caution-soft);
 }
 
 .selection-actions {

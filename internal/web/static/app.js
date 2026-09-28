@@ -39,7 +39,7 @@ function preferredLanguage () {
   return navigator.language && navigator.language.startsWith('fr') ? 'fr' : 'en'
 }
 
-const findingOrder = ['broad-access', 'pending-validation', 'support-issued', 'same-as-another', 'no-ip-restriction', 'no-expiry', 'never-used', 'dormant', 'no-description']
+const findingOrder = ['broad-access', 'account-control', 'billing-access', 'pending-validation', 'support-issued', 'same-as-another', 'no-ip-restriction', 'no-expiry', 'never-used', 'dormant', 'no-description']
 
 const severityRank = { risk: 3, caution: 2, note: 1 }
 
@@ -194,6 +194,16 @@ const dictionaries = {
         explanation: 'OVHcloud support created this key, not you, usually while working on a ticket. Once the ticket is closed it has no reason to stay.',
         clause: n => n === 1 ? 'One key was created by OVHcloud support.' : `${n} keys were created by OVHcloud support.`
       },
+      'account-control': {
+        label: 'changes account access',
+        explanation: 'A rule of this key can create, change or remove what gives access to the account: users, tokens, OAuth2 clients, the addresses other keys accept, two-factor authentication. Leaked, it can let someone in or lock you out, beyond its own rules.',
+        clause: n => n === 1 ? 'One key can change access to the account.' : `${n} keys can change access to the account.`
+      },
+      'billing-access': {
+        label: 'billing and payments',
+        explanation: 'A rule of this key reaches invoices, orders, payment means or balances. Read, that is financial data; written, it can pay an order with a registered payment mean.',
+        clause: n => n === 1 ? 'One key reaches billing or payments.' : `${n} keys reach billing or payments.`
+      },
       'same-as-another': {
         label: 'same as another',
         explanation: 'Another key of the same application carries the same rules and the same addresses, so nothing tells the two apart. One of them is usually a first attempt nobody revoked. Compare the last use dates and keep one.',
@@ -288,6 +298,8 @@ const dictionaries = {
     rulesCopied: 'Copied.',
     rulesCopyFailed: 'The browser refused to write to the clipboard.',
     broadRule: 'reaches the whole account',
+    controlWarning: 'One of these rules can change access to the account: users, tokens, OAuth2 clients, the addresses other keys accept, or two-factor authentication. Leaked, a key holding it can let someone in or lock you out.',
+    billingWarning: 'One of these rules reaches billing or payments. Read, that is financial data; written, it can pay an order with a registered payment mean.',
     broadWarning: 'A rule that reaches the whole account gives the key everything you can do. Narrow it unless that is the intent.',
     unauthorized: 'Session not recognised. Reopen the address the process printed at startup.',
     unreachable: 'The interface could not reach its own backend.',
@@ -456,6 +468,16 @@ const dictionaries = {
         explanation: 'C’est le support OVHcloud qui a créé cette clé, pas vous, en général pendant le traitement d’un ticket. Une fois le ticket clos, elle n’a plus de raison de rester.',
         clause: n => n === 1 ? 'Une clé a été créée par le support OVHcloud.' : `${n} clés ont été créées par le support OVHcloud.`
       },
+      'account-control': {
+        label: 'touche aux accès du compte',
+        explanation: 'Un droit de cette clé permet de créer, modifier ou supprimer ce qui donne accès au compte : utilisateurs, jetons, clients OAuth2, adresses acceptées par d’autres clés, double authentification. Si elle fuit, elle peut faire entrer quelqu’un ou vous mettre dehors, au-delà de ses propres droits.',
+        clause: n => n === 1 ? 'Une clé peut modifier les accès au compte.' : `${n} clés peuvent modifier les accès au compte.`
+      },
+      'billing-access': {
+        label: 'facturation et paiements',
+        explanation: 'Un droit de cette clé atteint les factures, les commandes, les moyens de paiement ou les soldes. En lecture, ce sont des données financières ; en écriture, elle peut régler une commande avec un moyen de paiement enregistré.',
+        clause: n => n === 1 ? 'Une clé atteint la facturation ou les paiements.' : `${n} clés atteignent la facturation ou les paiements.`
+      },
       'same-as-another': {
         label: 'identique à une autre',
         explanation: 'Une autre clé de la même application porte les mêmes droits et les mêmes adresses : rien ne distingue les deux. L’une est en général un premier essai que personne n’a révoqué. Comparez les dates de dernier usage et n’en gardez qu’une.',
@@ -550,6 +572,8 @@ const dictionaries = {
     rulesCopied: 'Copié.',
     rulesCopyFailed: 'Le navigateur a refusé l’écriture dans le presse-papiers.',
     broadRule: 'porte sur tout le compte',
+    controlWarning: 'L’un de ces droits peut modifier les accès au compte : utilisateurs, jetons, clients OAuth2, adresses acceptées par d’autres clés, ou double authentification. Si elle fuit, une clé qui le porte peut faire entrer quelqu’un ou vous mettre dehors.',
+    billingWarning: 'L’un de ces droits atteint la facturation ou les paiements. En lecture, ce sont des données financières ; en écriture, il permet de régler une commande avec un moyen de paiement enregistré.',
     broadWarning: 'Un droit qui porte sur tout le compte donne à la clé tout ce que vous pouvez faire. Restreignez-le, sauf si c’est l’intention.',
     unauthorized: 'Session non reconnue. Rouvrez l’adresse affichée au démarrage du processus.',
     unreachable: 'L’interface n’a pas pu joindre son propre backend.',
@@ -616,6 +640,7 @@ document.addEventListener('alpine:init', () => {
     csrf: '',
     addressLookup: false,
     managementKeyUrl: '',
+    sensitive: [],
     notice: '',
     confirming: null,
     confirmText: '',
@@ -701,6 +726,7 @@ document.addEventListener('alpine:init', () => {
         this.version = payload.version || ''
         this.addressLookup = Boolean(payload.addressLookup)
         this.managementKeyUrl = payload.managementKeyUrl || ''
+        this.sensitive = Array.isArray(payload.sensitive) ? payload.sensitive : []
       } catch (failure) {
         // The inventory reports the same unreachable backend; saying it twice adds nothing.
       }
@@ -1534,6 +1560,7 @@ document.addEventListener('alpine:init', () => {
 
     presentOperation (route, operation) {
       const chosen = this.chosen(operation.method, route.rule)
+      const sensitive = this.sensitiveFinding(operation.method, route.rule)
       const classes = ['method', `method-${operation.method.toLowerCase()}`]
       if (chosen) classes.push('chosen')
       if (operation.deprecated) classes.push('deprecated')
@@ -1541,6 +1568,8 @@ document.addEventListener('alpine:init', () => {
         method: operation.method,
         description: operation.description,
         deprecated: operation.deprecated,
+        sensitive: sensitive ? this.labels.findings[sensitive].label : '',
+        sensitiveClass: sensitive === 'account-control' ? 'tag risk' : 'tag',
         chosen,
         className: classes.join(' '),
 
@@ -1563,6 +1592,31 @@ document.addEventListener('alpine:init', () => {
       if (star < 0) return false
       const fixed = path.slice(0, star).replace(/\/+$/, '')
       return fixed === '' || fixed === '/me'
+    },
+
+    // The reading the audit applies to an existing key, over the list the audit itself
+    // serves with the session: a rule reaches a branch when it names a route in it, or when
+    // its wildcard starts before the branch does. A broad rule is reported as such and not
+    // branch by branch, as on a card.
+    sensitiveFinding (method, path) {
+      if (this.broadRule(path)) return ''
+      const verb = method.toUpperCase()
+      const star = path.indexOf('*')
+      const fixed = star < 0 ? '' : path.slice(0, star)
+      const found = this.sensitive.find(branch => {
+        if (branch.methods.length > 0 && !branch.methods.includes(verb)) return false
+        if (star < 0) return this.inBranch(path, branch.path)
+        return this.inBranch(fixed.replace(/\/+$/, ''), branch.path) || branch.path.startsWith(fixed)
+      })
+      return found ? found.finding : ''
+    },
+
+    get selectionControl () {
+      return this.selection.some(rule => this.sensitiveFinding(rule.method, rule.path) === 'account-control')
+    },
+
+    get selectionBilling () {
+      return this.selection.some(rule => this.sensitiveFinding(rule.method, rule.path) === 'billing-access')
     },
 
     get selectedRules () {
