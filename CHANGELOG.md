@@ -35,6 +35,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Deleting the last application left without a key no longer leaves its unfolded panel on
+  screen, empty but for its explanation.
 - Fix the mascot logo in the interface and in the READMEs.
 
 ## [0.2.0] - 2026-09-18
