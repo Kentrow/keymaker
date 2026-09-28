@@ -325,3 +325,36 @@ func TestAKeyWithoutExpiryIsNotAlsoExpiringSoon(t *testing.T) {
 		t.Errorf("findings = %v, want %s alone of the two", got, NoExpiry)
 	}
 }
+
+func TestSurplusNamesTheRulesBeyondWhatIsNeeded(t *testing.T) {
+	needed := []credential.AccessRule{
+		{Method: "GET", Path: "/me/api/credential"},
+		{Method: "DELETE", Path: "/me/api/credential/*"},
+	}
+	c := wellKept()
+	c.Rules = []credential.AccessRule{
+		{Method: "get", Path: "/me/api/credential"},
+		{Method: "GET", Path: "/cloud/project/*"},
+		{Method: "DELETE", Path: "/me/api/credential/*"},
+		{Method: "GET", Path: "/me/api/*"},
+	}
+
+	got := Surplus(c, needed)
+	want := []credential.AccessRule{
+		{Method: "GET", Path: "/cloud/project/*"},
+		{Method: "GET", Path: "/me/api/*"},
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("surplus = %v, want %v, in the order the key holds them", got, want)
+	}
+}
+
+func TestAKeyHoldingExactlyWhatIsNeededHasNoSurplus(t *testing.T) {
+	needed := []credential.AccessRule{{Method: "GET", Path: "/me/api/credential"}}
+	c := wellKept()
+	c.Rules = needed
+
+	if got := Surplus(c, needed); len(got) != 0 {
+		t.Errorf("surplus = %v, want none", got)
+	}
+}

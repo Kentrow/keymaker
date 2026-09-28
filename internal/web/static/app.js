@@ -39,7 +39,7 @@ function preferredLanguage () {
   return navigator.language && navigator.language.startsWith('fr') ? 'fr' : 'en'
 }
 
-const findingOrder = ['broad-access', 'account-control', 'billing-access', 'pending-validation', 'support-issued', 'same-as-another', 'no-ip-restriction', 'no-expiry', 'expires-soon', 'never-used', 'dormant', 'no-description']
+const findingOrder = ['broad-access', 'account-control', 'billing-access', 'wider-than-needed', 'pending-validation', 'support-issued', 'same-as-another', 'no-ip-restriction', 'no-expiry', 'expires-soon', 'never-used', 'dormant', 'no-description']
 
 const severityRank = { risk: 3, caution: 2, note: 1 }
 
@@ -209,6 +209,11 @@ const dictionaries = {
         explanation: 'A rule of this key reaches invoices, orders, payment means or balances. Read, that is financial data; written, it can pay an order with a registered payment mean.',
         clause: n => n === 1 ? 'One key reaches billing or payments.' : `${n} keys reach billing or payments.`
       },
+      'wider-than-needed': {
+        label: 'wider than needed',
+        explanation: 'This is the key Keymaker authenticates with, and it holds rules Keymaker never uses. Whoever got hold of it would get those too. The rules in question are listed on the card.',
+        clause: () => 'The key this tool uses holds more than it needs.'
+      },
       'same-as-another': {
         label: 'same as another',
         explanation: 'Another key of the same application carries the same rules and the same addresses, so nothing tells the two apart. One of them is usually a first attempt nobody revoked. Compare the last use dates and keep one.',
@@ -303,6 +308,8 @@ const dictionaries = {
     rulesCopied: 'Copied.',
     rulesCopyFailed: 'The browser refused to write to the clipboard.',
     broadRule: 'reaches the whole account',
+    unneededTitle: 'Rules this tool never uses',
+    unneededRenew: 'Issue a key with only the rules this tool needs',
     controlWarning: 'One of these rules can change access to the account: users, tokens, OAuth2 clients, the addresses other keys accept, or two-factor authentication. Leaked, a key holding it can let someone in or lock you out.',
     billingWarning: 'One of these rules reaches billing or payments. Read, that is financial data; written, it can pay an order with a registered payment mean.',
     broadWarning: 'A rule that reaches the whole account gives the key everything you can do. Narrow it unless that is the intent.',
@@ -488,6 +495,11 @@ const dictionaries = {
         explanation: 'Un droit de cette clé atteint les factures, les commandes, les moyens de paiement ou les soldes. En lecture, ce sont des données financières ; en écriture, elle peut régler une commande avec un moyen de paiement enregistré.',
         clause: n => n === 1 ? 'Une clé atteint la facturation ou les paiements.' : `${n} clés atteignent la facturation ou les paiements.`
       },
+      'wider-than-needed': {
+        label: 'plus large que nécessaire',
+        explanation: 'C’est la clé avec laquelle Keymaker s’authentifie, et elle porte des droits dont Keymaker ne se sert jamais. Qui la récupérerait aurait ceux-là aussi. Les droits en question sont listés sur la carte.',
+        clause: () => 'La clé de cet outil porte plus que ce dont il a besoin.'
+      },
       'same-as-another': {
         label: 'identique à une autre',
         explanation: 'Une autre clé de la même application porte les mêmes droits et les mêmes adresses : rien ne distingue les deux. L’une est en général un premier essai que personne n’a révoqué. Comparez les dates de dernier usage et n’en gardez qu’une.',
@@ -582,6 +594,8 @@ const dictionaries = {
     rulesCopied: 'Copié.',
     rulesCopyFailed: 'Le navigateur a refusé l’écriture dans le presse-papiers.',
     broadRule: 'porte sur tout le compte',
+    unneededTitle: 'Droits dont cet outil ne se sert jamais',
+    unneededRenew: 'Émettre une clé avec uniquement les droits dont cet outil a besoin',
     controlWarning: 'L’un de ces droits peut modifier les accès au compte : utilisateurs, jetons, clients OAuth2, adresses acceptées par d’autres clés, ou double authentification. Si elle fuit, une clé qui le porte peut faire entrer quelqu’un ou vous mettre dehors.',
     billingWarning: 'L’un de ces droits atteint la facturation ou les paiements. En lecture, ce sont des données financières ; en écriture, il permet de régler une commande avec un moyen de paiement enregistré.',
     broadWarning: 'Un droit qui porte sur tout le compte donne à la clé tout ce que vous pouvez faire. Restreignez-le, sauf si c’est l’intention.',
@@ -2141,6 +2155,13 @@ document.addEventListener('alpine:init', () => {
           path: rule.path,
           methodClass: `method method-${rule.method.toLowerCase()}`
         })),
+        unneeded: (item.unneeded || []).map(rule => ({
+          key: `${rule.method} ${rule.path}`,
+          method: rule.method,
+          path: rule.path,
+          methodClass: `method method-${rule.method.toLowerCase()}`
+        })),
+        hasUnneeded: (item.unneeded || []).length > 0,
         revokeOffered: item.revoke.allowed,
         revokeRefused: !item.revoke.allowed,
         revokeReason: item.revoke.reason === 'self' ? this.labels.revokeUnavailableSelf : this.labels.revokeUnavailableRule,

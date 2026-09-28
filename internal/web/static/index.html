@@ -291,6 +291,19 @@
           </div>
           <p class="explained" x-show="row.explanation" x-text="row.explanation"></p>
 
+          <div class="unneeded" x-show="row.hasUnneeded">
+            <p x-text="labels.unneededTitle"></p>
+            <ul>
+              <template x-for="rule in row.unneeded" x-bind:key="rule.key">
+                <li>
+                  <span x-bind:class="rule.methodClass" x-text="rule.method"></span>
+                  <code x-text="rule.path"></code>
+                </li>
+              </template>
+            </ul>
+            <a class="link" x-bind:href="managementKeyUrl" target="_blank" rel="noopener noreferrer" x-show="managementKeyUrl" x-text="labels.unneededRenew"></a>
+          </div>
+
           <dl class="meta">
             <div>
               <dt x-text="labels.columnCreated"></dt>
