@@ -52,6 +52,10 @@ func TestEachFindingIsRaisedOnItsOwn(t *testing.T) {
 		NeverUsed:       func(c *credential.Credential) { c.LastUsedAt = time.Time{} },
 		BroadAccess:     func(c *credential.Credential) { c.Rules = []credential.AccessRule{{Method: "GET", Path: "/*"}} },
 		SupportIssued:   func(c *credential.Credential) { c.IssuedBySupport = true },
+		AccountControl: func(c *credential.Credential) {
+			c.Rules = []credential.AccessRule{{Method: "POST", Path: "/me/identity/user"}}
+		},
+		BillingAccess: func(c *credential.Credential) { c.Rules = []credential.AccessRule{{Method: "GET", Path: "/me/bill"}} },
 	}
 
 	for code, break_ := range cases {

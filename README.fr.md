@@ -32,13 +32,15 @@ d’application et une consumer key.
   autorisées, leurs dates de création, d’expiration et de dernier usage, et l’application à
   laquelle elles appartiennent, y compris les applications que le compte ne possède pas, comme
   la console API OVHcloud. La clé utilisée par Keymaker est signalée.
-- **Audit** qui signale les clés qui atteignent tout le compte, fonctionnent depuis n’importe
-  quelle adresse, n’expirent jamais, n’ont jamais servi, dorment depuis six mois, ont été créées
-  par le support OVHcloud plutôt que par vous, n’ont jamais été validées, sont indiscernables
+- **Audit** qui signale les clés qui atteignent tout le compte, peuvent en modifier les
+  accès ou atteignent la facturation et les paiements, fonctionnent depuis n’importe quelle
+  adresse, n’expirent jamais, n’ont jamais servi, dorment depuis six mois, ont été créées par
+  le support OVHcloud plutôt que par vous, n’ont jamais été validées, sont indiscernables
   d’une autre clé de la même application, ou n’ont pas de description, et les range en
   « à risque », « à surveiller » et « sans réserve ».
 - **Explorateur de routes** sur toute l’API publiée, cherchable par route ou par usage, pour
-  composer un jeu de droits d’accès, avec une alerte quand un droit porte sur tout le compte.
+  composer un jeu de droits d’accès, avec une alerte quand un droit porte sur tout le compte,
+  peut en modifier les accès, ou atteint la facturation et les paiements.
 - **Création de clés** via la page OVHcloud `createToken`, ouverte avec les droits choisis déjà
   remplis. Les valeurs de la nouvelle clé ne passent jamais par Keymaker.
 - **Remplacement** d’une clé dont les droits ne conviennent plus, puisque l’API ne sait pas

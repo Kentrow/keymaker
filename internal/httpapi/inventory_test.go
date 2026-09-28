@@ -65,6 +65,25 @@ func TestTheSessionCarriesTheBuildVersion(t *testing.T) {
 	}
 }
 
+// The explorer warns about the rules the audit would flag, which only holds while both read
+// the same list. It travels with the session, whole, with every method it names; an empty
+// method list has to arrive as a list, since the interface reads it as "every method".
+func TestTheSessionCarriesTheSensitiveBranchesOfTheAudit(t *testing.T) {
+	got := decode[sessionResponse](t, request(t, newTestServer(t, inventoryFixture()), "/api/session", true)).Sensitive
+
+	if len(got) != len(audit.SensitiveBranches) {
+		t.Fatalf("%d branches served, want the %d the audit reads", len(got), len(audit.SensitiveBranches))
+	}
+	for i, branch := range audit.SensitiveBranches {
+		if got[i].Path != branch.Path || got[i].Finding != string(branch.Finding) || !slices.Equal(got[i].Methods, branch.Methods) && len(branch.Methods) > 0 {
+			t.Errorf("branch %d = %+v, want %+v", i, got[i], branch)
+		}
+		if got[i].Methods == nil {
+			t.Errorf("branch %s: methods is null, want a list", branch.Path)
+		}
+	}
+}
+
 func TestTheSessionCarriesThePageThatIssuesAManagementKey(t *testing.T) {
 	got := decode[sessionResponse](t, request(t, newTestServer(t, inventoryFixture()), "/api/session", true)).ManagementKeyURL
 

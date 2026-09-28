@@ -3,7 +3,11 @@
 
 package httpapi
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/kentrow/keymaker/internal/audit"
+)
 
 // sessionResponse is what the page needs before it can do anything, and nothing more.
 //
@@ -32,6 +36,28 @@ type sessionResponse struct {
 	// served here rather than only in the documentation because the moment it is needed is
 	// the moment the credential stopped working, and every other screen is refused.
 	ManagementKeyURL string `json:"managementKeyUrl"`
+
+	// Sensitive is the list the audit flags narrow rules against. The explorer warns with
+	// the same list when a rule is picked, rather than keeping a copy that could drift.
+	Sensitive []sensitiveBranch `json:"sensitive"`
+}
+
+type sensitiveBranch struct {
+	Finding string   `json:"finding"`
+	Path    string   `json:"path"`
+	Methods []string `json:"methods"`
+}
+
+func sensitiveBranches() []sensitiveBranch {
+	out := make([]sensitiveBranch, 0, len(audit.SensitiveBranches))
+	for _, branch := range audit.SensitiveBranches {
+		methods := branch.Methods
+		if methods == nil {
+			methods = []string{}
+		}
+		out = append(out, sensitiveBranch{Finding: string(branch.Finding), Path: branch.Path, Methods: methods})
+	}
+	return out
 }
 
 func (s *server) session(w http.ResponseWriter, _ *http.Request) {
@@ -41,5 +67,6 @@ func (s *server) session(w http.ResponseWriter, _ *http.Request) {
 		CSRF:             s.csrf,
 		AddressLookup:    s.resolver.Enabled(),
 		ManagementKeyURL: s.managementKeyURL,
+		Sensitive:        sensitiveBranches(),
 	})
 }

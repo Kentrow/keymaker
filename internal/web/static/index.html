@@ -406,6 +406,7 @@
                         <span x-bind:class="operation.className" x-text="operation.method"></span>
                         <span class="purpose" x-text="operation.description"></span>
                         <span class="tag" x-show="operation.deprecated" x-text="labels.deprecatedTag"></span>
+                        <span x-bind:class="operation.sensitiveClass" x-show="operation.sensitive" x-text="operation.sensitive"></span>
                       </button>
                     </li>
                   </template>
@@ -435,6 +436,8 @@
           </ul>
 
           <p class="warning" x-show="selectionBroad" x-text="labels.broadWarning"></p>
+          <p class="warning" x-show="selectionControl" x-text="labels.controlWarning"></p>
+          <p class="warning caution" x-show="selectionBilling" x-text="labels.billingWarning"></p>
 
           <div class="selection-actions" x-show="hasSelection">
             <button type="button" class="quiet" x-on:click="clearRules" x-text="labels.rulesClear"></button>
@@ -479,6 +482,8 @@
           </ul>
 
           <p class="warning" x-show="selectionBroad" x-text="labels.broadWarning"></p>
+          <p class="warning" x-show="selectionControl" x-text="labels.controlWarning"></p>
+          <p class="warning caution" x-show="selectionBilling" x-text="labels.billingWarning"></p>
           <button type="button" class="link" x-on:click="backToExplorer" x-text="labels.rulesEdit"></button>
         </section>
 

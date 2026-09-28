@@ -9,6 +9,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- The audit and the explorer flag narrow rules that still cost something: those that can
+  change access to the account (IAM users and tokens, OAuth2 clients, the addresses other keys
+  accept, two-factor authentication, password and email changes, SSH keys) and those that
+  reach billing, orders or payment means. Reading and revoking API keys is deliberately not
+  among them. Both screens read one list, checked by a test against the published route
+  catalogue.
 - The audit names two keys of one application that nothing tells apart: same access rules, same
   allowed addresses. One of them is usually a first attempt nobody revoked, and the interface
   says so rather than choosing which to keep.
