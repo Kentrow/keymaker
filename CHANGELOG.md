@@ -7,45 +7,48 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-28
+
 ### Added
 
-- The banner listing applications left without a key and the notice shown while replacing a
-  key link to the paragraph of the Understand screen that answers the question they raise.
-- The key Keymaker authenticates with is compared with the rules Keymaker actually needs. A
-  rule beyond them is flagged on that key and named on its card, with the link that issues a
-  key holding exactly the needed rules.
-- The audit flags a key expiring within a week. Whatever uses it stops working that day
-  without a warning of its own, the management key of this tool included. A week leaves time
-  to issue and deploy a replacement, and a key issued for 30 days, one of the validities the
-  OVHcloud page offers, is only flagged in its last week rather than for its whole life.
 - The audit and the explorer flag narrow rules that still cost something: those that can
   change access to the account (IAM users and tokens, OAuth2 clients, the addresses other keys
   accept, two-factor authentication, password and email changes, SSH keys) and those that
   reach billing, orders or payment means. Reading and revoking API keys is deliberately not
   among them. Both screens read one list, checked by a test against the published route
   catalogue.
-- The audit names two keys of one application that nothing tells apart: same access rules, same
-  allowed addresses. One of them is usually a first attempt nobody revoked, and the interface
-  says so rather than choosing which to keep.
+- The key Keymaker authenticates with is compared with the rules Keymaker actually needs. A
+  rule beyond them is flagged on that key and named on its card, with the link that issues a
+  key holding exactly the needed rules.
+- The audit flags a key the OVHcloud support team created rather than the account holder. The
+  API has always returned that fact and the interface dropped it, so such a key looked like any
+  other. It is counted, explained and usable as a filter like the other findings.
 - The audit reads keys awaiting validation instead of skipping them, and flags the fact. Such a
   key opens nothing until the account holder validates it on the OVHcloud page, which is one
   click away, so what it would be allowed to do is reported before that happens. The checks
   that read how a key was used are skipped for it, since it could not have been used.
-- The audit flags a key the OVHcloud support team created rather than the account holder. The
-  API has always returned that fact and the interface dropped it, so such a key looked like any
-  other. It is counted, explained and usable as a filter like the other findings.
+- The audit names two keys of one application that nothing tells apart: same access rules, same
+  allowed addresses. One of them is usually a first attempt nobody revoked, and the interface
+  says so rather than choosing which to keep.
+- The audit flags a key expiring within a week. Whatever uses it stops working that day
+  without a warning of its own, the management key of this tool included. A week leaves time
+  to issue and deploy a replacement, and a key issued for 30 days, one of the validities the
+  OVHcloud page offers, is only flagged in its last week rather than for its whole life.
+- The banner listing applications left without a key and the notice shown while replacing a
+  key link to the paragraph of the Understand screen that answers the question they raise.
 
 ### Fixed
 
-- Paragraphs in the panels of the New key and Understand screens keep a readable line length
-  instead of running the full width of a wide screen.
 - The New key screen no longer greets the reader with a red message before anything is wrong.
   An empty selection is explained once, in the first step, and red is kept for real errors.
+- Paragraphs in the panels of the New key and Understand screens keep a readable line length
+  instead of running the full width of a wide screen.
 - Changing screens moves the focus to the title of the new screen every time. It was sometimes
   lost to the page, leaving a keyboard or screen reader user nowhere in particular.
 - Deleting the last application left without a key no longer leaves its unfolded panel on
   screen, empty but for its explanation.
-- Fix the mascot logo in the interface and in the READMEs.
+- The mascot had two overlapping ears on its right side. Both ears are now part of the head
+  and symmetric, in the interface and in the READMEs.
 
 ## [0.2.0] - 2026-09-18
 
@@ -125,6 +128,7 @@ First public release.
 - Distroless, non-root container image for `linux/amd64` and `linux/arm64`, published to
   `ghcr.io/kentrow/keymaker` with provenance and SBOM attestations.
 
-[Unreleased]: https://github.com/kentrow/keymaker/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/kentrow/keymaker/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/kentrow/keymaker/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/kentrow/keymaker/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kentrow/keymaker/releases/tag/v0.1.0
