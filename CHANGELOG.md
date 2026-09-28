@@ -37,6 +37,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- The New key screen no longer greets the reader with a red message before anything is wrong.
+  An empty selection is explained once, in the first step, and red is kept for real errors.
 - Changing screens moves the focus to the title of the new screen every time. It was sometimes
   lost to the page, leaving a keyboard or screen reader user nowhere in particular.
 - Deleting the last application left without a key no longer leaves its unfolded panel on
