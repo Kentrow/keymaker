@@ -9,6 +9,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- The banner listing applications left without a key and the notice shown while replacing a
+  key link to the paragraph of the Understand screen that answers the question they raise.
 - The key Keymaker authenticates with is compared with the rules Keymaker actually needs. A
   rule beyond them is flagged on that key and named on its card, with the link that issues a
   key holding exactly the needed rules.
@@ -35,6 +37,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Changing screens moves the focus to the title of the new screen every time. It was sometimes
+  lost to the page, leaving a keyboard or screen reader user nowhere in particular.
 - Deleting the last application left without a key no longer leaves its unfolded panel on
   screen, empty but for its explanation.
 - Fix the mascot logo in the interface and in the READMEs.

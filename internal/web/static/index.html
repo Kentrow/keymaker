@@ -227,6 +227,7 @@
       <p class="sweep-text">
         <span class="sweep-count" x-text="keylessHeadline"></span>
         <span x-text="labels.keylessWhy"></span>
+        <button type="button" class="link" x-on:click="explainKeyless" x-text="labels.keylessExplain"></button>
       </p>
       <button type="button" class="quiet" x-bind:aria-expanded="keylessExpanded" x-on:click="toggleKeyless" x-text="keylessToggleLabel"></button>
       <button type="button" class="danger" x-show="canSweepApplications" x-on:click="askSweepApplications" x-text="labels.appSweepAction"></button>
@@ -474,7 +475,10 @@
       <div class="state replacing" x-show="replacingKey">
         <p class="headline" x-text="replacingTitle"></p>
         <p class="warning" x-text="labels.replaceWarning"></p>
-        <p x-text="labels.replaceRules"></p>
+        <p>
+          <span x-text="labels.replaceRules"></span>
+          <button type="button" class="link" x-on:click="explainReplacement" x-text="labels.replaceExplain"></button>
+        </p>
         <button type="button" class="link" x-on:click="dropReplacement" x-text="labels.replaceDrop"></button>
       </div>
 
@@ -599,15 +603,15 @@
       </section>
 
       <template x-for="card in guideCards" x-bind:key="card.key">
-        <section class="panel">
-          <h2 x-text="card.title"></h2>
+        <section class="panel" x-bind:id="card.anchor">
+          <h2 tabindex="-1" x-text="card.title"></h2>
           <p x-text="card.body"></p>
           <p class="remark" x-show="card.note" x-text="card.note"></p>
         </section>
       </template>
 
-      <section class="panel">
-        <h2 x-text="labels.guideStoryTitle"></h2>
+      <section class="panel" id="guide-story">
+        <h2 tabindex="-1" x-text="labels.guideStoryTitle"></h2>
         <ol class="guide-story">
           <template x-for="stage in guideStory" x-bind:key="stage.key">
             <li>
