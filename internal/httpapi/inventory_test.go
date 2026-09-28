@@ -15,6 +15,7 @@ import (
 
 	"github.com/kentrow/keymaker/internal/audit"
 	"github.com/kentrow/keymaker/internal/credential"
+	"github.com/kentrow/keymaker/internal/ovh"
 )
 
 // A credential that cannot identify itself is not a credential missing one rule: it is
@@ -209,5 +210,58 @@ func TestTheInventoryFlagsTwoKeysNothingTellsApart(t *testing.T) {
 	}
 	if got := payload.Summary.Counts[string(audit.SameAsAnother)]; got != 2 {
 		t.Errorf("count = %d, want 2", got)
+	}
+}
+
+// The key the tool runs with is compared with the rules the tool asks for, and only that key:
+// any other key is kept for something this process knows nothing about.
+func TestTheKeyInUseIsComparedWithWhatTheToolNeeds(t *testing.T) {
+	wide := append(slices.Clone(ovh.ManagementRules), credential.AccessRule{Method: "GET", Path: "/cloud/project/*"})
+	provider := &fakeProvider{
+		current: credential.Credential{ID: 1, Rules: wide},
+		credentials: []credential.Credential{
+			{ID: 1, Status: credential.StatusValidated, Rules: wide},
+			{ID: 2, Status: credential.StatusValidated, Rules: wide},
+		},
+	}
+
+	payload := decodeInventory(t, newTestServer(t, provider))
+	for _, c := range payload.Credentials {
+		flagged := false
+		for _, finding := range c.Findings {
+			flagged = flagged || finding.Code == string(audit.WiderThanNeeded)
+		}
+
+		switch c.ID {
+		case 1:
+			if !flagged || len(c.Unneeded) != 1 || c.Unneeded[0].Path != "/cloud/project/*" {
+				t.Errorf("key in use: flagged = %v, unneeded = %v, want the one extra rule named", flagged, c.Unneeded)
+			}
+		case 2:
+			if flagged || len(c.Unneeded) != 0 {
+				t.Errorf("another key: flagged = %v, unneeded = %v, want neither", flagged, c.Unneeded)
+			}
+		}
+	}
+}
+
+// A management key issued from the link this tool hands out holds exactly what it needs, and
+// says nothing. The list still arrives as a list, since the interface reads its length.
+func TestAManagementKeyWithExactlyTheNeededRulesIsNotFlagged(t *testing.T) {
+	provider := &fakeProvider{
+		current:     credential.Credential{ID: 1, Rules: ovh.ManagementRules},
+		credentials: []credential.Credential{{ID: 1, Status: credential.StatusValidated, Rules: ovh.ManagementRules}},
+	}
+
+	rec := request(t, newTestServer(t, provider), "/api/inventory", true)
+	if !strings.Contains(rec.Body.String(), `"unneeded":[]`) {
+		t.Errorf("unneeded is not an empty list: %s", rec.Body.String())
+	}
+	for _, c := range decode[inventoryResponse](t, rec).Credentials {
+		for _, finding := range c.Findings {
+			if finding.Code == string(audit.WiderThanNeeded) {
+				t.Errorf("findings = %v, want no %s", c.Findings, audit.WiderThanNeeded)
+			}
+		}
 	}
 }

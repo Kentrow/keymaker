@@ -232,7 +232,8 @@ button.quiet {
 button.quiet:hover { color: var(--text); border-color: var(--text-faint); background: var(--surface-sunken); }
 button.quiet:active { transform: translateY(1px); }
 
-button.link {
+button.link,
+a.link {
   background: none;
   border: none;
   padding: 0;
@@ -241,7 +242,12 @@ button.link {
   font-size: 12.5px;
   font-weight: 500;
 }
-button.link:hover { text-decoration: underline; }
+
+/* A link styled as one keeps the accent once followed: the page it opens is one to come back
+   to, and the browser's visited colour would read as a different kind of control. */
+a.link { text-decoration: none; }
+button.link:hover,
+a.link:hover { text-decoration: underline; }
 
 input, select {
   font: inherit;
@@ -811,6 +817,31 @@ main {
   border-radius: var(--radius-sm);
   max-width: 72ch;
 }
+
+/* The surplus of the management key, named rule by rule: the next step is issuing a key
+   without them, and a count would leave the reader to work out which. */
+.unneeded {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: 13px;
+  color: var(--text-soft);
+  background: var(--caution-soft);
+  border-radius: var(--radius-sm);
+  max-width: 72ch;
+}
+
+.unneeded p { margin: 0 0 var(--space-1); color: var(--caution); }
+
+.unneeded ul {
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.unneeded li { display: flex; align-items: baseline; gap: var(--space-2); }
 
 .finding.risk { color: var(--risk); background: var(--risk-soft); border-color: var(--risk); }
 .finding.caution { color: var(--caution); background: var(--caution-soft); border-color: var(--caution); }

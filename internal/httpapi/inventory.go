@@ -14,6 +14,7 @@ import (
 
 	"github.com/kentrow/keymaker/internal/audit"
 	"github.com/kentrow/keymaker/internal/credential"
+	"github.com/kentrow/keymaker/internal/ovh"
 )
 
 type inventoryResponse struct {
@@ -62,10 +63,16 @@ type credentialResponse struct {
 	Rules       []ruleResponse      `json:"rules"`
 	AllowedIPs  []string            `json:"allowedIps"`
 	Findings    []findingResponse   `json:"findings"`
-	Revoke      revokeResponse      `json:"revoke"`
-	CreatedAt   *time.Time          `json:"createdAt"`
-	ExpiresAt   *time.Time          `json:"expiresAt"`
-	LastUsedAt  *time.Time          `json:"lastUsedAt"`
+
+	// Unneeded names the rules of the credential in use that the tool never asks for. It is
+	// only ever set on that one credential, and it names them rather than counting them,
+	// since the next step is issuing a key without them.
+	Unneeded []ruleResponse `json:"unneeded"`
+
+	Revoke     revokeResponse `json:"revoke"`
+	CreatedAt  *time.Time     `json:"createdAt"`
+	ExpiresAt  *time.Time     `json:"expiresAt"`
+	LastUsedAt *time.Time     `json:"lastUsedAt"`
 }
 
 type applicationResponse struct {
@@ -149,8 +156,21 @@ func (s *server) inventory(w http.ResponseWriter, r *http.Request) {
 		if twins[c.ID] {
 			found = append(found, audit.Finding{Code: audit.SameAsAnother, Severity: audit.SeverityCaution})
 		}
+
+		// Only the key the tool runs with is compared with what the tool needs: any other key
+		// is kept for something this process knows nothing about.
+		var unneeded []credential.AccessRule
+		if current != nil && c.ID == current.ID {
+			unneeded = audit.Surplus(c, ovh.ManagementRules)
+			if len(unneeded) > 0 {
+				found = append(found, audit.Finding{Code: audit.WiderThanNeeded, Severity: audit.SeverityCaution})
+			}
+		}
+
 		findings = append(findings, found)
-		response.Credentials = append(response.Credentials, describe(c, current, found, s.revocationOffer(current, c)))
+		described := describe(c, current, found, s.revocationOffer(current, c))
+		described.Unneeded = rulesOf(unneeded)
+		response.Credentials = append(response.Credentials, described)
 	}
 	response.Summary = summarise(credentials, findings)
 	response.Summary.Unreadable = unreadable
@@ -203,11 +223,17 @@ func summarise(credentials []credential.Credential, findings [][]audit.Finding) 
 	}
 }
 
-func describe(c credential.Credential, current *credential.Credential, found []audit.Finding, offer revokeResponse) credentialResponse {
-	rules := make([]ruleResponse, 0, len(c.Rules))
-	for _, rule := range c.Rules {
-		rules = append(rules, ruleResponse{Method: rule.Method, Path: rule.Path})
+// rulesOf is never nil: an empty list reads as one in the interface, and null would not.
+func rulesOf(rules []credential.AccessRule) []ruleResponse {
+	out := make([]ruleResponse, 0, len(rules))
+	for _, rule := range rules {
+		out = append(out, ruleResponse{Method: rule.Method, Path: rule.Path})
 	}
+	return out
+}
+
+func describe(c credential.Credential, current *credential.Credential, found []audit.Finding, offer revokeResponse) credentialResponse {
+	rules := rulesOf(c.Rules)
 
 	allowed := make([]string, 0, len(c.AllowedIPs))
 	for _, prefix := range c.AllowedIPs {

@@ -231,10 +231,16 @@ skipped, since it could not have been used.
 | `support-issued` | The API marks the credential as created by the provider's support team | caution |
 | `pending-validation` | The credential was never validated and opens nothing yet | caution |
 | `same-as-another` | Another examined credential of the same application carries the same rules and addresses | caution |
+| `wider-than-needed` | The credential in use holds a rule outside `ovh.ManagementRules` | caution |
 
 Every finding but the last is read from one credential. `same-as-another` takes the whole
 listing, since neither of two interchangeable keys can tell on its own, so `audit.Twins` is
 called once over the set and the HTTP layer attaches the finding to each key it names.
+`wider-than-needed` is attached the same way, to the credential in use only, after
+`audit.Surplus` compares its rules with `ovh.ManagementRules`. The comparison is by rule and
+not by reach: `GET /me/api/*` is surplus even though it covers what the tool needs, since the
+remedy is the same, a key issued with the needed rules and nothing else, and the response
+names each surplus rule so the reader knows what to leave out.
 
 `audit.SensitiveBranches` lists the parts of the account a narrow rule can still reach at a
 cost, each with the methods that make it so. The first group manages access to the account:

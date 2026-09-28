@@ -43,6 +43,11 @@ const (
 	AccountControl Code = "account-control"
 	BillingAccess  Code = "billing-access"
 
+	// WiderThanNeeded is raised on the credential the tool authenticates with when it holds
+	// rules the tool never asks for. Only the caller knows what it needs, so Inspect cannot
+	// raise it: see Surplus.
+	WiderThanNeeded Code = "wider-than-needed"
+
 	// SameAsAnother is raised over a set rather than over one credential, which is why
 	// Inspect cannot raise it: see Twins.
 	SameAsAnother Code = "same-as-another"
@@ -273,6 +278,25 @@ func reaches(rules []credential.AccessRule, finding Code) bool {
 		}
 	}
 	return false
+}
+
+// Surplus returns the rules of a credential that are not among the ones needed, in the order
+// the credential holds them.
+//
+// The comparison is by rule and not by reach. A rule wider than a needed one, such as
+// GET /me/api/* where GET /me/api/credential/* would do, is surplus as surely as a rule on an
+// unrelated product: either way the key can do more than what it is kept for, and the remedy
+// is the same, a key issued with the needed rules and nothing else.
+func Surplus(c credential.Credential, needed []credential.AccessRule) []credential.AccessRule {
+	var extra []credential.AccessRule
+	for _, rule := range c.Rules {
+		if !slices.ContainsFunc(needed, func(n credential.AccessRule) bool {
+			return strings.EqualFold(n.Method, rule.Method) && n.Path == rule.Path
+		}) {
+			extra = append(extra, rule)
+		}
+	}
+	return extra
 }
 
 // Twins reports the credentials that another credential of the set is indistinguishable
