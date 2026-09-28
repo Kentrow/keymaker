@@ -938,6 +938,13 @@ document.addEventListener('alpine:init', () => {
       return this.applications.listed && this.keylessApplications.length > 0
     },
 
+    // Unfolded is not enough: deleting the last application empties the list while the
+    // panel is open, and the banner that closes it goes away with that application. The
+    // panel follows the list rather than the last click.
+    get keylessDetailShown () {
+      return this.keylessOpen && this.hasKeylessApplications
+    },
+
     get keylessHeadline () {
       return this.labels.keylessTitle(this.keylessApplications.length)
     },

@@ -232,7 +232,7 @@
       <button type="button" class="danger" x-show="canSweepApplications" x-on:click="askSweepApplications" x-text="labels.appSweepAction"></button>
     </div>
 
-    <div class="keyless-detail" x-show="keylessOpen">
+    <div class="keyless-detail" x-show="keylessDetailShown">
       <ul class="sweep-list">
         <template x-for="item in keylessApplications" x-bind:key="item.key">
           <li>
