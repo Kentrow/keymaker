@@ -417,7 +417,7 @@ func TestInventoryReportsFindingsAndTheirCounts(t *testing.T) {
 				Application: credential.Application{Name: "dns-acme", Description: "certbot"},
 				Rules:       []credential.AccessRule{{Method: "GET", Path: "/domain/zone/*"}},
 				AllowedIPs:  []netip.Prefix{netip.MustParsePrefix("203.0.113.4/32")},
-				ExpiresAt:   time.Now().Add(24 * time.Hour)},
+				ExpiresAt:   time.Now().Add(90 * 24 * time.Hour)},
 		},
 	}
 

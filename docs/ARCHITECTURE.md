@@ -224,6 +224,7 @@ skipped, since it could not have been used.
 | `billing-access` | A narrower rule reaches billing, orders or payment means, see below | caution |
 | `no-ip-restriction` | No allowed address | caution |
 | `no-expiry` | No expiration date | caution |
+| `expires-soon` | Expires within 30 days, the management key included | caution |
 | `never-used` | Never used and created more than 30 days ago | caution |
 | `dormant` | Last used more than 180 days ago | caution |
 | `no-description` | The application has no description | note |

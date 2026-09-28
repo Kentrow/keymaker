@@ -9,6 +9,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- The audit flags a key expiring within a month. Whatever uses it stops working that day
+  without a warning of its own, the management key of this tool included, and a month leaves
+  time to issue a replacement and deploy it.
 - The audit and the explorer flag narrow rules that still cost something: those that can
   change access to the account (IAM users and tokens, OAuth2 clients, the addresses other keys
   accept, two-factor authentication, password and email changes, SSH keys) and those that
