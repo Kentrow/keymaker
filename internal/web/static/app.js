@@ -246,7 +246,6 @@ const dictionaries = {
     handoffShowAddress: 'Show my public address',
     stepHandover: 'Retire the key it replaces',
     handoffOpen: 'Open the OVHcloud page',
-    handoffBlocked: 'Choose at least one access rule in the explorer first.',
     rulesNone: 'No rule chosen yet. Open the explorer and pick the routes this key needs.',
     rulesEdit: 'Change them in the explorer',
     keylessExplain: 'Why an application outlives its keys',
@@ -534,7 +533,6 @@ const dictionaries = {
     handoffShowAddress: 'Afficher mon adresse publique',
     stepHandover: 'Retirer la clé remplacée',
     handoffOpen: 'Ouvrir la page OVHcloud',
-    handoffBlocked: 'Choisissez d’abord au moins un droit d’accès dans l’explorateur.',
     rulesNone: 'Aucun droit retenu. Ouvrez l’explorateur et choisissez les routes dont cette clé a besoin.',
     rulesEdit: 'Les modifier dans l’explorateur',
     keylessExplain: 'Pourquoi une application survit à ses clés',
@@ -1758,9 +1756,10 @@ document.addEventListener('alpine:init', () => {
       return this.handoffUrl !== ''
     },
 
+    // Red is kept for what went wrong. An empty selection is not an error: step one already
+    // says, in plain text right above, that the rules come first.
     get handoffProblem () {
-      if (this.handoffError) return this.handoffError
-      return this.selection.length === 0 ? this.labels.handoffBlocked : ''
+      return this.handoffError
     },
 
     get publicAddressKnown () {
