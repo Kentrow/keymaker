@@ -193,7 +193,7 @@ is given: it ignores `~/.ovh.conf`, `/etc/ovh.conf` and the `OVH_*` environment 
 |---|---|---|
 | `KEYMAKER_CONFIG` | `/config/ovh.conf` | Path to the configuration file, opened read-only. |
 | `KEYMAKER_ADDR` | `127.0.0.1:8080` for the binary, `0.0.0.0:8080` in the image | Listen address. Any address other than loopback logs a warning. |
-| `KEYMAKER_PUBLIC_URL` | derived from the listen address | Address the interface is reached on, used to print the startup link. Set it when the published port differs from 8080, for example `http://127.0.0.1:9000`. |
+| `KEYMAKER_PUBLIC_URL` | derived from the listen address | Address the interface is reached on, used to print the startup link. Set it when the published port differs from 8080, for example `http://127.0.0.1:9000`. An `https` address, behind a reverse proxy, also marks the session cookie `Secure`. |
 | `KEYMAKER_IP_LOOKUP` | enabled | `off` removes the public address lookup, so the OVHcloud API is the only host contacted. |
 | `KEYMAKER_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`. `debug` adds one line per request, without its query string. |
 

@@ -199,7 +199,7 @@ d’environnement `OVH_*`.
 |---|---|---|
 | `KEYMAKER_CONFIG` | `/config/ovh.conf` | Chemin du fichier de configuration, ouvert en lecture seule. |
 | `KEYMAKER_ADDR` | `127.0.0.1:8080` pour le binaire, `0.0.0.0:8080` dans l’image | Adresse d’écoute. Toute adresse autre que loopback provoque un avertissement dans les logs. |
-| `KEYMAKER_PUBLIC_URL` | déduite de l’adresse d’écoute | Adresse par laquelle l’interface est atteinte, utilisée pour afficher le lien de démarrage. À renseigner quand le port publié n’est pas 8080, par exemple `http://127.0.0.1:9000`. |
+| `KEYMAKER_PUBLIC_URL` | déduite de l’adresse d’écoute | Adresse par laquelle l’interface est atteinte, utilisée pour afficher le lien de démarrage. À renseigner quand le port publié n’est pas 8080, par exemple `http://127.0.0.1:9000`. Une adresse en `https`, derrière un reverse proxy, marque aussi le cookie de session `Secure`. |
 | `KEYMAKER_IP_LOOKUP` | activée | `off` supprime la recherche de l’adresse publique : l’API OVHcloud devient le seul hôte contacté. |
 | `KEYMAKER_LOG_LEVEL` | `info` | `debug`, `info`, `warn` ou `error`. `debug` ajoute une ligne par requête, sans sa query string. |
 
