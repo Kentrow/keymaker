@@ -225,6 +225,16 @@ func TestTokenInTheQueryMovesToACookie(t *testing.T) {
 	}
 }
 
+// The path the token arrived on survives the redirect, encoded once.
+func TestTheTokenRedirectKeepsThePath(t *testing.T) {
+	handler := newTestServer(t, &fakeProvider{})
+
+	rec := request(t, handler, "/a%20b?token="+testToken, false)
+	if location := rec.Header().Get("Location"); location != "/a%20b" {
+		t.Errorf("Location = %q, want %q", location, "/a%20b")
+	}
+}
+
 func TestAWrongTokenIsRefused(t *testing.T) {
 	handler := newTestServer(t, &fakeProvider{})
 
@@ -377,14 +387,17 @@ func TestTheInterfaceIsServedFromTheBinary(t *testing.T) {
 }
 
 // The redirect that trades the token for a cookie must stay on this site. A request line
-// in absolute form and a protocol-relative path both carry a host that would otherwise
-// end up in the Location header.
+// in absolute form and a protocol-relative path, spelled with slashes, a backslash or
+// their encoded forms, all carry a host that would otherwise end up in the Location header.
 func TestTheTokenRedirectCannotLeaveTheSite(t *testing.T) {
 	handler := newTestServer(t, &fakeProvider{})
 
 	for _, target := range []string{
 		"http://evil.example/?token=" + testToken,
 		"//evil.example/?token=" + testToken,
+		`/\evil.example/?token=` + testToken,
+		"/%5Cevil.example/?token=" + testToken,
+		"/%2F%2Fevil.example/?token=" + testToken,
 	} {
 		t.Run(target, func(t *testing.T) {
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)

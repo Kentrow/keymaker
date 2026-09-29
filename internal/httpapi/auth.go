@@ -77,10 +77,12 @@ func (s *server) grant(w http.ResponseWriter, r *http.Request) {
 
 	// The target is rebuilt from the path alone rather than reusing the request URL. A
 	// request line in absolute form carries a scheme and a host, and a path starting with
-	// two slashes is protocol-relative; either would turn this redirect into one that
-	// leaves the site.
+	// two slashes, or with a slash and a backslash that browsers read as one, is
+	// protocol-relative; either would turn this redirect into one that leaves the site.
+	// The decoded path is used because RequestURI encodes it again.
 	target := url.URL{Path: "/", RawQuery: query.Encode()}
-	if path := r.URL.EscapedPath(); strings.HasPrefix(path, "/") && !strings.HasPrefix(path, "//") {
+	if path := r.URL.Path; strings.HasPrefix(path, "/") && !strings.HasPrefix(path, "//") &&
+		!strings.HasPrefix(path, `/\`) {
 		target.Path = path
 	}
 
