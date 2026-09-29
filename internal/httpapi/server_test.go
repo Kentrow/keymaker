@@ -223,6 +223,32 @@ func TestTokenInTheQueryMovesToACookie(t *testing.T) {
 	if set.SameSite != http.SameSiteStrictMode {
 		t.Errorf("SameSite = %v, want strict", set.SameSite)
 	}
+	if set.Secure {
+		t.Error("the session cookie is Secure over plain HTTP, where the browser would drop it")
+	}
+}
+
+func TestTheSessionCookieIsSecureBehindHTTPS(t *testing.T) {
+	handler := New(Options{
+		Provider:     &fakeProvider{},
+		Catalog:      fixedCatalog{Live: true},
+		Resolver:     publicip.Disabled{},
+		Assets:       emptyAssets(),
+		Logger:       discardLogger(),
+		Token:        testToken,
+		CSRF:         testCSRF,
+		Endpoint:     "ovh-eu",
+		Version:      testVersion,
+		SecureCookie: true,
+	})
+
+	cookies := request(t, handler, "/?token="+testToken, false).Result().Cookies()
+	if len(cookies) != 1 {
+		t.Fatalf("cookies = %d, want 1", len(cookies))
+	}
+	if !cookies[0].Secure {
+		t.Error("the session cookie is not Secure although the interface is reached over HTTPS")
+	}
 }
 
 // The path the token arrived on survives the redirect, encoded once.

@@ -130,6 +130,8 @@ func run(args []string, stdout io.Writer) error {
 			Endpoint: account.Endpoint,
 			Version:  version,
 			Resolver: addressResolver(logger),
+
+			SecureCookie: public.Scheme == "https",
 		}),
 		// The server reports its own failures, a broken connection or a malformed request,
 		// through the same pipeline as everything else, so redaction applies to them too.

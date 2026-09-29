@@ -54,6 +54,10 @@ type Options struct {
 	// Resolver answers what address this process is seen from, when the reader asks for
 	// it. publicip.Disabled makes the instance refuse rather than call out.
 	Resolver publicip.Resolver
+
+	// SecureCookie marks the session cookie Secure. It is set when the interface is reached
+	// over HTTPS, through a reverse proxy, since the process itself only serves plain HTTP.
+	SecureCookie bool
 }
 
 type server struct {
@@ -69,6 +73,8 @@ type server struct {
 	endpoint string
 	version  string
 	logger   *slog.Logger
+
+	secureCookie bool
 }
 
 func New(opts Options) http.Handler {
@@ -81,6 +87,8 @@ func New(opts Options) http.Handler {
 		endpoint: opts.Endpoint,
 		version:  opts.Version,
 		logger:   opts.Logger,
+
+		secureCookie: opts.SecureCookie,
 	}
 
 	// An endpoint the table does not know cannot reach the API either, so the process

@@ -14,6 +14,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Security
 
 - Refuse a path starting with `/\` as the target of the access token redirect.
+- Mark the session cookie `Secure` when `KEYMAKER_PUBLIC_URL` is an `https` address.
 
 ## [0.3.0] - 2026-09-28
 

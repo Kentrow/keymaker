@@ -60,15 +60,17 @@ func (s *server) tokenMatches(candidate string) bool {
 }
 
 func (s *server) grant(w http.ResponseWriter, r *http.Request) {
-	// The cookie carries no Secure attribute. The tool is reached over plain HTTP on
-	// loopback, and an operator who opts into a routable bind address would otherwise get
-	// a cookie the browser drops, leaving the interface unusable rather than safer.
-	// #nosec G124 -- HttpOnly and SameSite are set; Secure cannot apply over plain HTTP.
+	// The cookie is Secure only when the interface is reached over HTTPS. The tool is
+	// otherwise reached over plain HTTP on loopback, and an operator who opts into a
+	// routable bind address would get a cookie the browser drops, leaving the interface
+	// unusable rather than safer.
+	// #nosec G124 -- HttpOnly and SameSite are set; Secure follows the public scheme.
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookie,
 		Value:    s.token,
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   s.secureCookie,
 		SameSite: http.SameSiteStrictMode,
 	})
 
