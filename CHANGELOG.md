@@ -11,71 +11,40 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- The audit and the explorer flag narrow rules that still cost something: those that can
-  change access to the account (IAM users and tokens, OAuth2 clients, the addresses other keys
-  accept, two-factor authentication, password and email changes, SSH keys) and those that
-  reach billing, orders or payment means. Reading and revoking API keys is deliberately not
-  among them. Both screens read one list, checked by a test against the published route
-  catalogue.
-- The key Keymaker authenticates with is compared with the rules Keymaker actually needs. A
-  rule beyond them is flagged on that key and named on its card, with the link that issues a
-  key holding exactly the needed rules.
-- The audit flags a key the OVHcloud support team created rather than the account holder. The
-  API has always returned that fact and the interface dropped it, so such a key looked like any
-  other. It is counted, explained and usable as a filter like the other findings.
-- The audit reads keys awaiting validation instead of skipping them, and flags the fact. Such a
-  key opens nothing until the account holder validates it on the OVHcloud page, which is one
-  click away, so what it would be allowed to do is reported before that happens. The checks
-  that read how a key was used are skipped for it, since it could not have been used.
-- The audit names two keys of one application that nothing tells apart: same access rules, same
-  allowed addresses. One of them is usually a first attempt nobody revoked, and the interface
-  says so rather than choosing which to keep.
-- The audit flags a key expiring within a week. Whatever uses it stops working that day
-  without a warning of its own, the management key of this tool included. A week leaves time
-  to issue and deploy a replacement, and a key issued for 30 days, one of the validities the
-  OVHcloud page offers, is only flagged in its last week rather than for its whole life.
-- The banner listing applications left without a key and the notice shown while replacing a
-  key link to the paragraph of the Understand screen that answers the question they raise.
+- Flag narrow rules changing account access in the audit: IAM, OAuth2 clients, allowed addresses, 2FA, password, email, SSH keys. API key rules are not flagged.
+- Flag narrow rules reaching billing, orders or payment means in the audit.
+- Flag the same sensitive rules in the route explorer.
+- Flag management key rules beyond what Keymaker needs on its card, with a link issuing a key holding only the needed rules.
+- Flag keys created by OVHcloud support rather than the account holder.
+- Flag keys of one application with identical access rules and allowed addresses.
+- Flag keys expiring within 7 days, the management key included.
+- Link the keyless applications banner and the key replacement notice to the relevant paragraph of the Understand screen.
+
+### Changed
+
+- Audit keys awaiting validation instead of skipping them, and flag them as pending. Usage-based checks are skipped for these keys.
 
 ### Fixed
 
-- The New key screen no longer greets the reader with a red message before anything is wrong.
-  An empty selection is explained once, in the first step, and red is kept for real errors.
-- Paragraphs in the panels of the New key and Understand screens keep a readable line length
-  instead of running the full width of a wide screen.
-- Changing screens moves the focus to the title of the new screen every time. It was sometimes
-  lost to the page, leaving a keyboard or screen reader user nowhere in particular.
-- Deleting the last application left without a key no longer leaves its unfolded panel on
-  screen, empty but for its explanation.
-- The mascot had two overlapping ears on its right side. Both ears are now part of the head
-  and symmetric, in the interface and in the READMEs.
+- Stop showing a red message on the New key screen before anything is wrong. An empty selection is explained once, in the first step.
+- Keep a readable line length in New key and Understand panel paragraphs on wide screens.
+- Move focus to the new screen's title on every screen change.
+- Close the keyless applications panel when its last application is deleted.
+- Fix the mascot's overlapping right ears. Both ears are now symmetric, in the interface and the READMEs.
 
 ## [0.2.0] - 2026-09-18
 
 ### Added
 
-- Applications left without a key are listed under the inventory, with what they still allow:
-  revoking a key leaves its application behind, and an application is a key and a secret a new
-  credential can be requested under.
-- Deletion of an application that holds no key, behind a confirmation. An application still
-  holding one is never offered, because OVHcloud revokes every key of an application along with
-  it; the count is checked against the API at the moment of the deletion.
-- Deletion of every application holding no key in one pass, behind a confirmation listing them.
-  The request carries no list: the set is selected on the server from what the API answers, and
-  the report says which applications were deleted and which were refused.
-- The management key can hold `GET /me/api/application` and `DELETE /me/api/application/*`,
-  which the listing and the deletion need. Both are optional, like the credential delete rule:
-  without them the section says which rule is missing, and a key issued before this version
-  keeps working.
-- An Understand screen, in English and French, explaining what an application, a key and an
-  access rule each are, on an invented example, and what follows from the way they fit
-  together. It reads nothing from the account.
+- List applications left without a key under the inventory, with what they still allow.
+- Add deletion of an application holding no key, behind a confirmation. Applications still holding keys are never offered, since deleting them revokes their keys.
+- Add deletion of every keyless application in one pass, with a confirmation listing them and a report of deleted and refused ones.
+- Allow optional `GET /me/api/application` and `DELETE /me/api/application/*` rules on the management key. The section names any missing rule; older keys keep working.
+- Add an Understand screen, in English and French, explaining applications, keys and access rules on an invented example. It reads nothing from the account.
 
 ### Changed
 
-- The quick start gives the ready-made management key link for each of the three endpoints
-  instead of `ovh-eu` alone, so an account on `ovh-ca` or `ovh-us` no longer has to rebuild the
-  address by hand. A test ties those links to the rules the code asks for.
+- Give the ready-made management key link for each of `ovh-eu`, `ovh-ca` and `ovh-us` in the quick start, instead of `ovh-eu` alone.
 
 ## [0.1.0] - 2026-09-13
 
@@ -83,50 +52,44 @@ First public release.
 
 ### Added
 
-- Inventory of every classic API key (application key, application secret, consumer key) of
-  the configured account, with its access rules, allowed addresses, creation, expiry and last
-  use, filterable by status, application, finding and free text, and sortable by alerts or by
-  last use, in a list or card layout.
-- Resolution of the application each key belongs to, including applications the account does
-  not own, such as the OVHcloud API console, which are marked as external.
-- Marking of the key Keymaker authenticates with.
-- Key audit: broad access, no address restriction, no expiry, never used after 30 days, dormant
-  after 180 days and no description, each explained in the interface, counted across the
-  account and usable as a filter. Keys fall into "at risk", "to watch" and "nothing flagged";
-  expired, refused and pending keys are not audited.
-- Revocation of a key behind typing its identifier, refused for the key Keymaker authenticates
-  with, and disabled with the reason when the management key has no delete rule for it.
-- Revocation of every expired or refused key in one pass, selected by the server, with a report
-  of what became of each key.
-- Route explorer over the whole published OVHcloud API, searchable by route or by purpose and
-  narrowable by branch and method, to build a set of access rules, with a warning on rules that
-  reach the whole account.
-- Route catalogue read from the API at startup and retried in the background after a failure,
-  with an embedded snapshot shown with its date until a refresh succeeds.
-- Key creation through the OVHcloud `createToken` page, opened with the chosen access rules
-  filled in. The values of the new key never pass through Keymaker.
-- Replacement of an existing key: its access rules are the starting point, its allowed addresses
-  are listed to be entered again on the OVHcloud page, and revoking it is the last step, unlocked
-  once that page has been opened.
-- Optional display of the public address the instance is seen from, to restrict a new key to
-  it, and `KEYMAKER_IP_LOOKUP=off` to remove that lookup.
-- A link that issues a new management key with the right rules for the configured endpoint,
-  offered when the API refuses the configured key, which is told apart from a missing rule.
-- Access token generated at every start and required on every route except `GET /healthz`, and
-  a second token required on every change.
-- Content security policy that allows nothing the binary does not serve, and hardened response
-  headers.
-- Redaction of the application secret and the consumer key from every log record.
-- Configuration read from an `ovh.conf` file and never written back, with `ovh.conf.example`
-  describing every value. A file the process cannot read is reported with the identity it was
-  refused under.
-- `KEYMAKER_ADDR`, `KEYMAKER_CONFIG`, `KEYMAKER_PUBLIC_URL`, `KEYMAKER_IP_LOOKUP` and
-  `KEYMAKER_LOG_LEVEL` environment variables, and a `--version` flag.
-- Interface in English and French, with light and dark themes, accessible dialogs and
-  explanations, a layout that fits a phone screen, and a footer with the version and a
-  statement that the project is not affiliated with OVHcloud.
-- Distroless, non-root container image for `linux/amd64` and `linux/arm64`, published to
-  `ghcr.io/kentrow/keymaker` with provenance and SBOM attestations.
+- Add an inventory of every classic API key of the configured account, with access rules, allowed addresses, creation, expiry and last use.
+- Filter the inventory by status, application, finding and free text.
+- Sort the inventory by alerts or by last use.
+- Show the inventory as a list or as cards.
+- Resolve the application of each key, marking applications the account does not own, such as the OVHcloud API console, as external.
+- Mark the key Keymaker authenticates with.
+- Audit keys for broad access, no address restriction, no expiry, never used after 30 days, dormant after 180 days and no description.
+- Explain each audit finding in the interface, count it across the account and make it usable as a filter.
+- Group keys into "at risk", "to watch" and "nothing flagged". Expired, refused and pending keys are not audited.
+- Add key revocation behind typing its identifier, refused for Keymaker's own key and disabled with the reason when no delete rule allows it.
+- Revoke every expired or refused key in one pass, with a report of what became of each key.
+- Add a route explorer over the whole published OVHcloud API, searchable by route or purpose and narrowable by branch and method.
+- Build a set of access rules in the route explorer, with a warning on rules reaching the whole account.
+- Read the route catalogue from the API at startup, retrying in the background after a failure.
+- Embed a dated route catalogue snapshot, shown until a refresh succeeds.
+- Create keys through the OVHcloud `createToken` page, opened with the chosen access rules filled in. The new key's values never pass through Keymaker.
+- Replace a key from its access rules, listing its allowed addresses to re-enter; revocation comes last, once the OVHcloud page is opened.
+- Show the public address the instance is seen from, optionally, to restrict a new key to it.
+- Add `KEYMAKER_IP_LOOKUP=off` to disable the public address lookup.
+- Offer a link issuing a new management key with the right rules for the configured endpoint when the API refuses the configured key.
+- Tell a refused management key apart from one missing a rule.
+- Read configuration from an `ovh.conf` file, never written back, with `ovh.conf.example` describing every value.
+- Report an unreadable configuration file with the identity it was refused under.
+- Add `KEYMAKER_ADDR`, `KEYMAKER_CONFIG`, `KEYMAKER_PUBLIC_URL`, `KEYMAKER_IP_LOOKUP` and `KEYMAKER_LOG_LEVEL` environment variables.
+- Add a `--version` flag.
+- Provide the interface in English and French, with light and dark themes.
+- Make dialogs and explanations accessible.
+- Fit the layout to a phone screen.
+- Show a footer with the version and a statement that the project is not affiliated with OVHcloud.
+- Publish a distroless, non-root container image for `linux/amd64` and `linux/arm64` to `ghcr.io/kentrow/keymaker`, with provenance and SBOM attestations.
+
+### Security
+
+- Require an access token, generated at every start, on every route except `GET /healthz`.
+- Require a second token on every change.
+- Set a content security policy that allows nothing the binary does not serve.
+- Harden response headers.
+- Redact the application secret and the consumer key from every log record.
 
 [Unreleased]: https://github.com/kentrow/keymaker/compare/v0.3.0...HEAD
 [0.3.0]: https://github.com/kentrow/keymaker/compare/v0.2.0...v0.3.0
