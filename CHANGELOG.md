@@ -7,6 +7,14 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Encode the path of the redirect that removes the access token from the URL only once.
+
+### Security
+
+- Refuse a path starting with `/\` as the target of the access token redirect.
+
 ## [0.3.0] - 2026-09-28
 
 ### Added
