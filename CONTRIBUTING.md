@@ -29,6 +29,7 @@ without network access; a test that needs a credential is a bug in the test.
 | `make lint` | Check `gofmt`, `go mod tidy` and run golangci-lint |
 | `make vuln` | Run govulncheck |
 | `make snapshot` | Regenerate the embedded API catalogue |
+| `make demo` | Run the interface on invented data, without an OVHcloud account |
 | `make docker` | Build the image for the local platform |
 
 To try a change against a real account, point the binary at a configuration file kept outside
@@ -38,6 +39,10 @@ the repository:
 make build
 KEYMAKER_CONFIG=~/ovh.conf KEYMAKER_LOG_LEVEL=debug ./bin/keymaker
 ```
+
+Without an account, or to see a finding your account does not have, `make demo` runs the real
+server and interface on invented keys, one of each finding among them, and never calls the API.
+Revocations and deletions apply to its memory and are forgotten on restart.
 
 ## Workflow
 
@@ -106,6 +111,9 @@ Since nothing compiles these files, `go test ./internal/web` checks them: duplic
 CSS classes, undeclared custom properties, directives holding expressions, calls to undefined
 methods, unused members, error codes the backend does not send, and any resource loaded from
 outside the binary.
+
+A new audit finding needs a key in `tools/demo` that raises it: `go test ./tools/demo` fails
+until there is one, so that every finding can be seen before it ships.
 
 ## The route catalogue
 
