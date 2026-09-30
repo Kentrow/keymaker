@@ -48,6 +48,9 @@ type fakeClient struct {
 	applicationErrs      map[int64]error
 	deleteApplicationErr error
 	deletedApplications  []int64
+
+	logoutErr error
+	loggedOut int
 }
 
 var discard = slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -101,6 +104,16 @@ func (f *fakeClient) DeleteCredential(_ context.Context, id int64) error {
 		return f.deleteErr
 	}
 	f.deleted = append(f.deleted, id)
+	return nil
+}
+
+func (f *fakeClient) Logout(context.Context) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.logoutErr != nil {
+		return f.logoutErr
+	}
+	f.loggedOut++
 	return nil
 }
 
@@ -580,5 +593,80 @@ func TestDeletingAnApplicationAgainstAListingKeepsTheGuard(t *testing.T) {
 	}
 	if !slices.Equal(client.deletedApplications, []int64{12}) {
 		t.Errorf("deleted = %v, want [12]", client.deletedApplications)
+	}
+}
+
+func management(rules ...credential.AccessRule) credential.Credential {
+	return credential.Credential{ID: 42, Status: credential.StatusValidated, Rules: rules}
+}
+
+// A key holding the delete rule is deleted: that leaves the least behind, its application
+// only, which the next run lists among the applications without a key.
+func TestRetireDeletesTheKeyWhenItsRulesAllowIt(t *testing.T) {
+	client := &fakeClient{current: management(credential.AccessRule{Method: "DELETE", Path: "/me/api/credential/*"})}
+
+	got, err := New(client, discard).Retire(context.Background())
+	if err != nil {
+		t.Fatalf("Retire: %v", err)
+	}
+	if !got.Deleted || got.ID != 42 {
+		t.Errorf("retirement = %+v, want key 42 deleted", got)
+	}
+	if !slices.Equal(client.deleted, []int64{42}) || client.loggedOut != 0 {
+		t.Errorf("deleted = %v, logged out %d times, want the key deleted and no logout", client.deleted, client.loggedOut)
+	}
+}
+
+// Logging out needs no rule at all, so even a read-only management key has a way out.
+func TestRetireExpiresAKeyWithoutTheDeleteRule(t *testing.T) {
+	client := &fakeClient{current: management(credential.AccessRule{Method: "GET", Path: "/me/api/credential/*"})}
+
+	got, err := New(client, discard).Retire(context.Background())
+	if err != nil {
+		t.Fatalf("Retire: %v", err)
+	}
+	if got.Deleted {
+		t.Errorf("retirement = %+v, want the key expired", got)
+	}
+	if len(client.deleted) != 0 || client.loggedOut != 1 {
+		t.Errorf("deleted = %v, logged out %d times, want one logout and no deletion", client.deleted, client.loggedOut)
+	}
+}
+
+// The reader asked to leave, not to delete: a deletion the API refuses despite the rules still
+// ends in the key being expired.
+func TestRetireFallsBackToLogoutWhenTheDeletionIsRefused(t *testing.T) {
+	client := &fakeClient{
+		current:   management(credential.AccessRule{Method: "DELETE", Path: "/me/api/credential/*"}),
+		deleteErr: apiError(http.StatusForbidden),
+	}
+
+	got, err := New(client, discard).Retire(context.Background())
+	if err != nil {
+		t.Fatalf("Retire: %v", err)
+	}
+	if got.Deleted || client.loggedOut != 1 {
+		t.Errorf("retirement = %+v, logged out %d times, want the key expired", got, client.loggedOut)
+	}
+}
+
+// Without knowing which key it runs with, the tool ends nothing.
+func TestRetireDoesNothingWithoutTheIdentity(t *testing.T) {
+	client := &fakeClient{currentErr: apiError(http.StatusForbidden)}
+
+	_, err := New(client, discard).Retire(context.Background())
+	if !errors.Is(err, credential.ErrIdentityUnavailable) {
+		t.Fatalf("err = %v, want ErrIdentityUnavailable", err)
+	}
+	if len(client.deleted) != 0 || client.loggedOut != 0 {
+		t.Errorf("deleted = %v, logged out %d times, want nothing done", client.deleted, client.loggedOut)
+	}
+}
+
+func TestRetireReportsAFailedLogout(t *testing.T) {
+	client := &fakeClient{current: management(), logoutErr: apiError(http.StatusInternalServerError)}
+
+	if _, err := New(client, discard).Retire(context.Background()); err == nil {
+		t.Fatal("Retire succeeded, want the failed logout reported")
 	}
 }

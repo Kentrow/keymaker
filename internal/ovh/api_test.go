@@ -418,3 +418,23 @@ func TestTheManagementRulesMatchWhatTheToolCalls(t *testing.T) {
 		}
 	}
 }
+
+// The way out calls this route with the credential it is about to end: it has to be the
+// authenticated POST the API documents, signed like any other call.
+func TestLogoutPostsToTheAuthRoute(t *testing.T) {
+	client, seen := newFakeAPI(t, map[string]string{"POST /1.0/auth/logout": ""})
+
+	if err := client.Logout(context.Background()); err != nil {
+		t.Fatalf("Logout: %v", err)
+	}
+
+	for _, call := range *seen {
+		if call.method == http.MethodPost && call.path == "/1.0/auth/logout" {
+			if call.headers.Get("X-Ovh-Signature") == "" {
+				t.Error("the logout call is not signed")
+			}
+			return
+		}
+	}
+	t.Errorf("no POST /1.0/auth/logout among %d calls", len(*seen))
+}

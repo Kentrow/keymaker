@@ -210,3 +210,60 @@ func TestRevokingAKeyThatIsAlreadyGoneSaysSo(t *testing.T) {
 		t.Errorf("code = %q, want %q", got, codeAlreadyRevoked)
 	}
 }
+
+func retireRequest(t *testing.T, handler http.Handler, csrf string) *httptest.ResponseRecorder {
+	t.Helper()
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/credentials/current/retirement", nil)
+	req.AddCookie(&http.Cookie{Name: sessionCookie, Value: testToken})
+	if csrf != "" {
+		req.Header.Set(csrfHeader, csrf)
+	}
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	return rec
+}
+
+// The way out tells the interface what is left of the key, since that is what the reader is
+// told next: nothing but its application, or the key itself as expired.
+func TestTheWayOutSaysWhatIsLeftOfTheKey(t *testing.T) {
+	provider := &fakeProvider{retirement: credential.Retirement{ID: 7, Deleted: true}}
+
+	rec := retireRequest(t, newTestServer(t, provider), testCSRF)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d: %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	if got := decode[retirementResponse](t, rec); got.ID != 7 || !got.Deleted {
+		t.Errorf("response = %+v, want key 7 deleted", got)
+	}
+	if provider.retired != 1 {
+		t.Errorf("retired %d times, want once", provider.retired)
+	}
+}
+
+// Ending the key in use is the one change nothing can take back from the interface: it goes
+// behind the page token like every other change, the session cookie alone is not enough.
+func TestTheWayOutNeedsThePageToken(t *testing.T) {
+	provider := &fakeProvider{}
+
+	if rec := retireRequest(t, newTestServer(t, provider), ""); rec.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusForbidden)
+	}
+	if provider.retired != 0 {
+		t.Errorf("retired %d times, want never", provider.retired)
+	}
+}
+
+// When the tool cannot tell which key it runs with, it does not end anything, and says why.
+func TestTheWayOutStopsWhenTheIdentityIsUnknown(t *testing.T) {
+	provider := &fakeProvider{retireErr: fmt.Errorf("%w: refused", credential.ErrIdentityUnavailable)}
+
+	rec := retireRequest(t, newTestServer(t, provider), testCSRF)
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadGateway)
+	}
+	if got := decode[errorResponse](t, rec).Code; got != codeIdentityUnknown {
+		t.Errorf("code = %q, want %q", got, codeIdentityUnknown)
+	}
+}

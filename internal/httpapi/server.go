@@ -107,6 +107,7 @@ func New(opts Options) http.Handler {
 	mux.HandleFunc("POST /api/applications/keyless/deletions", s.deleteKeylessApplications)
 	mux.HandleFunc("DELETE /api/credentials/{id}", s.revoke)
 	mux.HandleFunc("POST /api/credentials/inactive/revocations", s.revokeInactive)
+	mux.HandleFunc("POST /api/credentials/current/retirement", s.retire)
 	mux.HandleFunc("GET /api/address", s.publicAddress)
 	mux.HandleFunc("POST /api/handoff", s.handoff)
 	mux.Handle("GET /", http.FileServerFS(opts.Assets))

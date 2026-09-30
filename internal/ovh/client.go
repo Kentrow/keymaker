@@ -43,6 +43,11 @@ type Client interface {
 	// DeleteCredential issues DELETE /me/api/credential/{id}.
 	DeleteCredential(ctx context.Context, id int64) error
 
+	// Logout issues POST /auth/logout, which expires the credential making the call. Like
+	// every /auth route it is not subject to access rules, so any credential can end itself
+	// this way, whatever it holds.
+	Logout(ctx context.Context) error
+
 	// ListApplicationIDs issues GET /me/api/application. It is the only call that sees an
 	// application no credential points at.
 	ListApplicationIDs(ctx context.Context) ([]int64, error)

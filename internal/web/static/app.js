@@ -68,11 +68,18 @@ const dictionaries = {
     revokeTitle: 'Revoke this key?',
     revokeWarning: 'This cannot be undone. Anything still using this key stops working the moment it is revoked, and the key cannot be brought back: a replacement is a new key with a new value to deploy.',
     revokePrompt: reference => `Type ${reference} to confirm`,
+    leaveAction: 'Revoke and leave',
+    leaveTitle: 'Revoke the key this tool uses, and leave?',
+    leaveWarning: 'Keymaker ends the key it authenticates with, and can do nothing afterwards: every screen stops working, and using it again takes a new management key. No other key is touched.',
+    leaveWhatStays: 'A key holding the rule to delete keys is deleted, and only its application stays behind, which the next run lists among the applications without a key. Any other key is expired, and stays listed until the inactive keys are swept.',
+    leftTitle: 'The key this tool used is revoked.',
+    leftDeleted: reference => `Key ${reference} is deleted. Its application stays behind with no key: the next run with another management key lists it among the applications without a key.`,
+    leftExpired: reference => `Key ${reference} is expired. It stays listed until the inactive keys are swept, from another management key or the OVHcloud console.`,
+    leftStop: 'Nothing more can be done here. You can close this page and stop the process.',
     revokeMismatch: reference => `That is not ${reference}. Type the identifier of this key, with or without the #.`,
     revoking: 'Revoking...',
     cancel: 'Cancel',
     revoked: reference => `Key ${reference} revoked.`,
-    revokeUnavailable: 'revocation unavailable',
     sweepHeadline: n => n === 1 ? '1 inactive key' : `${n} inactive keys`,
     sweepWhy: 'Expired or refused, they open nothing. Revoking them clears the inventory and cuts no access.',
     sweepAction: 'Revoke them',
@@ -116,7 +123,6 @@ const dictionaries = {
     replaceRevoke: reference => `Revoke the replaced key ${reference}`,
     replaceRevokeHint: 'Do this once the new key is deployed. Nothing that uses the old one keeps working after it.',
     replaceRevokeLocked: 'Open the OVHcloud page and issue the new key first. This step unlocks once that page has been opened.',
-    revokeUnavailableSelf: 'This is the key the tool authenticates with. Revoking it would lock you out of this screen.',
     revokeUnavailableRule: 'The management key has no DELETE rule for this credential.',
     loading: 'Reading the inventory from the OVHcloud API.',
     errorHint: 'Nothing was changed on your account.',
@@ -355,11 +361,18 @@ const dictionaries = {
     revokeTitle: 'Révoquer cette clé ?',
     revokeWarning: 'L’opération est irréversible. Tout ce qui utilise encore cette clé cesse de fonctionner dès la révocation, et la clé ne revient pas : la remplacer, c’est en créer une autre, avec une nouvelle valeur à redéployer.',
     revokePrompt: reference => `Saisissez ${reference} pour confirmer`,
+    leaveAction: 'Révoquer et partir',
+    leaveTitle: 'Révoquer la clé de cet outil et partir ?',
+    leaveWarning: 'Keymaker met fin à la clé avec laquelle il s’authentifie, et ne peut plus rien faire ensuite : plus aucun écran ne fonctionne, et s’en servir à nouveau demande une nouvelle clé de gestion. Aucune autre clé n’est touchée.',
+    leaveWhatStays: 'Une clé qui porte le droit de supprimer des clés est supprimée, et seule son application reste, que la prochaine utilisation liste parmi les applications sans clé. Toute autre clé est expirée, et reste listée jusqu’à la révocation des clés inactives.',
+    leftTitle: 'La clé de cet outil est révoquée.',
+    leftDeleted: reference => `La clé ${reference} est supprimée. Son application reste, sans clé : la prochaine utilisation avec une autre clé de gestion la liste parmi les applications sans clé.`,
+    leftExpired: reference => `La clé ${reference} est expirée. Elle reste listée jusqu’à la révocation des clés inactives, depuis une autre clé de gestion ou la console OVHcloud.`,
+    leftStop: 'Plus rien ne peut être fait ici. Vous pouvez fermer cette page et arrêter le processus.',
     revokeMismatch: reference => `Ce n’est pas ${reference}. Saisissez l’identifiant de cette clé, avec ou sans le #.`,
     revoking: 'Révocation...',
     cancel: 'Annuler',
     revoked: reference => `Clé ${reference} révoquée.`,
-    revokeUnavailable: 'révocation indisponible',
     sweepHeadline: n => n === 1 ? '1 clé inactive' : `${n} clés inactives`,
     sweepWhy: 'Expirées ou refusées, elles n’ouvrent plus rien. Les révoquer nettoie l’inventaire et ne coupe aucun accès.',
     sweepAction: 'Les révoquer',
@@ -403,7 +416,6 @@ const dictionaries = {
     replaceRevoke: reference => `Révoquer la clé remplacée ${reference}`,
     replaceRevokeHint: 'À faire une fois la nouvelle clé déployée. Plus rien de ce qui utilise l’ancienne ne fonctionnera ensuite.',
     replaceRevokeLocked: 'Ouvrez d’abord la page OVHcloud et émettez la nouvelle clé. Cette étape se déverrouille une fois cette page ouverte.',
-    revokeUnavailableSelf: 'C’est la clé avec laquelle l’outil s’authentifie. La révoquer vous couperait l’accès à cet écran.',
     revokeUnavailableRule: 'La clé de gestion n’a pas le droit DELETE sur ce credential.',
     loading: 'Lecture de l’inventaire depuis l’API OVHcloud.',
     errorHint: 'Rien n’a été modifié sur le compte.',
@@ -672,6 +684,11 @@ document.addEventListener('alpine:init', () => {
     confirmText: '',
     confirmError: '',
     revoking: false,
+    leaving: false,
+    leaveText: '',
+    leaveError: '',
+    leaveBusy: false,
+    retired: null,
     sweepAsked: false,
     replacing: null,
     sweeping: false,
@@ -715,6 +732,7 @@ document.addEventListener('alpine:init', () => {
         this.$watch(filter, () => this.resetRoutes())
       }
       this.$watch('confirming', target => this.toggleDialog(this.$refs.revokeDialog, target !== null))
+      this.$watch('leaving', open => this.toggleDialog(this.$refs.leaveDialog, open))
       this.$watch('sweepAsked', asked => this.toggleDialog(this.$refs.sweepDialog, asked))
       this.$watch('deletingApplication', target => this.toggleDialog(this.$refs.applicationDialog, target !== null))
       this.$watch('appSweepAsked', asked => this.toggleDialog(this.$refs.applicationSweepDialog, asked))
@@ -900,6 +918,81 @@ document.addEventListener('alpine:init', () => {
       } finally {
         this.revoking = false
       }
+    },
+
+    askLeave () {
+      this.leaving = true
+      this.leaveText = ''
+      this.leaveError = ''
+      this.notice = ''
+    },
+
+    cancelLeave () {
+      this.leaving = false
+      this.leaveText = ''
+      this.leaveError = ''
+    },
+
+    // The request names no key: the server ends the one it authenticates with. Once it has
+    // answered, nothing asked of it afterwards can succeed, so the page stops asking and says
+    // what is left of the key instead.
+    async confirmLeave () {
+      if (this.leaveBlocked) return
+
+      this.leaveBusy = true
+      this.leaveError = ''
+      await sessionRequest
+      try {
+        const response = await fetch('/api/credentials/current/retirement', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'X-Keymaker-Csrf': this.csrf }
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          this.leaveError = this.wordProblem(payload)
+          return
+        }
+        this.leaving = false
+        this.retired = { id: payload.id, deleted: Boolean(payload.deleted) }
+        window.scrollTo(0, 0)
+      } catch (failure) {
+        this.leaveError = this.labels.unreachable
+      } finally {
+        this.leaveBusy = false
+      }
+    },
+
+    get leaveReference () {
+      return this.current === null ? '' : '#' + this.current
+    },
+
+    get leavePrompt () {
+      return this.labels.revokePrompt(this.leaveReference)
+    },
+
+    // Typed out like any revocation, and against the same identifier the card shows.
+    get leaveBlocked () {
+      const typed = this.leaveText.trim().replace(/^#/, '')
+      return this.current === null || typed !== String(this.current) || this.leaveBusy
+    },
+
+    get leaveFailed () {
+      return this.leaveError !== ''
+    },
+
+    get leaveLabel () {
+      return this.leaveBusy ? this.labels.revoking : this.labels.leaveAction
+    },
+
+    get retiredShown () {
+      return this.retired !== null
+    },
+
+    get retiredText () {
+      if (this.retired === null) return ''
+      const reference = '#' + this.retired.id
+      return this.retired.deleted ? this.labels.leftDeleted(reference) : this.labels.leftExpired(reference)
     },
 
     // The applications of the account, which the inventory cannot show: it lists keys, and
@@ -1406,6 +1499,7 @@ document.addEventListener('alpine:init', () => {
     // the header under the pointer, so it stays, and each screen reloads what it reads. The
     // guide reads nothing, and refreshes the inventory the reader will come back to.
     refresh () {
+      if (this.retired !== null) return
       if (this.screen === 'explorer') {
         this.loadCatalogue()
         return
@@ -1504,16 +1598,18 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    // Once the key in use is ended, no screen has anything left to show: each would only
+    // fail against an API that no longer answers this process.
     get onInventory () {
-      return this.screen === 'inventory'
+      return this.screen === 'inventory' && this.retired === null
     },
 
     get onExplorer () {
-      return this.screen === 'explorer'
+      return this.screen === 'explorer' && this.retired === null
     },
 
     get onGuide () {
-      return this.screen === 'guide'
+      return this.screen === 'guide' && this.retired === null
     },
 
     get catalogueReady () {
@@ -1815,7 +1911,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     get onCreate () {
-      return this.screen === 'create'
+      return this.screen === 'create' && this.retired === null
     },
 
     get labels () {
@@ -2210,8 +2306,10 @@ document.addEventListener('alpine:init', () => {
         })),
         hasUnneeded: (item.unneeded || []).length > 0,
         revokeOffered: item.revoke.allowed,
-        revokeRefused: !item.revoke.allowed,
-        revokeReason: item.revoke.reason === 'self' ? this.labels.revokeUnavailableSelf : this.labels.revokeUnavailableRule,
+        // The key in use is never offered the ordinary revocation: it gets the way out instead.
+        revokeRefused: !item.revoke.allowed && !item.self,
+        leaveOffered: item.self,
+        revokeReason: this.labels.revokeUnavailableRule,
         rulesLabel: this.labels.rulesCount(item.rules.length),
         collapsible: item.rules.length > folded,
         rulesExpanded: open ? 'true' : 'false',

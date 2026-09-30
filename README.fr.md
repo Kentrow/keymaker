@@ -48,8 +48,9 @@ d’application et une consumer key.
   modifier les droits d’une clé existante. Les droits de l’ancienne clé servent de point de
   départ, ses adresses autorisées sont listées pour être ressaisies, et sa révocation est la
   dernière étape.
-- **Révocation** après saisie de l’identifiant de la clé, refusée pour la clé qu’utilise
-  Keymaker, et en une passe pour toutes les clés expirées ou refusées.
+- **Révocation** après saisie de l’identifiant de la clé, et en une passe pour toutes les clés
+  expirées ou refusées. La clé qu’utilise Keymaker n’est jamais révoquée par erreur : elle a sa
+  propre sortie, révoquer et partir, pour quand vous en avez fini avec l’outil.
 - **Applications restées sans clé**, qu’aucun inventaire de clés ne peut montrer. Révoquer une
   clé laisse son application derrière elle, et une application reste une clé et un secret sous
   lesquels une nouvelle clé peut être demandée. Elles se suppriment depuis l’outil ; une

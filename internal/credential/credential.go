@@ -120,11 +120,26 @@ type Provider interface {
 	// path refuses it and the inventory marks it.
 	Current(ctx context.Context) (Credential, error)
 
+	// Retire ends the credential the tool authenticates with, on purpose: the way out for
+	// someone done with the tool, who has no reason to leave a working key behind. The
+	// ordinary revocation keeps refusing that credential; this is the one path that does
+	// not, and nothing the tool asks for afterwards can succeed.
+	Retire(ctx context.Context) (Retirement, error)
+
 	// Revocable reports whether current, the credential the tool authenticates with, holds
 	// what revoking target needs. It reads rules already fetched and makes no call, so the
 	// interface can disable an action instead of offering one that comes back refused. What
 	// "what it needs" means belongs to the provider.
 	Revocable(current, target Credential) bool
+}
+
+// Retirement says how the credential in use was ended, which decides what is left of it.
+type Retirement struct {
+	ID int64
+
+	// Deleted is true when the credential is gone, leaving its application behind with no
+	// key. Otherwise it was expired: it stays listed until an inactive sweep removes it.
+	Deleted bool
 }
 
 // ErrSelfRevocation is returned when a revocation targets the credential the tool

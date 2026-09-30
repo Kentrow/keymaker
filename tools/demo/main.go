@@ -146,6 +146,18 @@ func (s *store) RevokeAgainst(_ context.Context, current credential.Credential, 
 	return nil
 }
 
+// Retire takes the way a real key holding the delete rule takes: the key goes, its application
+// stays. The demo keeps serving afterwards, which a real account would not, but the interface
+// no longer asks it anything.
+func (s *store) Retire(context.Context) (credential.Retirement, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	id := s.current.ID
+	s.credentials = slices.DeleteFunc(s.credentials, func(c credential.Credential) bool { return c.ID == id })
+	return credential.Retirement{ID: id, Deleted: true}, nil
+}
+
 func (s *store) Revocable(current, target credential.Credential) bool {
 	return current.Permits(http.MethodDelete, ovh.CredentialPath(target.ID))
 }

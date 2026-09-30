@@ -45,8 +45,9 @@ a consumer key.
 - **Replacement** of a key whose rules no longer fit, since the API cannot change the rules of
   an existing key. The rules of the old key are the starting point, its allowed addresses are
   listed to be entered again, and revoking it is the last step.
-- **Revocation** behind typing the key's identifier, refused for the key Keymaker uses, and in
-  one pass for every expired or refused key.
+- **Revocation** behind typing the key's identifier, and in one pass for every expired or
+  refused key. The key Keymaker uses is never revoked by mistake: it has its own way out,
+  revoke and leave, for when you are done with the tool.
 - **Applications left without a key**, which no inventory of keys can show. Revoking a key
   leaves its application behind, and an application is a key and a secret a new credential can
   still be requested under. They can be deleted from here, one at a time or all at once, and an

@@ -104,6 +104,7 @@ Every request goes through the same chain of handlers, outermost first:
 | `GET /api/catalogue` | The route catalogue and whether it is live or the embedded snapshot. |
 | `DELETE /api/credentials/{id}` | Revokes one credential. |
 | `POST /api/credentials/inactive/revocations` | Revokes every expired or refused credential. The request carries no list. |
+| `POST /api/credentials/current/retirement` | Ends the credential in use, as a way out. The request names no credential. |
 | `GET /api/address` | The public address of the process, when the lookup is enabled. |
 | `POST /api/handoff` | Validates a set of access rules and returns the `createToken` link that carries them. |
 | `GET /` | The embedded interface. |
@@ -120,6 +121,7 @@ that makes it; no request parameter ever becomes a URL.
 | --- | --- | --- |
 | `GET` | `/auth/currentCredential` | Identifying the credential Keymaker authenticates with |
 | `GET` | `/auth/time` | Clock synchronisation, handled by `go-ovh` |
+| `POST` | `/auth/logout` | Expiring the credential in use, as the way out of a key without the delete rule |
 | `GET` | `/me/api/credential` | Listing credential identifiers |
 | `GET` | `/me/api/credential/{id}` | Reading one credential |
 | `GET` | `/me/api/application` | Listing the applications of the account, including those no credential points at |
@@ -198,6 +200,14 @@ at the start of the request and applies the same guard to each key. The sweep se
 and refused keys from what the API answers; the browser never names the keys. Whether the
 management key holds a delete rule for a credential is computed from its rules, so the
 interface can disable the action instead of offering one that would be refused.
+
+The credential in use has one way out, apart from that guard: ending it on purpose, for someone
+done with the tool. The request names no credential; the provider ends the one it
+authenticates with. It deletes it when its rules allow, which leaves only its application
+behind, and otherwise calls `POST /auth/logout`, which needs no rule and expires it. It never
+deletes the application instead: tried on a real account, that stops the key but leaves it
+listed as validated, a key that reads as live and opens nothing. Afterwards the interface makes
+no further call and says what is left of the key.
 
 ### Route catalogue
 
@@ -307,7 +317,7 @@ session serves rather than from a copy in the interface.
 
 - Store anything on disk, including the configuration it was given.
 - Receive, display or log the values of a key it helps create.
-- Revoke the credential it authenticates with.
+- Revoke the credential it authenticates with, except when asked to, through its way out.
 - Revoke a set of keys named by the browser.
 - Call a URL taken from a request.
 - Load a script, a style, a font or an image from outside the binary.
