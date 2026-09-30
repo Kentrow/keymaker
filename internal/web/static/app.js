@@ -82,6 +82,7 @@ const dictionaries = {
     revoked: reference => `Key ${reference} revoked.`,
     sweepHeadline: n => n === 1 ? '1 inactive key' : `${n} inactive keys`,
     sweepWhy: 'Expired or refused, they open nothing. Revoking them clears the inventory and cuts no access.',
+    sweepUnavailable: 'Revoking them takes the rule to delete keys, which the management key does not hold.',
     sweepAction: 'Revoke them',
     sweepTitle: 'Revoke the inactive keys?',
     sweepWarning: 'This cannot be undone. These keys grant nothing today, so nothing stops working; what goes is the record of them.',
@@ -375,6 +376,7 @@ const dictionaries = {
     revoked: reference => `Clé ${reference} révoquée.`,
     sweepHeadline: n => n === 1 ? '1 clé inactive' : `${n} clés inactives`,
     sweepWhy: 'Expirées ou refusées, elles n’ouvrent plus rien. Les révoquer nettoie l’inventaire et ne coupe aucun accès.',
+    sweepUnavailable: 'Les révoquer demande le droit de supprimer des clés, que la clé de gestion ne porte pas.',
     sweepAction: 'Les révoquer',
     sweepTitle: 'Révoquer les clés inactives ?',
     sweepWarning: 'L’opération est irréversible. Ces clés n’accordent plus rien aujourd’hui : rien ne cesse de fonctionner, c’est leur trace qui disparaît.',
@@ -1195,6 +1197,17 @@ document.addEventListener('alpine:init', () => {
 
     get hasInactive () {
       return this.inactiveKeys.length > 0
+    },
+
+    // The banner says how many keys are inactive whatever the rules, but offers to revoke them
+    // only when the management key may: a button the server would refuse for every key is the
+    // kind of control the cards stopped showing.
+    get sweepOffered () {
+      return this.inactiveKeys.some(item => item.revoke.allowed)
+    },
+
+    get sweepRefused () {
+      return this.hasInactive && !this.sweepOffered
     },
 
     get inactiveHeadline () {

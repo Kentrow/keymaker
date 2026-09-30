@@ -14,6 +14,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Offer to revoke inactive keys only when the management key may, and say why otherwise.
 - Show "Revoke" as a greyed button that explains why when the management key cannot revoke a key, instead of "revocation unavailable".
 
 ## [0.3.1] - 2026-09-30
