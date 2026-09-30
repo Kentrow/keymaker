@@ -240,7 +240,7 @@ skipped, since it could not have been used.
 | `broad-access` | A rule has a wildcard whose fixed part is `/` or `/me` | risk |
 | `account-control` | A narrower rule can change access to the account, see below | risk |
 | `billing-access` | A narrower rule reaches billing, orders or payment means, see below | caution |
-| `no-ip-restriction` | No allowed address | caution |
+| `no-ip-restriction` | No allowed address, or a block of length zero such as `0.0.0.0/0` | caution |
 | `no-expiry` | No expiration date | caution |
 | `expires-soon` | Expires within 7 days, the management key included | caution |
 | `never-used` | Never used and created more than 30 days ago | caution |

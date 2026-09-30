@@ -107,6 +107,35 @@ func TestBroadAccessLooksAtTheFixedPartOfThePath(t *testing.T) {
 	}
 }
 
+// The API accepts a block of length zero, and a key restricted to it answers from anywhere.
+func TestABlockOfLengthZeroRestrictsNothing(t *testing.T) {
+	open := [][]string{{"0.0.0.0/0"}, {"::/0"}, {"203.0.113.4/32", "0.0.0.0/0"}}
+	restricted := [][]string{{"203.0.113.0/24"}, {"2001:db8::/32", "203.0.113.4/32"}, {"128.0.0.0/1"}}
+
+	for _, blocks := range open {
+		c := wellKept()
+		c.AllowedIPs = prefixes(blocks)
+		if !slices.Contains(codes(Inspect(c, now)), NoIPRestriction) {
+			t.Errorf("%v was taken for a restriction", blocks)
+		}
+	}
+	for _, blocks := range restricted {
+		c := wellKept()
+		c.AllowedIPs = prefixes(blocks)
+		if slices.Contains(codes(Inspect(c, now)), NoIPRestriction) {
+			t.Errorf("%v was not taken for a restriction", blocks)
+		}
+	}
+}
+
+func prefixes(blocks []string) []netip.Prefix {
+	out := make([]netip.Prefix, 0, len(blocks))
+	for _, block := range blocks {
+		out = append(out, netip.MustParsePrefix(block))
+	}
+	return out
+}
+
 // An expired or refused key grants nothing, so reporting on it would be noise.
 func TestOnlyUsableKeysAreExamined(t *testing.T) {
 	for _, status := range []credential.Status{credential.StatusExpired, credential.StatusRefused} {

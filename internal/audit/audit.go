@@ -10,6 +10,7 @@ package audit
 
 import (
 	"fmt"
+	"net/netip"
 	"slices"
 	"strings"
 	"time"
@@ -114,7 +115,7 @@ func Inspect(c credential.Credential, now time.Time) []Finding {
 			add(BillingAccess, SeverityCaution)
 		}
 	}
-	if len(c.AllowedIPs) == 0 {
+	if !restrictsAddresses(c.AllowedIPs) {
 		add(NoIPRestriction, SeverityCaution)
 	}
 	// An expiry is not a risk: it is the opposite of one. It is a date after which whatever
@@ -271,6 +272,13 @@ func within(path, branch string) bool {
 }
 
 // reaches reports whether any of the rules reaches a branch raising the finding.
+// restrictsAddresses reports whether a list of allowed addresses keeps any source out. An
+// empty list lets every address in, and so does a block of length zero: the API takes
+// 0.0.0.0/0 and ::/0 as written, and a key holding one answers from anywhere.
+func restrictsAddresses(allowed []netip.Prefix) bool {
+	return len(allowed) > 0 && !slices.ContainsFunc(allowed, func(p netip.Prefix) bool { return p.Bits() == 0 })
+}
+
 func reaches(rules []credential.AccessRule, finding Code) bool {
 	for _, branch := range SensitiveBranches {
 		if branch.Finding != finding {
