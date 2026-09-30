@@ -226,6 +226,7 @@ make test     # lance les tests avec le détecteur de concurrence
 make lint     # gofmt, go mod tidy et golangci-lint
 make vuln     # govulncheck
 make docker   # construit l’image pour la plateforme locale
+make demo     # lance l’interface sur des données inventées, sans compte
 ```
 
 Lancer le binaire avec votre configuration :

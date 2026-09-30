@@ -58,6 +58,7 @@ Keymaker writes nothing to disk. There is no database, no cache directory and no
 | `internal/publicip` | Optional lookup of the public address the process is seen from. |
 | `internal/web` | The embedded interface: `index.html`, `app.js`, `app.css`, Alpine.js (CSP build) and icons. |
 | `tools/snapshotgen` | Maintainer tool that regenerates `internal/catalog/snapshot.json.gz`. |
+| `tools/demo` | The real server and interface on invented keys, one of each finding, with no call to the API. Outside the Docker build context, so never in the image. |
 
 The only third-party Go dependency is `github.com/ovh/go-ovh`, which signs requests and
 resynchronises the clock with the API. `.golangci.yml` enforces this with `depguard`.

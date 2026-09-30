@@ -220,6 +220,7 @@ make test     # run the tests with the race detector
 make lint     # gofmt, go mod tidy and golangci-lint
 make vuln     # govulncheck
 make docker   # build the image for the local platform
+make demo     # run the interface on invented data, no account needed
 ```
 
 Run the binary against your configuration:

@@ -18,7 +18,7 @@ TOOLCHAIN := $(shell awk '/^toolchain/ {print $$2}' go.mod)
 
 .DEFAULT_GOAL := help
 
-.PHONY: help build test lint vuln snapshot docker
+.PHONY: help build test lint vuln snapshot demo docker
 
 help: ## List the available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -39,6 +39,9 @@ vuln: ## Check dependencies and the standard library against the Go vulnerabilit
 
 snapshot: ## Regenerate the embedded API catalogue from the live OVHcloud API
 	go run ./tools/snapshotgen
+
+demo: ## Run the interface on invented data, without an OVHcloud account
+	go run ./tools/demo
 
 docker: ## Build the container image for the local platform
 	docker build \
