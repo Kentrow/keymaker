@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD013 -- one line per entry, however long -->
 # Changelog
 
 All notable changes to this project are documented in this file.

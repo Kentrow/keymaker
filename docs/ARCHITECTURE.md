@@ -45,7 +45,7 @@ Keymaker writes nothing to disk. There is no database, no cache directory and no
 ## Package layout
 
 | Path | Responsibility |
-|---|---|
+| --- | --- |
 | `cmd/keymaker` | Entry point: flags, environment, configuration, logger, HTTP server and shutdown. |
 | `internal/config` | Reads the `ovh.conf` file. Never writes it, never reads ambient configuration. |
 | `internal/credential` | Provider-neutral model of a key, its access rules and its status, and the `Provider` interface the HTTP layer works with. |
@@ -94,7 +94,7 @@ Every request goes through the same chain of handlers, outermost first:
 5. **Router and handler.**
 
 | Route | Purpose |
-|---|---|
+| --- | --- |
 | `GET /healthz` | Fixed `ok` body for probes. Discloses no version, configuration or state. |
 | `GET /api/session` | Page token, endpoint, version, whether the address lookup is enabled, and the link that issues a management key. |
 | `GET /api/inventory` | Every credential with its application, findings and revocation offer, plus summary counts. |
@@ -117,7 +117,7 @@ The backend calls a closed set of endpoints. The route of each call is built by 
 that makes it; no request parameter ever becomes a URL.
 
 | Method | Route | Used for |
-|---|---|---|
+| --- | --- | --- |
 | `GET` | `/auth/currentCredential` | Identifying the credential Keymaker authenticates with |
 | `GET` | `/auth/time` | Clock synchronisation, handled by `go-ovh` |
 | `GET` | `/me/api/credential` | Listing credential identifiers |
@@ -219,7 +219,7 @@ what the key would be allowed to do is reported, while the checks that read its 
 skipped, since it could not have been used.
 
 | Finding | Raised when | Severity |
-|---|---|---|
+| --- | --- | --- |
 | `broad-access` | A rule has a wildcard whose fixed part is `/` or `/me` | risk |
 | `account-control` | A narrower rule can change access to the account, see below | risk |
 | `billing-access` | A narrower rule reaches billing, orders or payment means, see below | caution |
