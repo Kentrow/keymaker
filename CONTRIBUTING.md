@@ -22,7 +22,7 @@ without network access; a test that needs a credential is a bug in the test.
 ## Make targets
 
 | Target | What it does |
-|---|---|
+| --- | --- |
 | `make help` | List the targets |
 | `make build` | Build `./bin/keymaker` with version information |
 | `make test` | Run the tests with the race detector and coverage |

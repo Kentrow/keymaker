@@ -1,0 +1,18 @@
+// Markdown rules for this repository, checked with markdownlint-cli2.
+// Each rule turned off or relaxed below matches a deliberate choice rather than an accident.
+{
+  "config": {
+    // Prose is wrapped at about 94 columns. Tables, code and links are left whole.
+    "MD013": { "line_length": 100, "code_blocks": false, "tables": false },
+
+    // Every release in CHANGELOG.md has its own "Added" and "Fixed", as Keep a Changelog wants.
+    "MD024": { "siblings_only": true },
+
+    // The READMEs open on a centred logo, title and badges, which Markdown cannot centre.
+    "MD033": { "allowed_elements": ["p", "img", "a", "h1"] },
+
+    // That same header puts the title in HTML, and the pull request template starts at "##".
+    "MD041": false
+  },
+  "ignores": ["CLAUDE.md"]
+}
