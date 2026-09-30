@@ -171,6 +171,13 @@ a refused call fails the whole listing, because it means the management key lack
 Applications are read once each, also in parallel. When the application route answers 404,
 the credential route is tried and the application is marked external.
 
+The report is built by the browser from the inventory it already holds, and saved as a file
+by the reader; the backend has no route for it and writes nothing. It covers every key
+whatever the filters, with its findings, and the applications left without a key. It holds
+no application key, secret or consumer key. In the CSV form, a cell starting with `=`, `+`,
+`-`, `@`, a tab or a carriage return is prefixed with `'`, so that a spreadsheet does not
+read it as a formula.
+
 ### Applications without a key
 
 Revoking a credential leaves its application behind, and an application is a key and a secret
