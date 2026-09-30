@@ -225,8 +225,9 @@
       <p class="sweep-text">
         <span class="sweep-count" x-text="inactiveHeadline"></span>
         <span x-text="labels.sweepWhy"></span>
+        <span x-show="sweepRefused" x-text="labels.sweepUnavailable"></span>
       </p>
-      <button type="button" class="danger" x-on:click="askSweep" x-text="labels.sweepAction"></button>
+      <button type="button" class="danger" x-show="sweepOffered" x-on:click="askSweep" x-text="labels.sweepAction"></button>
     </div>
 
     <div class="keyless" x-show="hasKeylessApplications">
