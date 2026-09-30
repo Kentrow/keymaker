@@ -33,6 +33,15 @@ if (storedTheme === 'light' || storedTheme === 'dark') {
   document.documentElement.dataset.theme = storedTheme
 }
 
+// One cell of the CSV report. A value a spreadsheet would read as a formula gets a leading
+// quote, since application names and descriptions come from the account and end up opened in
+// one; a value holding a separator, a quote or a line break is quoted.
+function csvCell (value) {
+  let text = value === null || value === undefined ? '' : String(value)
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
+}
+
 function preferredLanguage () {
   const stored = preferences.read('keymaker.language', '')
   if (languages.some(language => language.code === stored)) return stored
@@ -140,6 +149,8 @@ const dictionaries = {
     sortLastUse: 'Last use',
     noMatch: 'No key matches these filters.',
     clearFilters: 'Clear the filters',
+    reportLabel: 'Download the report',
+    reportHint: 'The whole inventory, whatever the filters show, with its findings and the applications left without a key. It holds no key value.',
     columnAllowedIps: 'Allowed addresses',
     columnCreated: 'Created',
     columnExpires: 'Expires',
@@ -434,6 +445,8 @@ const dictionaries = {
     sortLastUse: 'Dernier usage',
     noMatch: 'Aucune clé ne correspond à ces filtres.',
     clearFilters: 'Réinitialiser les filtres',
+    reportLabel: 'Télécharger le rapport',
+    reportHint: 'Tout l’inventaire, quels que soient les filtres, avec ses constats et les applications sans clé. Il ne contient aucune valeur de clé.',
     columnAllowedIps: 'Adresses autorisées',
     columnCreated: 'Création',
     columnExpires: 'Expiration',
@@ -1367,6 +1380,88 @@ document.addEventListener('alpine:init', () => {
       this.confirmError = ''
       this.notice = ''
       this.switchScreen('inventory')
+    },
+
+    // The report is built from what the page already holds and handed to the browser as a file:
+    // nothing is written on the server, which persists nothing. It covers the whole inventory,
+    // not the filtered view, since it records what the account held at a moment. The
+    // application key, the one value of a key the inventory carries, stays out of it.
+    reportData () {
+      return {
+        tool: 'keymaker',
+        version: this.version,
+        endpoint: this.endpoint,
+        generatedAt: new Date().toISOString(),
+        summary: {
+          total: this.summary.total,
+          examined: this.summary.examined,
+          flagged: this.summary.flagged,
+          atRisk: this.summary.atRisk,
+          findings: this.summary.counts
+        },
+        credentials: this.credentials.map(item => ({
+          id: item.id,
+          status: item.status,
+          inUse: Boolean(item.self),
+          application: {
+            id: item.application.id,
+            name: item.application.name,
+            description: item.application.description,
+            external: Boolean(item.application.external)
+          },
+          createdAt: item.createdAt,
+          expiresAt: item.expiresAt,
+          lastUsedAt: item.lastUsedAt,
+          allowedIps: item.allowedIps,
+          rules: item.rules.map(rule => ({ method: rule.method, path: rule.path })),
+          findings: item.findings.map(finding => finding.code)
+        })),
+        applicationsWithoutKey: this.applications.listed
+          ? this.applications.applications
+            .filter(item => item.credentials === 0)
+            .map(item => ({ id: item.id, name: item.name, description: item.description }))
+          : null
+      }
+    },
+
+    reportCsv () {
+      const header = ['id', 'status', 'in_use', 'application_id', 'application', 'external', 'created', 'expires', 'last_used', 'allowed_ips', 'rules', 'findings']
+      const rows = this.reportData().credentials.map(item => [
+        item.id,
+        item.status,
+        item.inUse,
+        item.application.id,
+        item.application.name,
+        item.application.external,
+        item.createdAt || '',
+        item.expiresAt || '',
+        item.lastUsedAt || '',
+        item.allowedIps.join(' '),
+        item.rules.map(rule => `${rule.method} ${rule.path}`).join(' '),
+        item.findings.join(' ')
+      ])
+      return [header, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n') + '\r\n'
+    },
+
+    downloadReportJson () {
+      this.saveReport('json', 'application/json', JSON.stringify(this.reportData(), null, 2) + '\n')
+    },
+
+    downloadReportCsv () {
+      this.saveReport('csv', 'text/csv', this.reportCsv())
+    },
+
+    // Named after the endpoint and the day, so that reports taken over time sort themselves.
+    saveReport (extension, type, content) {
+      const day = new Date().toISOString().slice(0, 10)
+      const url = URL.createObjectURL(new Blob([content], { type: `${type};charset=utf-8` }))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `keymaker-${this.endpoint || 'report'}-${day}.${extension}`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
     },
 
     clearFilters () {
