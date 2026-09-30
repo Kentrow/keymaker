@@ -18,6 +18,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Offer to revoke inactive keys only when the management key may, and say why otherwise.
 - Show "Revoke" as a greyed button that explains why when the management key cannot revoke a key, instead of "revocation unavailable".
 
+### Fixed
+
+- Flag a key allowed from `0.0.0.0/0` or `::/0` as accepting any address: those blocks restrict nothing.
+
 ## [0.3.1] - 2026-09-30
 
 ### Fixed
