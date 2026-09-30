@@ -48,6 +48,10 @@ type fakeProvider struct {
 	deletedApplication []int64
 	deleteAppErr       error
 	appDeletable       func(current credential.Credential, id int64) bool
+
+	retirement credential.Retirement
+	retireErr  error
+	retired    int
 }
 
 var _ credential.Provider = (*fakeProvider)(nil)
@@ -104,6 +108,14 @@ func (f *fakeProvider) DeletableApplication(current credential.Credential, id in
 		return f.appDeletable(current, id)
 	}
 	return current.Permits(http.MethodDelete, "/me/api/application/"+strconv.FormatInt(id, 10))
+}
+
+func (f *fakeProvider) Retire(context.Context) (credential.Retirement, error) {
+	if f.retireErr != nil {
+		return credential.Retirement{}, f.retireErr
+	}
+	f.retired++
+	return f.retirement, nil
 }
 
 func (f *fakeProvider) Current(context.Context) (credential.Credential, error) {

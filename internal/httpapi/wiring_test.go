@@ -50,6 +50,8 @@ func (c *readOnlyClient) Application(context.Context, int64) (credential.Applica
 
 func (c *readOnlyClient) DeleteCredential(context.Context, int64) error { return nil }
 
+func (c *readOnlyClient) Logout(context.Context) error { return nil }
+
 func (c *readOnlyClient) CredentialApplication(context.Context, int64) (credential.Application, error) {
 	return credential.Application{}, nil
 }

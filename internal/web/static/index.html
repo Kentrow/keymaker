@@ -108,6 +108,12 @@
 
   <main>
 
+    <div class="state done" x-show="retiredShown">
+      <p class="headline" x-text="labels.leftTitle"></p>
+      <p x-text="retiredText"></p>
+      <p x-text="labels.leftStop"></p>
+    </div>
+
     <div x-show="onInventory">
 
     <p class="state" x-show="loading" x-text="labels.loading"></p>
@@ -278,7 +284,8 @@
             <div class="actions">
               <button type="button" class="quiet" x-on:click="cloneCredential" x-text="labels.replace"></button>
               <button type="button" class="danger" x-show="row.revokeOffered" x-on:click="askRevoke" x-text="labels.revoke"></button>
-              <button type="button" class="unavailable" x-show="row.revokeRefused" x-bind:aria-expanded="row.reasonExpanded" x-on:click="toggleReason" x-text="labels.revokeUnavailable"></button>
+              <button type="button" class="danger muted" aria-disabled="true" x-show="row.revokeRefused" x-bind:title="row.revokeReason" x-bind:aria-expanded="row.reasonExpanded" x-on:click="toggleReason" x-text="labels.revoke"></button>
+              <button type="button" class="danger" x-show="row.leaveOffered" x-on:click="askLeave" x-text="labels.leaveAction"></button>
             </div>
           </div>
 
@@ -643,6 +650,23 @@
       <div class="dialog-actions">
         <button type="button" class="quiet" x-on:click="cancelRevoke" x-text="labels.cancel"></button>
         <button type="button" class="danger" x-bind:disabled="confirmBlocked" x-on:click="confirmRevoke" x-text="confirmLabel"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="dialog" x-ref="leaveDialog" aria-labelledby="leave-title" x-on:cancel.prevent="cancelLeave" x-on:click.self="cancelLeave">
+    <div class="dialog-body">
+      <h2 id="leave-title" x-text="labels.leaveTitle"></h2>
+      <p class="warning" x-text="labels.leaveWarning"></p>
+      <p class="remark" x-text="labels.leaveWhatStays"></p>
+      <label class="field">
+        <span x-text="leavePrompt"></span>
+        <input type="text" x-model="leaveText" autocomplete="off" spellcheck="false" inputmode="numeric">
+      </label>
+      <p class="dialog-error" x-show="leaveFailed" x-text="leaveError"></p>
+      <div class="dialog-actions">
+        <button type="button" class="quiet" x-on:click="cancelLeave" x-text="labels.cancel"></button>
+        <button type="button" class="danger" x-bind:disabled="leaveBlocked" x-on:click="confirmLeave" x-text="leaveLabel"></button>
       </div>
     </div>
   </dialog>

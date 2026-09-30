@@ -194,6 +194,38 @@ func (p *Provider) RevokeAgainst(ctx context.Context, current credential.Credent
 	return nil
 }
 
+// Retire deletes the credential in use when its rules allow it, and expires it otherwise.
+//
+// Deleting leaves less behind: the key is gone, and only its application remains, which the
+// next run with another key lists among the applications without a key. Expiring is the
+// fallback, because POST /auth/logout needs no rule at all, so a read-only management key can
+// still leave: the key then stays listed as expired until a sweep removes it. A deletion the
+// API refuses despite the rules falls back the same way, since the reader asked to leave, not
+// to delete.
+//
+// Deleting the application instead would take the key with it in one call, but the API then
+// keeps listing the key as validated although it no longer works, which reads as a live key.
+func (p *Provider) Retire(ctx context.Context) (credential.Retirement, error) {
+	current, err := p.client.CurrentCredential(ctx)
+	if err != nil {
+		return credential.Retirement{}, fmt.Errorf("%w: %w", credential.ErrIdentityUnavailable, translate(err))
+	}
+
+	if current.Permits(http.MethodDelete, ovh.CredentialPath(current.ID)) {
+		err := p.client.DeleteCredential(ctx, current.ID)
+		if err == nil {
+			return credential.Retirement{ID: current.ID, Deleted: true}, nil
+		}
+		p.logger.WarnContext(ctx, "the credential in use could not delete itself, expiring it instead",
+			"credential", current.ID, "error", err)
+	}
+
+	if err := p.client.Logout(ctx); err != nil {
+		return credential.Retirement{}, fmt.Errorf("expire credential %d: %w", current.ID, translate(err))
+	}
+	return credential.Retirement{ID: current.ID}, nil
+}
+
 // Revocable reads the rules of the credential in use rather than trying the call, against
 // the very route Revoke would take.
 func (p *Provider) Revocable(current, target credential.Credential) bool {

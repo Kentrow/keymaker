@@ -135,6 +135,10 @@ func (c *APIClient) DeleteCredential(ctx context.Context, id int64) error {
 	return c.sdk.DeleteWithContext(ctx, CredentialPath(id), nil)
 }
 
+func (c *APIClient) Logout(ctx context.Context) error {
+	return c.sdk.PostWithContext(ctx, "/auth/logout", nil, nil)
+}
+
 func (c *APIClient) ListApplicationIDs(ctx context.Context) ([]int64, error) {
 	var ids []int64
 	if err := c.sdk.GetWithContext(ctx, "/me/api/application", &ids); err != nil {

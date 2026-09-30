@@ -1083,20 +1083,12 @@ button:disabled {
 
 button.danger:disabled:hover { background: var(--surface); color: var(--risk); }
 
-/* Why the action is absent, in a word that unfolds into the reason under the card: the
-   sentence is four lines wide and would push the name of the key onto a second row. */
-.actions .unavailable {
-  padding: 0 2px;
-  min-height: 24px;
-  font-size: 12px;
-  color: var(--text-faint);
-  background: none;
-  border: none;
-  text-decoration: underline dotted;
-  text-underline-offset: 3px;
-}
+/* A revocation the management key has no rule for: the same button, visibly out of reach, that
+   still answers a click or a key press with the reason, unfolded under the card. A disabled
+   button would be skipped by the keyboard, and the reason with it. */
+button.danger.muted { opacity: 0.45; cursor: help; }
 
-.actions .unavailable:hover { color: var(--text-soft); }
+button.danger.muted:hover { background: var(--surface); color: var(--risk); }
 
 /* A replacement is announced before anything is issued, because what it does is not what
    the word "edit" leads a reader to expect. */

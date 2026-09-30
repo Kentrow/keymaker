@@ -42,6 +42,31 @@ func (s *server) revoke(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// retirementResponse says what is left of the credential in use once it is ended: nothing
+// but its application when it was deleted, the key itself as expired otherwise.
+type retirementResponse struct {
+	ID      int64 `json:"id"`
+	Deleted bool  `json:"deleted"`
+}
+
+// retire ends the credential the tool authenticates with, as a way out.
+//
+// The request names no credential. The provider ends the one it authenticates with, read from
+// the API at the moment of the call, so nothing reaching this endpoint can use it to revoke
+// another key, and the ordinary revocation keeps refusing this one. Every call after it fails,
+// which the interface knows and stops making them.
+func (s *server) retire(w http.ResponseWriter, r *http.Request) {
+	retired, err := s.provider.Retire(r.Context())
+	if err != nil {
+		s.failRevocation(w, r, err)
+		return
+	}
+
+	s.logger.InfoContext(r.Context(), "credential in use retired, this process can do nothing more",
+		"credential", retired.ID, "deleted", retired.Deleted)
+	writeJSON(w, http.StatusOK, retirementResponse{ID: retired.ID, Deleted: retired.Deleted})
+}
+
 func (s *server) failRevocation(w http.ResponseWriter, r *http.Request, err error) {
 	s.logger.ErrorContext(r.Context(), "revocation failed", "path", r.URL.Path, "error", err)
 

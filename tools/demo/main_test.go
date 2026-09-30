@@ -131,4 +131,13 @@ func TestTheDemoKeepsTheGuardsOfTheRealProvider(t *testing.T) {
 	if err := store.DeleteApplication(ctx, 7115); err != nil {
 		t.Errorf("deleting the application left without a key: %v", err)
 	}
+
+	// The way out takes the key in use, as a key holding the delete rule would be taken.
+	retired, err := store.Retire(ctx)
+	if err != nil || !retired.Deleted || retired.ID != store.current.ID {
+		t.Fatalf("Retire = %+v, %v, want the key in use deleted", retired, err)
+	}
+	if _, err := store.Get(ctx, store.current.ID); !errors.Is(err, credential.ErrNotFound) {
+		t.Errorf("the retired key is still listed: %v", err)
+	}
 }

@@ -8,6 +8,14 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Add a way out on the card of the key Keymaker uses: revoke it and leave. It is deleted when it holds the delete rule and expired otherwise.
+
+### Changed
+
+- Show "Revoke" as a greyed button that explains why when the management key cannot revoke a key, instead of "revocation unavailable".
+
 ## [0.3.1] - 2026-09-30
 
 ### Fixed
