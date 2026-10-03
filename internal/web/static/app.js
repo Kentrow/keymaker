@@ -2612,7 +2612,16 @@ document.addEventListener('alpine:init', () => {
       for (const value of ['validated', 'pendingValidation', 'expired', 'refused']) {
         options.push({ value, label: this.labels.statuses[value] })
       }
+      if (this.credentials.some(item => item.application.deleted)) {
+        options.push({ value: 'orphaned', label: this.labels.orphanedStatus })
+      }
       return options
+    },
+
+    // The status a key is filtered by is the one it is shown with: a key whose application
+    // was deleted still reads as validated in the API, and opens nothing.
+    statusOf (item) {
+      return item.application.deleted ? 'orphaned' : item.status
     },
 
     get applicationOptions () {
@@ -2685,7 +2694,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     matches (item, needle) {
-      if (this.status !== '' && item.status !== this.status) return false
+      if (this.status !== '' && this.statusOf(item) !== this.status) return false
 
       const name = this.applicationName(item)
       if (this.application !== '' && name !== this.application) return false

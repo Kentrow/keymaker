@@ -12,6 +12,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Say in SECURITY.md that the key in use can be ended on purpose through "Revoke and leave", and only there.
 - Try a read of the API once more when its connection drops before any answer, and say on the inventory when the key in use could not be identified.
+- Filter a key whose application was deleted as inoperative rather than as active.
+- Stop reporting a rule that ends in a slash without a wildcard, such as `PUT /me/api/credential/`, as able to change account access: it names no route.
 
 ## [0.5.0] - 2026-10-03
 

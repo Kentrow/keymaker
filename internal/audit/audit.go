@@ -265,6 +265,11 @@ func (b Branch) Reaches(rule credential.AccessRule) bool {
 
 	star := strings.Index(rule.Path, "*")
 	if star < 0 {
+		// Without a wildcard a rule names one route exactly, and no route ends in a slash:
+		// tried on a real account, PUT /me/api/credential/ opened nothing at all.
+		if len(rule.Path) > 1 && strings.HasSuffix(rule.Path, "/") {
+			return false
+		}
 		return within(rule.Path, b.Path)
 	}
 	fixed := rule.Path[:star]
