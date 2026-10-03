@@ -52,6 +52,10 @@ type fakeProvider struct {
 	retirement credential.Retirement
 	retireErr  error
 	retired    int
+
+	addressed  map[int64][]netip.Prefix
+	addressErr error
+	editable   func(current, target credential.Credential) bool
 }
 
 var _ credential.Provider = (*fakeProvider)(nil)
@@ -60,8 +64,13 @@ func (f *fakeProvider) List(context.Context, credential.Status) ([]credential.Cr
 	return f.credentials, f.listErr
 }
 
-func (f *fakeProvider) Get(context.Context, int64) (credential.Credential, error) {
-	return credential.Credential{}, nil
+func (f *fakeProvider) Get(_ context.Context, id int64) (credential.Credential, error) {
+	for _, c := range f.credentials {
+		if c.ID == id {
+			return c, nil
+		}
+	}
+	return credential.Credential{}, credential.ErrNotFound
 }
 
 func (f *fakeProvider) Revoke(ctx context.Context, id int64) error {
@@ -126,6 +135,24 @@ func (f *fakeProvider) Current(context.Context) (credential.Credential, error) {
 func (f *fakeProvider) Revocable(current, target credential.Credential) bool {
 	if f.revocable != nil {
 		return f.revocable(current, target)
+	}
+	return true
+}
+
+func (f *fakeProvider) SetAddresses(_ context.Context, id int64, allowed []netip.Prefix) error {
+	if f.addressErr != nil {
+		return f.addressErr
+	}
+	if f.addressed == nil {
+		f.addressed = map[int64][]netip.Prefix{}
+	}
+	f.addressed[id] = allowed
+	return nil
+}
+
+func (f *fakeProvider) AddressesEditable(current, target credential.Credential) bool {
+	if f.editable != nil {
+		return f.editable(current, target)
 	}
 	return true
 }

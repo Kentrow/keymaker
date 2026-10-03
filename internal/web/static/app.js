@@ -89,6 +89,24 @@ const dictionaries = {
     revoking: 'Revoking...',
     cancel: 'Cancel',
     revoked: reference => `Key ${reference} revoked.`,
+    addressesEdit: 'Addresses',
+    addressesUnavailableRule: 'Changing the addresses of a key takes the rule PUT /me/api/credential/*, which the management key does not hold. The default management key leaves it out on purpose: the audit flags it as able to change access to the account, since it can widen the reach of any key.',
+    addressesRuleLink: 'Issue a management key that holds it',
+    addressesUnavailableLookup: 'This instance cannot look up the address it is seen from, so it does not restrict the key it runs with: a list leaving that address out would lock the tool out for good.',
+    addressesTitle: 'Allowed addresses',
+    addressesHint: 'One address or block per line, such as 203.0.113.4 or 192.0.2.0/24. Leave it empty for the key to accept any address.',
+    addressesField: 'Addresses the key accepts',
+    addressesAddMine: 'Add the address of this instance',
+    addressesContinue: 'Continue',
+    addressesChecking: 'Checking...',
+    addressesStored: 'The key will accept these addresses, as OVHcloud stores them:',
+    addressesAny: 'The key will accept any address, and the audit will flag it.',
+    addressesSeenFrom: address => `This instance is seen from ${address}, which the list covers.`,
+    addressesWarning: 'The change takes effect within seconds. Anything using this key from an address the list leaves out stops working.',
+    addressesBack: 'Back',
+    addressesSave: 'Save',
+    addressesSaving: 'Saving...',
+    addressesSaved: reference => `Addresses of key ${reference} changed.`,
     sweepHeadline: n => n === 1 ? '1 inactive key' : `${n} inactive keys`,
     sweepWhy: 'Expired or refused, they open nothing. Revoking them clears the inventory and cuts no access.',
     sweepUnavailable: 'Revoking them takes the rule to delete keys, which the management key does not hold.',
@@ -348,7 +366,13 @@ const dictionaries = {
       'already-revoked': 'This key no longer exists: it was already revoked.',
       'application-in-use': 'This application still holds a key. Deleting it would revoke that key, so it is refused. Revoke the key first if that is what you want.',
       'application-gone': 'This application no longer exists: it was already deleted.',
-      'missing-token': 'This request did not carry the token handed to the page. Reload and try again.'
+      'missing-token': 'This request did not carry the token handed to the page. Reload and try again.',
+      'bad-address': entry => entry ? `${entry} is not an address or an address block.` : 'The list could not be read.',
+      'any-address-block': entry => `${entry} lets every address in, so it restricts nothing. To accept any address, leave the list empty.`,
+      'too-many-addresses': 'A key accepts at most 64 address blocks here.',
+      'credential-inactive': 'Only a usable key can have its addresses changed. This one is expired, refused or awaiting validation.',
+      'self-lookup-off': 'This instance cannot look up the address it is seen from, so it does not restrict the key it runs with.',
+      'self-lockout': entry => `This list leaves out ${entry}, the address this instance is seen from. Saved, it would lock the tool out of the account for good: the key could not even undo it.`
     },
     disclaimer: 'Unofficial project. Not affiliated with OVHcloud, and neither operated, maintained nor supported by OVHcloud.',
     changelogLink: 'Changelog',
@@ -385,6 +409,24 @@ const dictionaries = {
     revoking: 'Révocation...',
     cancel: 'Annuler',
     revoked: reference => `Clé ${reference} révoquée.`,
+    addressesEdit: 'Adresses',
+    addressesUnavailableRule: 'Modifier les adresses d’une clé demande le droit PUT /me/api/credential/*, que la clé de gestion ne porte pas. La clé de gestion par défaut l’omet exprès : l’audit le signale comme capable de modifier les accès au compte, puisqu’il peut élargir la portée de n’importe quelle clé.',
+    addressesRuleLink: 'Émettre une clé de gestion qui le porte',
+    addressesUnavailableLookup: 'Cette instance ne peut pas rechercher l’adresse depuis laquelle elle est vue, elle ne restreint donc pas la clé qu’elle utilise : une liste qui oublierait cette adresse enfermerait l’outil dehors pour de bon.',
+    addressesTitle: 'Adresses autorisées',
+    addressesHint: 'Une adresse ou un bloc par ligne, comme 203.0.113.4 ou 192.0.2.0/24. Laissez vide pour que la clé accepte toute adresse.',
+    addressesField: 'Adresses acceptées par la clé',
+    addressesAddMine: 'Ajouter l’adresse de cette instance',
+    addressesContinue: 'Continuer',
+    addressesChecking: 'Vérification...',
+    addressesStored: 'La clé acceptera ces adresses, telles qu’OVHcloud les enregistre :',
+    addressesAny: 'La clé acceptera n’importe quelle adresse, et l’audit le signalera.',
+    addressesSeenFrom: address => `Cette instance est vue depuis ${address}, que la liste couvre.`,
+    addressesWarning: 'Le changement prend effet en quelques secondes. Tout ce qui utilise cette clé depuis une adresse absente de la liste cesse de fonctionner.',
+    addressesBack: 'Retour',
+    addressesSave: 'Enregistrer',
+    addressesSaving: 'Enregistrement...',
+    addressesSaved: reference => `Adresses de la clé ${reference} modifiées.`,
     sweepHeadline: n => n === 1 ? '1 clé inactive' : `${n} clés inactives`,
     sweepWhy: 'Expirées ou refusées, elles n’ouvrent plus rien. Les révoquer nettoie l’inventaire et ne coupe aucun accès.',
     sweepUnavailable: 'Les révoquer demande le droit de supprimer des clés, que la clé de gestion ne porte pas.',
@@ -644,7 +686,13 @@ const dictionaries = {
       'already-revoked': 'Cette clé n’existe plus : elle a déjà été révoquée.',
       'application-in-use': 'Cette application porte encore une clé. La supprimer révoquerait cette clé : l’opération est donc refusée. Révoquez d’abord la clé si c’est bien ce que vous voulez.',
       'application-gone': 'Cette application n’existe plus : elle a déjà été supprimée.',
-      'missing-token': 'Cette requête ne portait pas le jeton remis à la page. Rechargez, puis réessayez.'
+      'missing-token': 'Cette requête ne portait pas le jeton remis à la page. Rechargez, puis réessayez.',
+      'bad-address': entry => entry ? `${entry} n’est ni une adresse ni un bloc d’adresses.` : 'La liste n’a pas pu être lue.',
+      'any-address-block': entry => `${entry} laisse entrer toutes les adresses, il ne restreint donc rien. Pour accepter toute adresse, laissez la liste vide.`,
+      'too-many-addresses': 'Une clé accepte ici au plus 64 blocs d’adresses.',
+      'credential-inactive': 'Seule une clé utilisable peut voir ses adresses modifiées. Celle-ci est expirée, refusée ou en attente de validation.',
+      'self-lookup-off': 'Cette instance ne peut pas rechercher l’adresse depuis laquelle elle est vue, elle ne restreint donc pas la clé qu’elle utilise.',
+      'self-lockout': entry => `Cette liste oublie ${entry}, l’adresse depuis laquelle cette instance est vue. Enregistrée, elle enfermerait l’outil hors du compte pour de bon : la clé ne pourrait même pas revenir en arrière.`
     },
     disclaimer: 'Projet non officiel. Sans affiliation avec OVHcloud, et ni exploité, ni maintenu, ni supporté par OVHcloud.',
     changelogLink: 'Journal des modifications',
@@ -693,6 +741,7 @@ document.addEventListener('alpine:init', () => {
     csrf: '',
     addressLookup: false,
     managementKeyUrl: '',
+    addressKeyUrl: '',
     sensitive: [],
     notice: '',
     confirming: null,
@@ -704,6 +753,12 @@ document.addEventListener('alpine:init', () => {
     leaveError: '',
     leaveBusy: false,
     retired: null,
+    addressing: null,
+    addressText: '',
+    addressPlan: null,
+    addressBusy: false,
+    addressEditError: '',
+    addressReasons: {},
     sweepAsked: false,
     replacing: null,
     sweeping: false,
@@ -748,6 +803,7 @@ document.addEventListener('alpine:init', () => {
       }
       this.$watch('confirming', target => this.toggleDialog(this.$refs.revokeDialog, target !== null))
       this.$watch('leaving', open => this.toggleDialog(this.$refs.leaveDialog, open))
+      this.$watch('addressing', target => this.toggleDialog(this.$refs.addressDialog, target !== null))
       this.$watch('sweepAsked', asked => this.toggleDialog(this.$refs.sweepDialog, asked))
       this.$watch('deletingApplication', target => this.toggleDialog(this.$refs.applicationDialog, target !== null))
       this.$watch('appSweepAsked', asked => this.toggleDialog(this.$refs.applicationSweepDialog, asked))
@@ -785,6 +841,7 @@ document.addEventListener('alpine:init', () => {
         this.version = payload.version || ''
         this.addressLookup = Boolean(payload.addressLookup)
         this.managementKeyUrl = payload.managementKeyUrl || ''
+        this.addressKeyUrl = payload.addressKeyUrl || ''
         this.sensitive = Array.isArray(payload.sensitive) ? payload.sensitive : []
       } catch (failure) {
         // The inventory reports the same unreachable backend; saying it twice adds nothing.
@@ -1008,6 +1065,139 @@ document.addEventListener('alpine:init', () => {
       if (this.retired === null) return ''
       const reference = '#' + this.retired.id
       return this.retired.deleted ? this.labels.leftDeleted(reference) : this.labels.leftExpired(reference)
+    },
+
+    toggleAddressReason () {
+      this.addressReasons[this.row.id] = !this.addressReasons[this.row.id]
+    },
+
+    askAddresses () {
+      this.addressing = { id: this.row.id, title: this.row.title, reference: this.row.reference }
+      this.addressText = this.row.addressList
+      this.addressPlan = null
+      this.addressEditError = ''
+      this.notice = ''
+    },
+
+    cancelAddresses () {
+      this.addressing = null
+      this.addressText = ''
+      this.addressPlan = null
+      this.addressEditError = ''
+    },
+
+    editAddressesAgain () {
+      this.addressPlan = null
+      this.addressEditError = ''
+    },
+
+    // The address is the one the process is seen from, which is the one that matters when the
+    // key being edited runs on the same host as this tool.
+    async addMyAddress () {
+      this.addressEditError = ''
+      try {
+        const response = await fetch('/api/address', { credentials: 'same-origin' })
+        const payload = await response.json()
+        if (!response.ok) {
+          this.addressEditError = this.wordProblem(payload)
+          return
+        }
+        const lines = this.addressText.split('\n').map(line => line.trim()).filter(line => line !== '')
+        if (!lines.includes(payload.address)) lines.push(payload.address)
+        this.addressText = lines.join('\n')
+      } catch (failure) {
+        this.addressEditError = this.labels.unreachable
+      }
+    },
+
+    // The server puts the list in the form OVHcloud stores it in and runs every check, the one
+    // that keeps the tool from locking itself out included, before anything is written. The
+    // reader confirms that result, and saving runs the same checks again.
+    async previewAddresses () {
+      const plan = await this.sendAddresses('POST', `/api/credentials/${this.addressing.id}/addresses/preview`)
+      if (plan) this.addressPlan = plan
+    },
+
+    async saveAddresses () {
+      const reference = this.addressing.reference
+      const saved = await this.sendAddresses('PUT', `/api/credentials/${this.addressing.id}/addresses`)
+      if (!saved) return
+      this.cancelAddresses()
+      this.notice = this.labels.addressesSaved(reference)
+      await this.load()
+    },
+
+    async sendAddresses (method, target) {
+      if (this.addressBusy) return null
+      this.addressBusy = true
+      this.addressEditError = ''
+      await sessionRequest
+      try {
+        const response = await fetch(target, {
+          method,
+          credentials: 'same-origin',
+          headers: { 'X-Keymaker-Csrf': this.csrf, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ addresses: this.addressText.split('\n') })
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          // A refusal found at saving time is about a list the reader has to change, so the
+          // dialog goes back to it.
+          this.addressPlan = null
+          this.addressEditError = this.wordProblem(payload)
+          return null
+        }
+        return { addresses: payload.addresses || [], seenFrom: payload.seenFrom || '' }
+      } catch (failure) {
+        this.addressEditError = this.labels.unreachable
+        return null
+      } finally {
+        this.addressBusy = false
+      }
+    },
+
+    get addressingTitle () {
+      return this.addressing === null ? '' : this.addressing.title
+    },
+
+    get addressingReference () {
+      return this.addressing === null ? '' : this.addressing.reference
+    },
+
+    get addressEditing () {
+      return this.addressPlan === null
+    },
+
+    get addressReviewing () {
+      return this.addressPlan !== null
+    },
+
+    get addressPlanned () {
+      return this.addressPlan === null ? [] : this.addressPlan.addresses.map(address => ({ key: address, address }))
+    },
+
+    get addressPlanAny () {
+      return this.addressPlan !== null && this.addressPlan.addresses.length === 0
+    },
+
+    get addressPlanSome () {
+      return this.addressPlan !== null && this.addressPlan.addresses.length > 0
+    },
+
+    get addressSeenFromText () {
+      return this.addressPlan === null || this.addressPlan.seenFrom === '' ? '' : this.labels.addressesSeenFrom(this.addressPlan.seenFrom)
+    },
+
+    get addressFailed () {
+      return this.addressEditError !== ''
+    },
+
+    get addressContinueLabel () {
+      return this.addressBusy ? this.labels.addressesChecking : this.labels.addressesContinue
+    },
+
+    get addressSaveLabel () {
+      return this.addressBusy ? this.labels.addressesSaving : this.labels.addressesSave
     },
 
     // The applications of the account, which the inventory cannot show: it lists keys, and
@@ -2029,8 +2219,10 @@ document.addEventListener('alpine:init', () => {
     // The API answers with a code and an English sentence. The code is what gets worded
     // here; the sentence is only the fallback for a code this version does not know, which
     // is better than showing nothing at all.
+    // A problem about one entry of what was sent names it, so the reader knows which line to fix.
     wordProblem (payload) {
       const known = this.labels.problems[payload && payload.code]
+      if (typeof known === 'function') return known(payload.entry || '')
       return known || (payload && payload.error) || this.labels.unreachable
     },
 
@@ -2364,6 +2556,7 @@ document.addEventListener('alpine:init', () => {
       const folded = this.view === 'list' ? 0 : collapsedRules
       const rules = open ? item.rules : item.rules.slice(0, folded)
       const inert = item.status === 'expired' || item.status === 'refused'
+      const edit = item.editAddresses || { allowed: false, reason: 'inactive' }
 
       const classes = ['credential']
       if (item.self) classes.push('is-self')
@@ -2418,6 +2611,14 @@ document.addEventListener('alpine:init', () => {
         revokeRefused: !item.revoke.allowed && !item.self,
         leaveOffered: item.self,
         revokeReason: this.labels.revokeUnavailableRule,
+        addressList: item.allowedIps.join('\n'),
+        addressesOffered: edit.allowed,
+        // An inactive key is not offered the editor at all: there is nothing to explain.
+        addressesRefused: !edit.allowed && edit.reason !== 'inactive',
+        addressesReason: edit.reason === 'lookup-off' ? this.labels.addressesUnavailableLookup : this.labels.addressesUnavailableRule,
+        addressReasonOpen: !edit.allowed && Boolean(this.addressReasons[item.id]),
+        addressReasonExpanded: this.addressReasons[item.id] ? 'true' : 'false',
+        addressRuleLinked: !edit.allowed && edit.reason === 'missing-rule' && Boolean(this.addressReasons[item.id]) && this.addressKeyUrl !== '',
         rulesLabel: this.labels.rulesCount(item.rules.length),
         collapsible: item.rules.length > folded,
         rulesExpanded: open ? 'true' : 'false',

@@ -12,6 +12,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Add a way out on the card of the key Keymaker uses: revoke it and leave. It is deleted when it holds the delete rule and expired otherwise.
 - Add a report of the whole inventory, downloadable as JSON or CSV, built in the browser and holding no key value.
+- Add an editor for the allowed addresses of a key, behind the optional rule `PUT /me/api/credential/*`. The key Keymaker uses is only restricted to a list covering the address it is seen from.
 
 ### Changed
 

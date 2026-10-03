@@ -69,10 +69,14 @@ type credentialResponse struct {
 	// since the next step is issuing a key without them.
 	Unneeded []ruleResponse `json:"unneeded"`
 
-	Revoke     revokeResponse `json:"revoke"`
-	CreatedAt  *time.Time     `json:"createdAt"`
-	ExpiresAt  *time.Time     `json:"expiresAt"`
-	LastUsedAt *time.Time     `json:"lastUsedAt"`
+	Revoke offerResponse `json:"revoke"`
+
+	// EditAddresses says whether the addresses of this credential can be changed from here.
+	EditAddresses offerResponse `json:"editAddresses"`
+
+	CreatedAt  *time.Time `json:"createdAt"`
+	ExpiresAt  *time.Time `json:"expiresAt"`
+	LastUsedAt *time.Time `json:"lastUsedAt"`
 }
 
 type applicationResponse struct {
@@ -161,7 +165,7 @@ func (s *server) inventory(w http.ResponseWriter, r *http.Request) {
 		// is kept for something this process knows nothing about.
 		var unneeded []credential.AccessRule
 		if current != nil && c.ID == current.ID {
-			unneeded = audit.Surplus(c, ovh.ManagementRules)
+			unneeded = audit.Surplus(c, ovh.UsableRules())
 			if len(unneeded) > 0 {
 				found = append(found, audit.Finding{Code: audit.WiderThanNeeded, Severity: audit.SeverityCaution})
 			}
@@ -170,6 +174,7 @@ func (s *server) inventory(w http.ResponseWriter, r *http.Request) {
 		findings = append(findings, found)
 		described := describe(c, current, found, s.revocationOffer(current, c))
 		described.Unneeded = rulesOf(unneeded)
+		described.EditAddresses = s.addressOffer(current, c)
 		response.Credentials = append(response.Credentials, described)
 	}
 	response.Summary = summarise(credentials, findings)
@@ -232,7 +237,7 @@ func rulesOf(rules []credential.AccessRule) []ruleResponse {
 	return out
 }
 
-func describe(c credential.Credential, current *credential.Credential, found []audit.Finding, offer revokeResponse) credentialResponse {
+func describe(c credential.Credential, current *credential.Credential, found []audit.Finding, offer offerResponse) credentialResponse {
 	rules := rulesOf(c.Rules)
 
 	allowed := make([]string, 0, len(c.AllowedIPs))

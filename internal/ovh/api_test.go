@@ -11,6 +11,7 @@ import (
 	"net/netip"
 	"os"
 	"path"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -367,10 +368,9 @@ func TestAnUnusualRulePathIsEscaped(t *testing.T) {
 	}
 }
 
-// The rules asked for on that page are the rules the tool actually calls, in both
-// directions: every signed call under /me is covered by one of them, and every one of them
-// covers a call the client makes. A rule covering nothing asks the reader for more than the
-// tool uses.
+// The rules the tool can use are the rules it actually calls, in both directions: every
+// signed call under /me is covered by one of them, and every one of them covers a call the
+// client makes. A rule covering nothing asks the reader for more than the tool uses.
 func TestEveryManagementRuleCoversACallAndEveryCallIsCovered(t *testing.T) {
 	client, seen := newFakeAPI(t, map[string]string{})
 	ctx := context.Background()
@@ -379,27 +379,29 @@ func TestEveryManagementRuleCoversACallAndEveryCallIsCovered(t *testing.T) {
 	_, _ = client.Credential(ctx, 1)
 	_, _ = client.CredentialApplication(ctx, 1)
 	_ = client.DeleteCredential(ctx, 1)
+	_ = client.SetAllowedIPs(ctx, 1, nil)
 	_, _ = client.ListApplicationIDs(ctx)
 	_, _ = client.Application(ctx, 1)
 	_ = client.DeleteApplication(ctx, 1)
 
-	granted := credential.Credential{Rules: ManagementRules}
-	covered := make([]bool, len(ManagementRules))
+	usable := UsableRules()
+	granted := credential.Credential{Rules: usable}
+	covered := make([]bool, len(usable))
 	for _, request := range *seen {
 		route := strings.TrimPrefix(request.path, "/1.0")
 		if !strings.HasPrefix(route, "/me/") {
 			continue
 		}
 		if !granted.Permits(request.method, route) {
-			t.Errorf("%s %s is called but no management rule covers it", request.method, route)
+			t.Errorf("%s %s is called but no rule covers it", request.method, route)
 		}
-		for i, rule := range ManagementRules {
+		for i, rule := range usable {
 			if (credential.Credential{Rules: []credential.AccessRule{rule}}).Permits(request.method, route) {
 				covered[i] = true
 			}
 		}
 	}
-	for i, rule := range ManagementRules {
+	for i, rule := range usable {
 		if !covered[i] {
 			t.Errorf("rule %s %s covers no call the client makes", rule.Method, rule.Path)
 		}
@@ -407,14 +409,52 @@ func TestEveryManagementRuleCoversACallAndEveryCallIsCovered(t *testing.T) {
 }
 
 func TestTheManagementRulesMatchWhatTheToolCalls(t *testing.T) {
-	for _, rule := range ManagementRules {
+	for _, rule := range UsableRules() {
 		switch rule.Method {
-		case "GET", "DELETE":
+		case "GET", "DELETE", "PUT":
 		default:
 			t.Errorf("rule %s %s names a method this tool never issues", rule.Method, rule.Path)
 		}
 		if !strings.HasPrefix(rule.Path, "/me/api/") {
 			t.Errorf("rule %s %s reaches outside the credential and application routes", rule.Method, rule.Path)
+		}
+	}
+}
+
+// The link that issues a management key leaves the address rule out, so that a new key does
+// not carry the account-control finding its holder never asked for.
+func TestTheAddressRuleIsNotAskedForByDefault(t *testing.T) {
+	if slices.Contains(ManagementRules, AddressRule) {
+		t.Error("ManagementRules asks for the address rule")
+	}
+	if !slices.Contains(UsableRules(), AddressRule) {
+		t.Error("UsableRules leaves the address rule out")
+	}
+}
+
+// The API refuses any other field in this body, and reads null as no restriction at all.
+func TestSetAllowedIPsSendsTheAddressesAlone(t *testing.T) {
+	cases := map[string][]netip.Prefix{
+		`{"allowedIPs":["192.0.2.0/24","2001:db8::/32"]}`: {netip.MustParsePrefix("192.0.2.0/24"), netip.MustParsePrefix("2001:db8::/32")},
+		`{"allowedIPs":null}`:                             nil,
+	}
+	for want, allowed := range cases {
+		client, seen := newFakeAPI(t, map[string]string{"PUT /1.0/me/api/credential/42": ""})
+		if err := client.SetAllowedIPs(context.Background(), 42, allowed); err != nil {
+			t.Fatalf("SetAllowedIPs(%v): %v", allowed, err)
+		}
+
+		found := false
+		for _, call := range *seen {
+			if call.method == http.MethodPut && call.path == "/1.0/me/api/credential/42" {
+				found = true
+				if got := string(call.body); got != want {
+					t.Errorf("body = %s, want %s", got, want)
+				}
+			}
+		}
+		if !found {
+			t.Errorf("no PUT /1.0/me/api/credential/42 among %d calls", len(*seen))
 		}
 	}
 }

@@ -8,8 +8,9 @@
 // account, the allowed routes, the method and the roles, and nothing in the published
 // catalogue answers the question. It is documented in SECURITY.md.
 //
-// The call is never made on its own. It happens when the reader asks for it, and the
-// whole feature can be switched off, so that an instance can be run with nothing but
+// The call is never made on its own. It happens when the reader asks for the address, or
+// restricts the credential the tool runs with, which cannot be done safely without knowing
+// it. The whole feature can be switched off, so that an instance can be run with nothing but
 // api.ovh.com on its outbound path.
 package publicip
 

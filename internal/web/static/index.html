@@ -288,6 +288,8 @@
             <span class="pill external" x-show="row.external" x-bind:title="labels.externalHint" x-text="labels.externalLabel"></span>
 
             <div class="actions">
+              <button type="button" class="quiet" x-show="row.addressesOffered" x-on:click="askAddresses" x-text="labels.addressesEdit"></button>
+              <button type="button" class="quiet muted" aria-disabled="true" x-show="row.addressesRefused" x-bind:title="row.addressesReason" x-bind:aria-expanded="row.addressReasonExpanded" x-on:click="toggleAddressReason" x-text="labels.addressesEdit"></button>
               <button type="button" class="quiet" x-on:click="cloneCredential" x-text="labels.replace"></button>
               <button type="button" class="danger" x-show="row.revokeOffered" x-on:click="askRevoke" x-text="labels.revoke"></button>
               <button type="button" class="danger muted" aria-disabled="true" x-show="row.revokeRefused" x-bind:title="row.revokeReason" x-bind:aria-expanded="row.reasonExpanded" x-on:click="toggleReason" x-text="labels.revoke"></button>
@@ -297,6 +299,10 @@
 
           <p class="description" x-show="row.description" x-text="row.description"></p>
           <p class="explained" x-show="row.reasonOpen" x-text="row.revokeReason"></p>
+          <p class="explained" x-show="row.addressReasonOpen">
+            <span x-text="row.addressesReason"></span>
+            <a class="link" x-bind:href="addressKeyUrl" target="_blank" rel="noopener noreferrer" x-show="row.addressRuleLinked" x-text="labels.addressesRuleLink"></a>
+          </p>
 
           <div class="findings" x-show="row.hasFindings">
             <template x-for="flag in row.findings" x-bind:key="flag.code">
@@ -656,6 +662,42 @@
       <div class="dialog-actions">
         <button type="button" class="quiet" x-on:click="cancelRevoke" x-text="labels.cancel"></button>
         <button type="button" class="danger" x-bind:disabled="confirmBlocked" x-on:click="confirmRevoke" x-text="confirmLabel"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="dialog" x-ref="addressDialog" aria-labelledby="address-title" x-on:cancel.prevent="cancelAddresses" x-on:click.self="cancelAddresses">
+    <div class="dialog-body">
+      <h2 id="address-title" x-text="labels.addressesTitle"></h2>
+      <p class="subject">
+        <span class="subject-name" x-text="addressingTitle"></span>
+        <span class="pill mono" x-text="addressingReference"></span>
+      </p>
+      <div x-show="addressEditing">
+        <p class="warning" x-text="labels.addressesHint"></p>
+        <label class="field">
+          <span x-text="labels.addressesField"></span>
+          <textarea class="mono" rows="5" x-model="addressText" autocomplete="off" spellcheck="false"></textarea>
+        </label>
+        <button type="button" class="link" x-show="addressLookup" x-on:click="addMyAddress" x-text="labels.addressesAddMine"></button>
+      </div>
+      <div x-show="addressReviewing">
+        <p class="warning" x-show="addressPlanSome" x-text="labels.addressesStored"></p>
+        <ul class="sweep-list" x-show="addressPlanSome">
+          <template x-for="entry in addressPlanned" x-bind:key="entry.key">
+            <li><code x-text="entry.address"></code></li>
+          </template>
+        </ul>
+        <p class="warning" x-show="addressPlanAny" x-text="labels.addressesAny"></p>
+        <p class="remark" x-show="addressSeenFromText" x-text="addressSeenFromText"></p>
+        <p class="remark warn" x-show="addressPlanSome" x-text="labels.addressesWarning"></p>
+      </div>
+      <p class="dialog-error" x-show="addressFailed" x-text="addressEditError"></p>
+      <div class="dialog-actions">
+        <button type="button" class="quiet" x-show="addressEditing" x-on:click="cancelAddresses" x-text="labels.cancel"></button>
+        <button type="button" class="primary" x-show="addressEditing" x-bind:disabled="addressBusy" x-on:click="previewAddresses" x-text="addressContinueLabel"></button>
+        <button type="button" class="quiet" x-show="addressReviewing" x-on:click="editAddressesAgain" x-text="labels.addressesBack"></button>
+        <button type="button" class="primary" x-show="addressReviewing" x-bind:disabled="addressBusy" x-on:click="saveAddresses" x-text="addressSaveLabel"></button>
       </div>
     </div>
   </dialog>

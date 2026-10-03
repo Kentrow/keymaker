@@ -49,6 +49,11 @@ d’application et une consumer key.
   modifier les droits d’une clé existante. Les droits de l’ancienne clé servent de point de
   départ, ses adresses autorisées sont listées pour être ressaisies, et sa révocation est la
   dernière étape.
+- **Adresses autorisées** d’une clé existante modifiées sur place, la seule chose d’une clé que
+  l’API laisse modifier. La liste est montrée telle qu’OVHcloud l’enregistrera avant d’être
+  enregistrée, et la clé qu’utilise Keymaker n’est jamais restreinte qu’à une liste qui couvre
+  l’adresse depuis laquelle il est vu : une clé restreinte hors de sa propre adresse ne peut même
+  plus revenir en arrière.
 - **Révocation** après saisie de l’identifiant de la clé, et en une passe pour toutes les clés
   expirées ou refusées. La clé qu’utilise Keymaker n’est jamais révoquée par erreur : elle a sa
   propre sortie, révoquer et partir, pour quand vous en avez fini avec l’outil.
@@ -79,8 +84,9 @@ politique de signalement dans [SECURITY.md](SECURITY.md) (en anglais) :
 - La politique de sécurité du contenu n’autorise rien que le binaire ne serve lui-même.
 - Le secret d’application et la consumer key sont masqués dans toutes les lignes de log.
 - Rien n’est persisté, et les clés créées n’atteignent jamais le processus.
-- Les seuls hôtes contactés sont l’API OVHcloud et, quand vous demandez votre adresse publique,
-  `api.ipify.org`. `KEYMAKER_IP_LOOKUP=off` supprime ce dernier.
+- Les seuls hôtes contactés sont l’API OVHcloud et, quand vous demandez votre adresse publique
+  ou restreignez la clé qu’utilise Keymaker, `api.ipify.org`. `KEYMAKER_IP_LOOKUP=off` supprime
+  ce dernier.
 
 ## Démarrage rapide
 
@@ -102,6 +108,13 @@ Trois droits sont facultatifs, et Keymaker indique lequel manque au lieu d’éc
 `DELETE /me/api/credential/*` pour révoquer les clés, `GET /me/api/application` pour lister les
 applications restées sans clé, et `DELETE /me/api/application/*` pour les supprimer. N’accordez
 jamais `/me/*` ni `/*` à cette clé.
+
+Un septième droit, `PUT /me/api/credential/*`, permet à Keymaker de modifier les adresses
+autorisées de vos clés. Les liens ci-dessous l’omettent exprès : ce même droit peut élargir la
+portée de n’importe quelle clé, et l’audit de Keymaker signale donc toute clé qui le porte,
+celle-ci comprise, comme capable de modifier les accès au compte. Ajoutez-le sur la page OVHcloud
+si ce compromis vous convient, ou suivez le lien que Keymaker affiche quand vous voulez modifier
+des adresses sans lui.
 
 Chacun des liens ci-dessous ouvre la page OVHcloud d’un endpoint avec ces droits déjà remplis.
 Prenez celui qui correspond à la région de votre compte, telle que la nomment les SDK officiels.

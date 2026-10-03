@@ -37,6 +37,10 @@ type sessionResponse struct {
 	// the moment the credential stopped working, and every other screen is refused.
 	ManagementKeyURL string `json:"managementKeyUrl"`
 
+	// AddressKeyURL issues a management credential that also holds ovh.AddressRule, for a
+	// reader who wants to edit addresses from here with a key that cannot yet.
+	AddressKeyURL string `json:"addressKeyUrl"`
+
 	// Sensitive is the list the audit flags narrow rules against. The explorer warns with
 	// the same list when a rule is picked, rather than keeping a copy that could drift.
 	Sensitive []sensitiveBranch `json:"sensitive"`
@@ -67,6 +71,7 @@ func (s *server) session(w http.ResponseWriter, _ *http.Request) {
 		CSRF:             s.csrf,
 		AddressLookup:    s.resolver.Enabled(),
 		ManagementKeyURL: s.managementKeyURL,
+		AddressKeyURL:    s.addressKeyURL,
 		Sensitive:        sensitiveBranches(),
 	})
 }

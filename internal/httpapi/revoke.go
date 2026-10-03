@@ -11,14 +11,16 @@ import (
 	"github.com/kentrow/keymaker/internal/credential"
 )
 
-// Reasons the interface is not offered a revocation. They are codes rather than sentences:
-// the wording belongs to the interface, which is translated.
+// Reasons the interface is not offered an action. They are codes rather than sentences: the
+// wording belongs to the interface, which is translated.
 const (
 	reasonSelf        = "self"
 	reasonMissingRule = "missing-rule"
 )
 
-type revokeResponse struct {
+// offerResponse says whether the interface should offer an action on a credential, and why
+// not when it should not.
+type offerResponse struct {
 	Allowed bool   `json:"allowed"`
 	Reason  string `json:"reason"`
 }
@@ -109,17 +111,17 @@ func (s *server) failRevocation(w http.ResponseWriter, r *http.Request, err erro
 
 // revocationOffer says whether the interface should offer revoking target, and why not
 // when it should not.
-func (s *server) revocationOffer(current *credential.Credential, target credential.Credential) revokeResponse {
+func (s *server) revocationOffer(current *credential.Credential, target credential.Credential) offerResponse {
 	switch {
 	case current == nil:
 		// The rules of the credential in use could not be read, so there is nothing to
 		// decide from. The attempt is offered and the API has the last word.
-		return revokeResponse{Allowed: true}
+		return offerResponse{Allowed: true}
 	case current.ID == target.ID:
-		return revokeResponse{Reason: reasonSelf}
+		return offerResponse{Reason: reasonSelf}
 	case !s.provider.Revocable(*current, target):
-		return revokeResponse{Reason: reasonMissingRule}
+		return offerResponse{Reason: reasonMissingRule}
 	default:
-		return revokeResponse{Allowed: true}
+		return offerResponse{Allowed: true}
 	}
 }

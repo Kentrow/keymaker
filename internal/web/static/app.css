@@ -249,7 +249,7 @@ a.link { text-decoration: none; }
 button.link:hover,
 a.link:hover { text-decoration: underline; }
 
-input, select {
+input, select, textarea {
   font: inherit;
   font-size: 13.5px;
   padding: 7px 9px;
@@ -260,13 +260,16 @@ input, select {
   border-radius: var(--radius-sm);
 }
 
-input, select {
+input, select, textarea {
   transition:
     border-color var(--fast) var(--ease),
     box-shadow var(--fast) var(--ease);
 }
 
-input:hover, select:hover { border-color: var(--text-faint); }
+input:hover, select:hover, textarea:hover { border-color: var(--text-faint); }
+
+/* A list of addresses is typed one per line and read as such, so it grows downward only. */
+textarea { resize: vertical; line-height: 1.5; }
 
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -275,7 +278,7 @@ input:hover, select:hover { border-color: var(--text-faint); }
 
 /* A field is the one place the ring sits tight: offset from an input it reads as a second
    border rather than as focus. */
-input:focus-visible, select:focus-visible {
+input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline-offset: 0;
   border-color: var(--accent);
 }
@@ -1100,6 +1103,11 @@ button.danger:disabled:hover { background: var(--surface); color: var(--risk); }
 button.danger.muted { opacity: 0.45; cursor: help; }
 
 button.danger.muted:hover { background: var(--surface); color: var(--risk); }
+
+/* The address editor the management key has no rule for, out of reach the same way. */
+button.quiet.muted { opacity: 0.45; cursor: help; }
+
+button.quiet.muted:hover { background: var(--surface); color: var(--text-soft); border-color: var(--border-strong); }
 
 /* A replacement is announced before anything is issued, because what it does is not what
    the word "edit" leads a reader to expect. */

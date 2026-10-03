@@ -131,7 +131,7 @@ func TestTheInventorySaysWhenRevocationIsNotOffered(t *testing.T) {
 
 	payload := decodeInventory(t, newTestServer(t, provider))
 
-	offers := map[int64]revokeResponse{}
+	offers := map[int64]offerResponse{}
 	for _, c := range payload.Credentials {
 		offers[c.ID] = c.Revoke
 	}
