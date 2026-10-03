@@ -8,12 +8,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Fixed
-
-- Say in SECURITY.md that the key in use can be ended on purpose through "Revoke and leave", and only there.
-- Try a read of the API once more when its connection drops before any answer, and say on the inventory when the key in use could not be identified.
-- Filter a key whose application was deleted as inoperative rather than as active.
-- Stop reporting a rule that ends in a slash without a wildcard, such as `PUT /me/api/credential/`, as able to change account access: it names no route.
+## [0.5.1] - 2026-10-03
 
 ### Added
 
@@ -22,6 +17,13 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Refresh the route catalogue embedded in the binary: 4656 routes, read on 2026-10-03.
+
+### Fixed
+
+- Say in SECURITY.md that the key in use can be ended on purpose through "Revoke and leave", and only there.
+- Try a read of the API once more when its connection drops before any answer, and say on the inventory when the key in use could not be identified.
+- Filter a key whose application was deleted as inoperative rather than as active.
+- Stop reporting a rule that ends in a slash without a wildcard, such as `PUT /me/api/credential/`, as able to change account access: it names no route.
 
 ## [0.5.0] - 2026-10-03
 
@@ -152,7 +154,8 @@ First public release.
 - Harden response headers.
 - Redact the application secret and the consumer key from every log record.
 
-[Unreleased]: https://github.com/kentrow/keymaker/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/kentrow/keymaker/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/kentrow/keymaker/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/kentrow/keymaker/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/kentrow/keymaker/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/kentrow/keymaker/compare/v0.3.0...v0.3.1
