@@ -171,7 +171,7 @@ docker run --rm \
   --read-only \
   --cap-drop=ALL \
   --security-opt no-new-privileges \
-  ghcr.io/kentrow/keymaker:0.5.0
+  ghcr.io/kentrow/keymaker:0.5.1
 ```
 
 The process prints one address, token included. Open it: the token moves into a session cookie
@@ -186,7 +186,7 @@ image otherwise runs as its own unprivileged user.
 # compose.yaml
 services:
   keymaker:
-    image: ghcr.io/kentrow/keymaker:0.5.0
+    image: ghcr.io/kentrow/keymaker:0.5.1
     user: "${KEYMAKER_UID:?run export KEYMAKER_UID=$(id -u)}:${KEYMAKER_GID:?run export KEYMAKER_GID=$(id -g)}"
     ports:
       - "127.0.0.1:8080:8080"

@@ -180,7 +180,7 @@ docker run --rm \
   --read-only \
   --cap-drop=ALL \
   --security-opt no-new-privileges \
-  ghcr.io/kentrow/keymaker:0.5.0
+  ghcr.io/kentrow/keymaker:0.5.1
 ```
 
 Le processus affiche une adresse, jeton compris. Ouvrez-la : le jeton passe dans un cookie de
@@ -195,7 +195,7 @@ seul pouvez lire. Sinon, l’image s’exécute sous son propre utilisateur non 
 # compose.yaml
 services:
   keymaker:
-    image: ghcr.io/kentrow/keymaker:0.5.0
+    image: ghcr.io/kentrow/keymaker:0.5.1
     user: "${KEYMAKER_UID:?run export KEYMAKER_UID=$(id -u)}:${KEYMAKER_GID:?run export KEYMAKER_GID=$(id -g)}"
     ports:
       - "127.0.0.1:8080:8080"
