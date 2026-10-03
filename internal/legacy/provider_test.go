@@ -337,6 +337,54 @@ func TestARefusedApplicationRouteFallsBackWithoutCallingTheApplicationExternal(t
 	}
 }
 
+// Deleting an application stops its keys, but the API keeps listing them with their status, and
+// both application routes answer 404. That pair is what marks the application as deleted.
+func TestAKeyWhoseApplicationWasDeletedIsMarked(t *testing.T) {
+	client := inventory()
+	client.ids = []int64{1, 6}
+	client.credentials[6] = credential.Credential{ID: 6, Status: credential.StatusValidated, Application: credential.Application{ID: 476522}}
+
+	credentials, err := New(client, discard).List(context.Background(), "")
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	for _, c := range credentials {
+		switch {
+		case c.ID == 6 && (!c.Application.Deleted || c.Application.ID != 476522):
+			t.Errorf("credential 6: application = %+v, want 476522 marked deleted", c.Application)
+		case c.ID == 1 && c.Application.Deleted:
+			t.Errorf("credential 1: a live application was marked deleted: %+v", c.Application)
+		}
+	}
+}
+
+// Anything short of two 404s leaves the application unread rather than deleted: a key read as
+// dead is one the reader may revoke.
+func TestOnlyTwoNotFoundAnswersMarkAnApplicationDeleted(t *testing.T) {
+	cases := map[string]struct{ application, viaCredential error }{
+		"a refused application route": {apiError(http.StatusForbidden), apiError(http.StatusNotFound)},
+		"a refused credential route":  {apiError(http.StatusNotFound), apiError(http.StatusForbidden)},
+		"a failing credential route":  {apiError(http.StatusNotFound), apiError(http.StatusInternalServerError)},
+	}
+	for name, answers := range cases {
+		t.Run(name, func(t *testing.T) {
+			client := inventory()
+			client.ids = []int64{6}
+			client.credentials[6] = credential.Credential{ID: 6, Status: credential.StatusValidated, Application: credential.Application{ID: 476522}}
+			client.applicationErr = answers.application
+			client.byCredentialErr = answers.viaCredential
+
+			credentials, err := New(client, discard).List(context.Background(), "")
+			if err != nil {
+				t.Fatalf("List: %v", err)
+			}
+			if got := credentials[0].Application; got.Deleted || got.ID != 476522 {
+				t.Errorf("application = %+v, want 476522 left unread, not deleted", got)
+			}
+		})
+	}
+}
+
 func TestRevokeRefusesTheCredentialInUse(t *testing.T) {
 	client := inventory()
 	client.current = credential.Credential{ID: 3}

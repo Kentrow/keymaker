@@ -118,7 +118,7 @@ func (s *server) addresses(w http.ResponseWriter, r *http.Request, apply bool) {
 			return
 		}
 	}
-	if target.Status != credential.StatusValidated {
+	if target.Status != credential.StatusValidated || target.Application.Deleted {
 		writeJSON(w, http.StatusConflict, errorResponse{
 			Code:  codeInactive,
 			Error: "only a usable credential can have its addresses changed",
@@ -263,7 +263,7 @@ func (s *server) failAddresses(w http.ResponseWriter, r *http.Request, err error
 // why not when it should not.
 func (s *server) addressOffer(current *credential.Credential, target credential.Credential) offerResponse {
 	switch {
-	case target.Status != credential.StatusValidated:
+	case target.Status != credential.StatusValidated, target.Application.Deleted:
 		return offerResponse{Reason: reasonInactive}
 	case current == nil:
 		// Nothing to decide from; the attempt is offered and the checks above have the last

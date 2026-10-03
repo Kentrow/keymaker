@@ -160,7 +160,13 @@ func Inspect(c credential.Credential, now time.Time) []Finding {
 // A credential awaiting validation is read: it is one click on the provider's page away from
 // working, and that click belongs to the account holder, who is better told beforehand what
 // they would be validating.
+//
+// A credential whose application was deleted is not read either, whatever its status says: the
+// API refuses every call made with it, so it is dead weight, like an expired key.
 func Examines(c credential.Credential) bool {
+	if c.Application.Deleted {
+		return false
+	}
 	return c.Status == credential.StatusValidated || c.Status == credential.StatusPendingValidation
 }
 

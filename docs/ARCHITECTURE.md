@@ -189,6 +189,14 @@ a refused call fails the whole listing, because it means the management key lack
 Applications are read once each, also in parallel. When the application route answers 404,
 the credential route is tried and the application is marked external.
 
+When both routes answer 404, the application was deleted. Tried on a real account, deleting an
+application stops its credentials within seconds, but `GET /me/api/credential/{id}` keeps returning
+them with the status they had, `validated` included, until they reach their expiry; the
+credential route then says the application "doesn't exist anymore". Such a credential is marked,
+kept out of the audit like an expired one, and offered for revocation, which the API accepts.
+Any other failure of the two routes leaves the application unread rather than deleted, since a
+credential read as dead is one the reader may revoke.
+
 The report is built by the browser from the inventory it already holds, and saved as a file
 by the reader; the backend has no route for it and writes nothing. It covers every key
 whatever the filters, with its findings, and the applications left without a key. It holds
@@ -222,7 +230,10 @@ names what was deleted and what was refused, with a code for each refusal.
 Every revocation checks the identity of the credential in use against the API and refuses to
 revoke it. A single revocation reads that identity for the call itself. A sweep reads it once
 at the start of the request and applies the same guard to each key. The sweep selects expired
-and refused keys from what the API answers; the browser never names the keys. Whether the
+and refused keys from what the API answers; the browser never names the keys. A key whose
+application was deleted is left out of it, though it opens nothing either: that state is read
+from two failed calls rather than from a status, and it is revoked one at a time, behind its
+typed identifier. Whether the
 management key holds a delete rule for a credential is computed from its rules, so the
 interface can disable the action instead of offering one that would be refused.
 
@@ -266,7 +277,8 @@ refresh finishes waits for it at most 15 seconds.
 ### Audit
 
 `internal/audit` inspects validated credentials and those awaiting validation; an expired or
-refused key grants nothing and belongs to no band.
+refused key grants nothing and belongs to no band, and neither does a key whose application was
+deleted, whatever status the API still gives it.
 
 A credential awaiting validation grants nothing either, until the account holder validates it
 on the OVHcloud page. It is examined because that click is one step away and belongs to them:
