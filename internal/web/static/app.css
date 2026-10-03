@@ -547,7 +547,23 @@ main {
   pointer-events: none;
 }
 
-.search input { padding-left: 32px; }
+.search input { padding-left: 32px; padding-right: 32px; }
+
+/* The one key that leads here, shown where it leads, and gone once something is typed. */
+.key-hint {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 18px;
+  padding: 0 5px;
+  font: 500 11.5px/18px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  text-align: center;
+  color: var(--text-faint);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
 
 /* The platform draws its own arrow on a select and paints it from the system palette, so it
    ignores the theme. This one is the caret the language picker already uses, masked so a

@@ -13,7 +13,7 @@
 <script defer src="/alpine-csp.min.js"></script>
 </head>
 <body>
-<div x-data="inventory">
+<div x-data="inventory" x-on:keydown.window="shortcut">
 
   <header class="topbar">
     <div class="brand">
@@ -166,7 +166,8 @@
             <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
             <path d="M13.2 13.2 17 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
           </svg>
-          <input type="search" x-model="search" x-bind:placeholder="labels.searchPlaceholder">
+          <input type="search" x-ref="search" x-model="search" x-bind:placeholder="labels.searchPlaceholder" aria-keyshortcuts="/">
+          <kbd class="key-hint" x-show="searchHinted" aria-hidden="true">/</kbd>
         </span>
       </label>
       <label class="field">
