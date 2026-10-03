@@ -13,6 +13,5 @@
 
     // That same header puts the title in HTML, and the pull request template starts at "##".
     "MD041": false
-  },
-  "ignores": ["CLAUDE.md"]
+  }
 }
