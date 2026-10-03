@@ -8,8 +8,9 @@
     // Every release in CHANGELOG.md has its own "Added" and "Fixed", as Keep a Changelog wants.
     "MD024": { "siblings_only": true },
 
-    // The READMEs open on a centred logo, title and badges, which Markdown cannot centre.
-    "MD033": { "allowed_elements": ["p", "img", "a", "h1"] },
+    // The READMEs open on a centred logo, title and badges, which Markdown cannot centre, and
+    // show a screenshot that follows the reader's theme, which Markdown cannot choose.
+    "MD033": { "allowed_elements": ["p", "img", "a", "h1", "picture", "source", "code"] },
 
     // That same header puts the title in HTML, and the pull request template starts at "##".
     "MD041": false
