@@ -121,6 +121,10 @@ reader's language; the sentence is only a fallback.
 The backend calls a closed set of endpoints. The route of each call is built by the method
 that makes it; no request parameter ever becomes a URL.
 
+A signed read that fails before any answer was received, a dropped connection included, is
+tried once more after half a second. An answer is final, a refusal included, and a write is
+never repeated, since it may have reached the API even when its answer was lost.
+
 | Method | Route | Used for |
 | --- | --- | --- |
 | `GET` | `/auth/currentCredential` | Identifying the credential Keymaker authenticates with |

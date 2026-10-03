@@ -11,6 +11,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 
 - Say in SECURITY.md that the key in use can be ended on purpose through "Revoke and leave", and only there.
+- Try a read of the API once more when its connection drops before any answer, and say on the inventory when the key in use could not be identified.
 
 ## [0.5.0] - 2026-10-03
 

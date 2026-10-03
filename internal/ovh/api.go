@@ -26,6 +26,10 @@ const (
 	userAgent = "keymaker"
 
 	requestTimeout = 30 * time.Second
+
+	// retryDelay is the pause before a read is tried again. Long enough for a dropped
+	// connection to be replaced, short enough that a page waiting on it does not notice.
+	retryDelay = 500 * time.Millisecond
 )
 
 // supportedEndpoints is deliberately narrower than the SDK table. The Kimsufi and
@@ -94,9 +98,31 @@ func StatusCode(err error) int {
 	return 0
 }
 
+// get issues a signed GET, and tries it once more when it failed before any answer was read:
+// a connection dropped or reset on the way, including on the clock synchronisation the SDK
+// makes before its first signed call. Seen on a real account, that one failure was enough to
+// leave the inventory without the identity of the key in use. An answer, a refusal included,
+// is final, and only reads are repeated: a write may have reached the API even when its
+// answer was lost.
+func (c *APIClient) get(ctx context.Context, path string, into any) error {
+	err := c.sdk.GetWithContext(ctx, path, into)
+	if err == nil || StatusCode(err) != 0 || ctx.Err() != nil {
+		return err
+	}
+
+	timer := time.NewTimer(retryDelay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return err
+	case <-timer.C:
+	}
+	return c.sdk.GetWithContext(ctx, path, into)
+}
+
 func (c *APIClient) CurrentCredential(ctx context.Context) (credential.Credential, error) {
 	var response apiCredential
-	if err := c.sdk.GetWithContext(ctx, "/auth/currentCredential", &response); err != nil {
+	if err := c.get(ctx, "/auth/currentCredential", &response); err != nil {
 		return credential.Credential{}, err
 	}
 	return response.toDomain()
@@ -109,7 +135,7 @@ func (c *APIClient) ListCredentialIDs(ctx context.Context, status credential.Sta
 	}
 
 	var ids []int64
-	if err := c.sdk.GetWithContext(ctx, path, &ids); err != nil {
+	if err := c.get(ctx, path, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -117,7 +143,7 @@ func (c *APIClient) ListCredentialIDs(ctx context.Context, status credential.Sta
 
 func (c *APIClient) Credential(ctx context.Context, id int64) (credential.Credential, error) {
 	var response apiCredential
-	if err := c.sdk.GetWithContext(ctx, CredentialPath(id), &response); err != nil {
+	if err := c.get(ctx, CredentialPath(id), &response); err != nil {
 		return credential.Credential{}, err
 	}
 	return response.toDomain()
@@ -125,7 +151,7 @@ func (c *APIClient) Credential(ctx context.Context, id int64) (credential.Creden
 
 func (c *APIClient) CredentialApplication(ctx context.Context, id int64) (credential.Application, error) {
 	var response apiApplication
-	if err := c.sdk.GetWithContext(ctx, CredentialPath(id)+"/application", &response); err != nil {
+	if err := c.get(ctx, CredentialPath(id)+"/application", &response); err != nil {
 		return credential.Application{}, err
 	}
 	return response.toDomain(), nil
@@ -151,7 +177,7 @@ func (c *APIClient) Logout(ctx context.Context) error {
 
 func (c *APIClient) ListApplicationIDs(ctx context.Context) ([]int64, error) {
 	var ids []int64
-	if err := c.sdk.GetWithContext(ctx, "/me/api/application", &ids); err != nil {
+	if err := c.get(ctx, "/me/api/application", &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -159,7 +185,7 @@ func (c *APIClient) ListApplicationIDs(ctx context.Context) ([]int64, error) {
 
 func (c *APIClient) Application(ctx context.Context, id int64) (credential.Application, error) {
 	var response apiApplication
-	if err := c.sdk.GetWithContext(ctx, ApplicationPath(id), &response); err != nil {
+	if err := c.get(ctx, ApplicationPath(id), &response); err != nil {
 		return credential.Application{}, err
 	}
 	return response.toDomain(), nil
