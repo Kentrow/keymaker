@@ -424,9 +424,25 @@
       <div class="explorer" x-show="catalogueReady">
 
         <section class="routes">
-          <p class="count" x-text="found.label"></p>
-          <p class="empty" x-show="found.empty" x-text="labels.routesEmpty"></p>
-          <ul class="route-list">
+          <div x-show="branchLanding">
+            <p class="count" x-text="branchesLabel"></p>
+            <ul class="branch-list">
+              <template x-for="entry in branchEntries" x-bind:key="entry.branch">
+                <li>
+                  <button type="button" class="branch-entry" x-on:click="pickBranch">
+                    <code x-text="entry.branch"></code>
+                    <span x-text="entry.count"></span>
+                  </button>
+                </li>
+              </template>
+            </ul>
+          </div>
+          <p class="count" x-show="routeListing">
+            <button type="button" class="link back" x-show="routeBranch" x-on:click="clearBranch" x-text="labels.branchesBack"></button>
+            <span x-text="found.label"></span>
+          </p>
+          <p class="empty" x-show="routesNone" x-text="labels.routesEmpty"></p>
+          <ul class="route-list" x-show="routeListing">
             <template x-for="route in found.routes" x-bind:key="route.key">
               <li x-bind:class="route.className">
                 <div class="route-path">
@@ -450,7 +466,7 @@
               </li>
             </template>
           </ul>
-          <div class="route-end" id="route-end" x-show="found.more" aria-hidden="true"></div>
+          <div class="route-end" id="route-end" x-show="routesGrowing" aria-hidden="true"></div>
         </section>
 
         <aside class="selection">
