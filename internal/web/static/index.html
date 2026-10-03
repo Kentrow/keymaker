@@ -262,6 +262,7 @@
     <div class="results" x-show="ready">
       <p class="shown" x-text="countLabel"></p>
       <button type="button" class="link" x-show="filtering" x-on:click="clearFilters" x-text="labels.clearFilters"></button>
+      <button type="button" class="link" x-show="rulesFoldable" x-bind:aria-expanded="allRulesExpanded" x-on:click="toggleAllRules" x-text="allRulesLabel"></button>
       <p class="report" x-bind:title="labels.reportHint">
         <span x-text="labels.reportLabel"></span>
         <button type="button" class="link" x-on:click="downloadReportJson">JSON</button>

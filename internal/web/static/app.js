@@ -187,6 +187,8 @@ const dictionaries = {
     rulesCount: n => n === 1 ? '1 access rule' : `${n} access rules`,
     showAll: 'show all',
     showFewer: 'show fewer',
+    rulesUnfoldAll: 'Show every rule',
+    rulesFoldAll: 'Fold the rules',
     shown: (shown, total) => shown === total ? `${total} shown` : `${shown} of ${total} shown`,
     statuses: {
       validated: 'active',
@@ -510,6 +512,8 @@ const dictionaries = {
     rulesCount: n => n <= 1 ? `${n} droit d’accès` : `${n} droits d’accès`,
     showAll: 'tout afficher',
     showFewer: 'réduire',
+    rulesUnfoldAll: 'Afficher tous les droits',
+    rulesFoldAll: 'Replier les droits',
     shown: (shown, total) => shown === total ? `${total} affichée${total > 1 ? 's' : ''}` : `${shown} sur ${total} affichée${total > 1 ? 's' : ''}`,
     statuses: {
       validated: 'active',
@@ -778,6 +782,7 @@ document.addEventListener('alpine:init', () => {
     appSweepError: '',
     appSweeping: false,
     expanded: {},
+    allRules: false,
     reasons: {},
     explained: {},
     screen: 'inventory',
@@ -936,8 +941,33 @@ document.addEventListener('alpine:init', () => {
       preferences.write('keymaker.view', view)
     },
 
+    // A key's own control wins over the one for the whole list, both ways.
+    rulesOpen (id) {
+      return id in this.expanded ? this.expanded[id] : this.allRules
+    },
+
     toggleRules () {
-      this.expanded[this.row.id] = !this.expanded[this.row.id]
+      this.expanded[this.row.id] = !this.rulesOpen(this.row.id)
+    },
+
+    // An audit pass reads every rule of every key, which used to take a click per key. Folded
+    // stays the default, and is not remembered: most visits want the list short.
+    toggleAllRules () {
+      this.allRules = !this.allRules
+      this.expanded = {}
+    },
+
+    get rulesFoldable () {
+      const folded = this.view === 'list' ? 0 : collapsedRules
+      return this.visible.some(item => item.rules.length > folded)
+    },
+
+    get allRulesLabel () {
+      return this.allRules ? this.labels.rulesFoldAll : this.labels.rulesUnfoldAll
+    },
+
+    get allRulesExpanded () {
+      return this.allRules ? 'true' : 'false'
     },
 
     // Why revocation is not offered, and what a finding means, used to live in a title
@@ -2588,7 +2618,7 @@ document.addEventListener('alpine:init', () => {
     present (item) {
       // The list view is for scanning, so it folds the rules away entirely and the count
       // becomes the way in. The card view shows the first few.
-      const open = Boolean(this.expanded[item.id])
+      const open = this.rulesOpen(item.id)
       const folded = this.view === 'list' ? 0 : collapsedRules
       const rules = open ? item.rules : item.rules.slice(0, folded)
       const orphaned = Boolean(item.application.deleted)
