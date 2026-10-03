@@ -18,6 +18,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Open the explorer on the branches of the API, each with its number of routes, rather than on four thousand routes in alphabetical order.
 - Take the palette from the mascot, its navy for the ink and its cyan for the accent, on a slightly warm background.
 - Set the screen titles and the small labels in the monospace face, and widen the type scale so that titles, text and labels stand apart.
+- Replace the four metric tiles with one line: a bar split by band, then the counts as filters. The first keys now show without scrolling.
+- Lay the filters and the list view on the page itself, with hairlines, instead of a panel around each part.
+- Drop the icons from the screen navigation.
 
 ## [0.4.0] - 2026-10-03
 

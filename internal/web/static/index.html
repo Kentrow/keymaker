@@ -25,31 +25,15 @@
     <nav class="screens">
       <div class="segmented" role="group" x-bind:aria-label="labels.screenGroup">
         <button type="button" x-bind:class="screenButtons.inventory" x-on:click="showInventory">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/>
-            <path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/>
-          </svg>
           <span x-text="labels.screenInventory"></span>
         </button>
         <button type="button" x-bind:class="screenButtons.explorer" x-on:click="showExplorer">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/>
-          </svg>
           <span x-text="labels.screenExplorer"></span>
         </button>
         <button type="button" x-bind:class="screenButtons.create" x-on:click="showCreate">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/>
-            <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
-          </svg>
           <span x-text="labels.screenCreate"></span>
         </button>
         <button type="button" x-bind:class="screenButtons.guide" x-on:click="showGuide">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="M12 7v14"/>
-            <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>
-          </svg>
           <span x-text="labels.screenGuide"></span>
         </button>
       </div>
@@ -132,13 +116,20 @@
     </div>
 
     <section class="overview" x-show="ready">
-      <div class="metrics">
-        <template x-for="tile in metrics" x-bind:key="tile.band">
-          <button type="button" x-bind:class="tile.className" x-bind:title="tile.hint" x-bind:aria-pressed="tile.selected" x-on:click="pickMetric">
-            <span class="figure" x-text="tile.value"></span>
-            <span class="caption" x-text="tile.label"></span>
-          </button>
-        </template>
+      <div class="summary">
+        <div class="split" x-show="hasSplit" aria-hidden="true">
+          <template x-for="cell in splitCells" x-bind:key="cell.key">
+            <span x-bind:class="cell.className"></span>
+          </template>
+        </div>
+        <div class="metrics">
+          <template x-for="tile in metrics" x-bind:key="tile.band">
+            <button type="button" x-bind:class="tile.className" x-bind:title="tile.hint" x-bind:aria-pressed="tile.selected" x-on:click="pickMetric">
+              <span class="figure" x-text="tile.value"></span>
+              <span class="caption" x-text="tile.label"></span>
+            </button>
+          </template>
+        </div>
       </div>
       <p class="notice" x-show="summaryNotice" x-text="summaryNotice"></p>
       <p class="notice" x-show="unreadableNotice" x-text="unreadableNotice"></p>

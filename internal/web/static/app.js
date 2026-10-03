@@ -2546,6 +2546,27 @@ document.addEventListener('alpine:init', () => {
       return { band, value, label, hint, selected, className: classes.join(' ') }
     },
 
+    // The split of the account in one line: a cell per key, in the order of the bands, so the
+    // share of keys that deserve attention reads at a glance. Keys the audit does not read sit
+    // at the end, in grey. One cell per key rather than one sized bar per band, which would
+    // need an inline style the content security policy refuses.
+    get splitCells () {
+      const risk = this.summary.atRisk || 0
+      const watch = Math.max((this.summary.flagged || 0) - risk, 0)
+      const clean = Math.max((this.summary.examined || 0) - (this.summary.flagged || 0), 0)
+      const rest = Math.max((this.summary.total || 0) - risk - watch - clean, 0)
+
+      const cells = []
+      for (const [tone, count] of [['risk', risk], ['watch', watch], ['clean', clean], ['rest', rest]]) {
+        for (let i = 0; i < count; i++) cells.push({ key: `${tone}-${i}`, className: `cell ${tone}` })
+      }
+      return cells
+    },
+
+    get hasSplit () {
+      return (this.summary.total || 0) > 0
+    },
+
     pickMetric () {
       const picked = this.tile.band
       this.band = picked === this.band ? '' : picked
