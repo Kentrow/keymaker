@@ -209,7 +209,6 @@ body {
 }
 
 @media (max-width: 420px) {
-  .screens .segmented .icon { display: none; }
 }
 
 .screens { display: flex; align-items: center; }
@@ -327,114 +326,73 @@ main {
 
 /* Overview */
 
-.overview {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  margin-bottom: var(--space-4);
-  box-shadow: var(--shadow);
+.overview { margin-bottom: var(--space-5); }
+
+/* The account in one line: a bar with a cell per key, in the order of the bands, then the
+   bands themselves as counts to press. Every key sits in exactly one band, which is why
+   they can be read as a row and pressed as a filter. Each band owns a tone, set once as a
+   local property and read by the cells, the count and the ring, so they cannot disagree. */
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
 }
 
-/* The four tiles partition the account: every key sits in exactly one of them, which is
-   why they can be read as a row and clicked as a filter.
-
-   Each band owns a tone, set once as a local property and read by the border, the
-   background, the label and the glyph, so they can never disagree. */
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-3);
+.split {
+  display: flex;
+  flex: 0 1 240px;
+  min-width: 120px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--surface-sunken);
 }
+
+.cell { flex: 1 1 0; min-width: 0; background: var(--tone); }
+
+.cell.risk, .metric.risk { --tone: var(--risk); --tone-soft: var(--risk-soft); }
+.cell.watch, .metric.watch { --tone: var(--caution); --tone-soft: var(--caution-soft); }
+.cell.clean, .metric.clean { --tone: var(--ok); --tone-soft: var(--ok-soft); }
+.cell.rest { --tone: var(--border-strong); }
+.metric.all { --tone: var(--accent); --tone-soft: var(--accent-soft); }
+
+.metrics { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
 .metric {
   --tone: var(--text-faint);
   --tone-soft: var(--surface-sunken);
-  --glyph: none;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  text-align: left;
-  border: 1px solid var(--tone);
-  border-radius: var(--radius);
-  background: var(--tone-soft);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-full);
+  background: transparent;
 }
-
-.metric.all { --tone: var(--accent); --tone-soft: var(--accent-soft); }
-.metric.risk { --tone: var(--risk); --tone-soft: var(--risk-soft); }
-.metric.watch { --tone: var(--caution); --tone-soft: var(--caution-soft); }
-.metric.clean { --tone: var(--ok); --tone-soft: var(--ok-soft); }
-
-/* A glyph sits behind each tile in the band's own tone. It repeats what the label already
-   says, so it is decoration and nothing rests on it: masked rather than drawn, which lets
-   one asset follow the tone in both themes, and taken out of the flow so it cannot move the
-   figure by a pixel. */
-.metric { position: relative; overflow: hidden; }
-
-.metric > * { position: relative; z-index: 1; }
-
-.metric::after {
-  content: "";
-  position: absolute;
-  right: -10px;
-  bottom: -12px;
-  width: 72px;
-  height: 72px;
-  z-index: 0;
-  pointer-events: none;
-  background-color: var(--tone);
-  opacity: 0.13;
-  -webkit-mask-image: var(--glyph);
-  mask-image: var(--glyph);
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-}
-
-.metric.all { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z'/%3E%3Ccircle cx='16.5' cy='7.5' r='.5' fill='black'/%3E%3C/svg%3E"); }
-.metric.risk { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M12 16h.01'/%3E%3C/svg%3E"); }
-.metric.watch { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E"); }
-.metric.clean { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E"); }
 
 /* Selection reads as a thicker edge without being one: a wider border would reflow the
-   row every time the reader picks a band. The ring is drawn inside the tile instead. */
-.metric.selected { box-shadow: inset 0 0 0 2px var(--tone); }
+   row every time the reader picks a band. The ring is drawn inside the count instead. */
+.metric.selected { border-color: var(--tone); box-shadow: inset 0 0 0 1px var(--tone); background: var(--tone-soft); }
 
-/* Hover deepens the fill and leaves the edge alone, so the states stay readable as three:
-   the edge says which band is picked, the fill says which one is under the pointer. The
-   lift comes with it, but nothing rests on it: the shadow token is none in the dark
-   palette, where the fill carries the whole signal. */
-.metric:hover {
-  background: color-mix(in oklab, var(--tone) 10%, var(--tone-soft));
-  box-shadow: var(--shadow);
-}
+.metric:hover { background: var(--tone-soft); }
 
-.metric:hover::after { opacity: 0.18; }
-
-.metric.selected:hover { box-shadow: inset 0 0 0 2px var(--tone), var(--shadow); }
-
-/* A band holding nothing recedes: a full-strength red tile reading zero draws the eye to
+/* A band holding nothing recedes: a full-strength red count reading zero draws the eye to
    the one place that needs nothing. */
 .metric.empty { opacity: 0.6; }
 
-/* The figure stays in ink so it reads as a quantity; the label under it carries the band,
-   in the same tone as the border and the glyph. Nothing rests on that colour: the label
-   says "at risk" in words. */
+/* The figure stays in ink so it reads as a quantity; the label beside it carries the band.
+   Nothing rests on that colour: the label says "at risk" in words. */
 .figure {
-  font-size: 30px;
+  font-family: var(--font-mono);
+  font-size: var(--text-title);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
   color: var(--text);
 }
 
 .caption {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
-  letter-spacing: -0.005em;
   color: var(--tone);
 }
 
@@ -522,16 +480,17 @@ main {
 
 /* Toolbar */
 
+/* The filters sit on the page itself, closed off by a hairline, rather than in a panel of
+   their own: a panel around the filters, another around the counts and a card around each
+   key made more chrome than content. */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
-  padding: var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
 }
 
 .field { display: flex; flex-direction: column; gap: var(--space-1); min-width: 170px; }
@@ -763,26 +722,21 @@ main {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-4);
-  box-shadow: var(--shadow);
 }
 
 .cards.grid > li.is-self { border-left: 3px solid var(--accent); }
 
 /* List: one row per key, for scanning many at once. The description and the rules give way
    to the identity, the findings and the dates. */
-.cards.list {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-}
+/* The list lies on the page, a hairline between keys: one surface for the whole list rather
+   than a card per row. */
+.cards.list { border-top: 1px solid var(--border); }
 
 .cards.list > li {
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-2);
   border-bottom: 1px solid var(--border);
+  background: transparent;
 }
-
-.cards.list > li:last-child { border-bottom: none; }
 .cards.list > li.is-self { box-shadow: inset 3px 0 0 var(--accent); }
 .cards.list .description { display: none; }
 .cards.list .findings { margin-top: var(--space-2); }
@@ -1011,8 +965,6 @@ footer a:hover { color: var(--accent); text-decoration: underline; }
 
 @media (max-width: 640px) {
   .topbar, main, footer { padding-left: var(--space-4); padding-right: var(--space-4); }
-  .metrics { gap: var(--space-6); }
-  .figure { font-size: 26px; }
 }
 
 
@@ -1340,7 +1292,6 @@ html:has(.dialog[open]) { overflow: hidden; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-3) var(--space-3);
-  box-shadow: var(--shadow);
 }
 
 .route.broad {
@@ -1579,10 +1530,6 @@ html:has(.dialog[open]) { overflow: hidden; }
   margin: var(--space-2) 0 0;
   font-size: 0.8rem;
   color: var(--text-faint);
-}
-
-@media (max-width: 860px) {
-  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 900px) {
