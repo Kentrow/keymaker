@@ -14,6 +14,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -477,4 +478,91 @@ func TestLogoutPostsToTheAuthRoute(t *testing.T) {
 		}
 	}
 	t.Errorf("no POST /1.0/auth/logout among %d calls", len(*seen))
+}
+
+// dropping serves the clock and one fixture, after closing the first connections it is given
+// without a word, the way a connection lost on the way looks to the client.
+func dropping(t *testing.T, drops int32, route, fixture string) (*APIClient, *atomic.Int32) {
+	t.Helper()
+
+	calls := &atomic.Int32{}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if calls.Add(1) <= drops {
+			conn, _, err := w.(http.Hijacker).Hijack()
+			if err != nil {
+				t.Errorf("hijack: %v", err)
+				return
+			}
+			_ = conn.Close()
+			return
+		}
+		if r.URL.Path == "/1.0/auth/time" {
+			_, _ = w.Write([]byte(strconv.FormatInt(time.Now().Unix(), 10)))
+			return
+		}
+		if r.Method+" "+r.URL.Path != route {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		content, err := os.ReadFile(path.Join("testdata", fixture))
+		if err != nil {
+			t.Errorf("read fixture: %v", err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(content)
+	}))
+	t.Cleanup(server.Close)
+
+	client := &sdk.Client{
+		AppKey: "test-application-key", AppSecret: "test-application-secret", ConsumerKey: "test-consumer-key",
+		Client: server.Client(), Timeout: requestTimeout, UserAgent: userAgent,
+	}
+	if err := client.SetEndpoint(server.URL + "/1.0"); err != nil {
+		t.Fatalf("SetEndpoint: %v", err)
+	}
+	return &APIClient{sdk: client, endpointURL: server.URL + "/1.0"}, calls
+}
+
+// The first signed call starts with the clock: a connection lost there once is not a reason
+// to leave the inventory without the identity of the key in use.
+func TestAReadLostOnTheWayIsTriedOnceMore(t *testing.T) {
+	client, _ := dropping(t, 1, "GET /1.0/auth/currentCredential", "credential_validated.json")
+
+	got, err := client.CurrentCredential(context.Background())
+	if err != nil {
+		t.Fatalf("CurrentCredential: %v", err)
+	}
+	if got.ID != 4210987 {
+		t.Errorf("ID = %d, want 4210987", got.ID)
+	}
+}
+
+// Twice in a row is no longer a blip, and the failure is reported rather than retried forever.
+func TestAReadIsTriedOnceMoreAndNoMore(t *testing.T) {
+	client, calls := dropping(t, 10, "GET /1.0/auth/currentCredential", "credential_validated.json")
+
+	if _, err := client.CurrentCredential(context.Background()); err == nil {
+		t.Fatal("CurrentCredential succeeded on a server that drops everything")
+	}
+	if got := calls.Load(); got != 2 {
+		t.Errorf("calls = %d, want 2", got)
+	}
+}
+
+// An answer is final, a refusal included: trying again would only be refused again.
+func TestARefusedReadIsNotTriedAgain(t *testing.T) {
+	client, seen := newFakeAPI(t, map[string]string{})
+
+	if _, err := client.Credential(context.Background(), 1); StatusCode(err) != http.StatusNotFound {
+		t.Fatalf("err = %v, want a 404", err)
+	}
+	asked := 0
+	for _, call := range *seen {
+		if call.path == "/1.0/me/api/credential/1" {
+			asked++
+		}
+	}
+	if asked != 1 {
+		t.Errorf("the credential was asked %d times, want once", asked)
+	}
 }

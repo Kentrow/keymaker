@@ -212,6 +212,7 @@ const dictionaries = {
       refused: 'refused'
     },
     nothingToReport: 'Nothing to report. Every usable key is scoped, restricted and dated.',
+    identityUnknown: 'Keymaker could not tell which key it runs with, so that key is not marked, and actions are offered on it that the tool will refuse when asked. Refresh to try again; the process log carries the detail.',
     unreadableKeys: n => n === 1 ? 'One key could not be read and is missing from this list. The process log carries the detail.' : `${n} keys could not be read and are missing from this list. The process log carries the detail.`,
     noKeys: 'This account has no API key.',
     findings: {
@@ -540,6 +541,7 @@ const dictionaries = {
       refused: 'refusée'
     },
     nothingToReport: 'Rien à signaler. Chaque clé utilisable est restreinte, datée et limitée à ce qu’elle appelle.',
+    identityUnknown: 'Keymaker n’a pas pu établir quelle clé il utilise : elle n’est donc pas signalée, et des actions y sont proposées que l’outil refusera si on les demande. Actualisez pour réessayer ; le détail est dans le journal du processus.',
     unreadableKeys: n => n === 1 ? 'Une clé n’a pas pu être lue et manque dans cette liste. Le détail est dans le journal du processus.' : `${n} clés n’ont pas pu être lues et manquent dans cette liste. Le détail est dans le journal du processus.`,
     noKeys: 'Ce compte n’a aucune clé API.',
     findings: {
@@ -2500,6 +2502,12 @@ document.addEventListener('alpine:init', () => {
     },
 
     // The two things that are statements rather than filters keep a line of their own.
+    // Without the identity of the key in use, the marks and the offers that depend on it are
+    // missing, and nothing else on the page would say so.
+    get identityNotice () {
+      return this.ready && this.current === null && this.credentials.length > 0 ? this.labels.identityUnknown : ''
+    },
+
     get unreadableNotice () {
       const count = this.summary.unreadable || 0
       return count > 0 ? this.labels.unreadableKeys(count) : ''
