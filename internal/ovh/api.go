@@ -135,6 +135,16 @@ func (c *APIClient) DeleteCredential(ctx context.Context, id int64) error {
 	return c.sdk.DeleteWithContext(ctx, CredentialPath(id), nil)
 }
 
+func (c *APIClient) SetAllowedIPs(ctx context.Context, id int64, allowed []netip.Prefix) error {
+	var body struct {
+		AllowedIPs []string `json:"allowedIPs"`
+	}
+	for _, prefix := range allowed {
+		body.AllowedIPs = append(body.AllowedIPs, prefix.String())
+	}
+	return c.sdk.PutWithContext(ctx, CredentialPath(id), body, nil)
+}
+
 func (c *APIClient) Logout(ctx context.Context) error {
 	return c.sdk.PostWithContext(ctx, "/auth/logout", nil, nil)
 }
@@ -202,9 +212,10 @@ func parsePrefix(value string) (netip.Prefix, error) {
 	return netip.PrefixFrom(addr, addr.BitLen()), nil
 }
 
-// ManagementRules are the access rules the management credential needs, and the complete
-// list of them. They are declared here, beside the calls that use them,
-// so the permissions asked for and the permissions exercised cannot drift apart.
+// ManagementRules are the access rules the management credential is issued with. They are
+// declared here, beside the calls that use them, so the permissions asked for and the
+// permissions exercised cannot drift apart. AddressRule is the one rule the tool can use
+// beyond them.
 //
 // Three entries are optional, and a key issued without them keeps working: the credential
 // delete rule, without which revocation is not offered, the application listing, without which
@@ -217,6 +228,21 @@ var ManagementRules = []credential.AccessRule{
 	{Method: http.MethodGet, Path: "/me/api/application/*"},
 	{Method: http.MethodDelete, Path: "/me/api/credential/*"},
 	{Method: http.MethodDelete, Path: "/me/api/application/*"},
+}
+
+// AddressRule lets the management credential change the addresses a credential accepts.
+//
+// It stays out of ManagementRules, and so out of the link that issues a management key, on
+// purpose. The same rule can widen the reach of any key of the account, which the audit
+// reports as a change to account access, and a new management key should not carry that
+// finding unless its holder chose to. A key without it keeps working; editing addresses is
+// then not offered, and the interface hands out a link that asks for it.
+var AddressRule = credential.AccessRule{Method: http.MethodPut, Path: "/me/api/credential/*"}
+
+// UsableRules is every rule the tool has a use for: ManagementRules and AddressRule. A
+// management key holding one of them is not holding more than it needs.
+func UsableRules() []credential.AccessRule {
+	return append(slices.Clone(ManagementRules), AddressRule)
 }
 
 // CreateTokenURL is the OVHcloud page that issues a credential, with rules prefilled.

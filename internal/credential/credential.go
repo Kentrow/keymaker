@@ -131,6 +131,17 @@ type Provider interface {
 	// interface can disable an action instead of offering one that comes back refused. What
 	// "what it needs" means belongs to the provider.
 	Revocable(current, target Credential) bool
+
+	// SetAddresses replaces the addresses credential id accepts; an empty list lifts the
+	// restriction. It does not guard the credential in use the way Revoke does: whether a
+	// new list still lets the tool in depends on the address the process is seen from, which
+	// only the caller can look up, so the guard is the caller's.
+	SetAddresses(ctx context.Context, id int64, allowed []netip.Prefix) error
+
+	// AddressesEditable reports whether current, the credential the tool authenticates with,
+	// holds what changing the addresses of target needs, the way Revocable does for a
+	// revocation.
+	AddressesEditable(current, target Credential) bool
 }
 
 // Retirement says how the credential in use was ended, which decides what is left of it.

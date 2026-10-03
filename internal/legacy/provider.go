@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/netip"
 	"sync"
 
 	"github.com/kentrow/keymaker/internal/credential"
@@ -230,6 +231,21 @@ func (p *Provider) Retire(ctx context.Context) (credential.Retirement, error) {
 // the very route Revoke would take.
 func (p *Provider) Revocable(current, target credential.Credential) bool {
 	return current.Permits(http.MethodDelete, ovh.CredentialPath(target.ID))
+}
+
+// SetAddresses writes the addresses and nothing else, which is all the API lets a caller
+// change about a credential.
+func (p *Provider) SetAddresses(ctx context.Context, id int64, allowed []netip.Prefix) error {
+	if err := p.client.SetAllowedIPs(ctx, id, allowed); err != nil {
+		return fmt.Errorf("change the addresses of credential %d: %w", id, translate(err))
+	}
+	return nil
+}
+
+// AddressesEditable reads the rules of the credential in use against the very route
+// SetAddresses would take.
+func (p *Provider) AddressesEditable(current, target credential.Credential) bool {
+	return current.Permits(http.MethodPut, ovh.CredentialPath(target.ID))
 }
 
 // fetchAll reads the detail of every identifier. A credential that disappears between the

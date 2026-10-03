@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/netip"
 	"slices"
 	"sync"
 	"testing"
@@ -36,6 +37,8 @@ type fakeClient struct {
 	listedStatus    credential.Status
 	deleted         []int64
 	applicationCall int
+	addressed       map[int64][]netip.Prefix
+	addressErr      error
 
 	// byCredential answers the credential route, keyed by credential identifier, which is the
 	// only route that reads an application the account does not own.
@@ -104,6 +107,19 @@ func (f *fakeClient) DeleteCredential(_ context.Context, id int64) error {
 		return f.deleteErr
 	}
 	f.deleted = append(f.deleted, id)
+	return nil
+}
+
+func (f *fakeClient) SetAllowedIPs(_ context.Context, id int64, allowed []netip.Prefix) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.addressErr != nil {
+		return f.addressErr
+	}
+	if f.addressed == nil {
+		f.addressed = map[int64][]netip.Prefix{}
+	}
+	f.addressed[id] = allowed
 	return nil
 }
 
@@ -668,5 +684,44 @@ func TestRetireReportsAFailedLogout(t *testing.T) {
 
 	if _, err := New(client, discard).Retire(context.Background()); err == nil {
 		t.Fatal("Retire succeeded, want the failed logout reported")
+	}
+}
+
+func TestSetAddressesWritesTheListAsGiven(t *testing.T) {
+	client := &fakeClient{}
+	allowed := []netip.Prefix{netip.MustParsePrefix("192.0.2.0/24")}
+
+	if err := New(client, discard).SetAddresses(context.Background(), 7, allowed); err != nil {
+		t.Fatalf("SetAddresses: %v", err)
+	}
+	if got := client.addressed[7]; !slices.Equal(got, allowed) {
+		t.Errorf("addresses written = %v, want %v", got, allowed)
+	}
+}
+
+// A refusal names the missing rule, and a key gone meanwhile reads as already revoked.
+func TestSetAddressesTranslatesARefusal(t *testing.T) {
+	cases := map[int]error{
+		http.StatusForbidden: credential.ErrPermissionDenied,
+		http.StatusNotFound:  credential.ErrNotFound,
+	}
+	for status, want := range cases {
+		client := &fakeClient{addressErr: apiError(status)}
+		err := New(client, discard).SetAddresses(context.Background(), 7, nil)
+		if !errors.Is(err, want) {
+			t.Errorf("status %d: err = %v, want %v", status, err, want)
+		}
+	}
+}
+
+func TestAddressesEditableReadsTheRulesOfTheCredentialInUse(t *testing.T) {
+	provider := New(&fakeClient{}, discard)
+	target := credential.Credential{ID: 4210987}
+
+	if !provider.AddressesEditable(management(credential.AccessRule{Method: "PUT", Path: "/me/api/credential/*"}), target) {
+		t.Error("a credential holding the address rule was read as unable to edit addresses")
+	}
+	if provider.AddressesEditable(management(credential.AccessRule{Method: "PUT", Path: "/me/api/credential/"}), target) {
+		t.Error("a rule on the collection alone was read as covering one credential")
 	}
 }

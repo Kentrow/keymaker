@@ -11,7 +11,8 @@
 // They map one to one onto the endpoints listed in docs/ARCHITECTURE.md, which is a closed
 // list: an interaction that has no method here has no endpoint either. In particular
 // there is no method to change the access rules of a credential and none to create an
-// application, because neither endpoint exists.
+// application, because neither endpoint exists. The one change made to an existing credential
+// is the addresses it accepts, the only field of it the API lets anyone write.
 //
 // GET /auth/time is absent on purpose. Clock drift resynchronisation and request
 // signing belong to go-ovh and are never reimplemented.
@@ -19,6 +20,7 @@ package ovh
 
 import (
 	"context"
+	"net/netip"
 
 	"github.com/kentrow/keymaker/internal/credential"
 )
@@ -42,6 +44,11 @@ type Client interface {
 
 	// DeleteCredential issues DELETE /me/api/credential/{id}.
 	DeleteCredential(ctx context.Context, id int64) error
+
+	// SetAllowedIPs issues PUT /me/api/credential/{id} with the addresses the credential
+	// accepts and nothing else, since the API refuses any other field in that body. An empty
+	// list is sent as null, which lifts the restriction.
+	SetAllowedIPs(ctx context.Context, id int64, allowed []netip.Prefix) error
 
 	// Logout issues POST /auth/logout, which expires the credential making the call. Like
 	// every /auth route it is not subject to access rules, so any credential can end itself

@@ -162,6 +162,27 @@ func (s *store) Revocable(current, target credential.Credential) bool {
 	return current.Permits(http.MethodDelete, ovh.CredentialPath(target.ID))
 }
 
+// SetAddresses keeps the guard the server applies to the key in use; the store only writes.
+func (s *store) SetAddresses(_ context.Context, id int64, allowed []netip.Prefix) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for i := range s.credentials {
+		if s.credentials[i].ID == id {
+			s.credentials[i].AllowedIPs = slices.Clone(allowed)
+			if id == s.current.ID {
+				s.current.AllowedIPs = slices.Clone(allowed)
+			}
+			return nil
+		}
+	}
+	return credential.ErrNotFound
+}
+
+func (s *store) AddressesEditable(current, target credential.Credential) bool {
+	return current.Permits(http.MethodPut, ovh.CredentialPath(target.ID))
+}
+
 func (s *store) Applications(context.Context) ([]credential.Application, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -220,10 +241,11 @@ func newStore(now time.Time) *store {
 		{Method: http.MethodPost, Path: "/domain/zone/*/record"},
 	}
 
-	// The key in use holds one rule more than the tool needs, and expires within the week.
+	// The key in use holds the optional address rule, one rule more than the tool needs, and
+	// expires within the week.
 	current := credential.Credential{
 		ID: 118820001, Status: credential.StatusValidated, Application: demo,
-		Rules:      append(slices.Clone(ovh.ManagementRules), credential.AccessRule{Method: http.MethodGet, Path: "/cloud/project/*"}),
+		Rules:      append(ovh.UsableRules(), credential.AccessRule{Method: http.MethodGet, Path: "/cloud/project/*"}),
 		AllowedIPs: ip("198.51.100.7/32"),
 		CreatedAt:  now.Add(-25 * day), ExpiresAt: now.Add(5 * day), LastUsedAt: now,
 	}

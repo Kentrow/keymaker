@@ -46,6 +46,10 @@ a consumer key.
 - **Replacement** of a key whose rules no longer fit, since the API cannot change the rules of
   an existing key. The rules of the old key are the starting point, its allowed addresses are
   listed to be entered again, and revoking it is the last step.
+- **Allowed addresses** of an existing key changed in place, the one thing about a key the API
+  lets anyone change. The list is shown as OVHcloud will store it before it is saved, and the
+  key Keymaker uses is only ever restricted to a list covering the address it is seen from: a
+  key restricted away from its own address cannot even undo it.
 - **Revocation** behind typing the key's identifier, and in one pass for every expired or
   refused key. The key Keymaker uses is never revoked by mistake: it has its own way out,
   revoke and leave, for when you are done with the tool.
@@ -75,8 +79,8 @@ the reporting policy in [SECURITY.md](SECURITY.md):
 - The content security policy allows nothing the binary does not serve.
 - The application secret and the consumer key are redacted from every log line.
 - Nothing is persisted, and created keys never reach the process.
-- The only hosts contacted are the OVHcloud API and, when you ask for your public address,
-  `api.ipify.org`. `KEYMAKER_IP_LOOKUP=off` removes the latter.
+- The only hosts contacted are the OVHcloud API and, when you ask for your public address or
+  restrict the key Keymaker uses, `api.ipify.org`. `KEYMAKER_IP_LOOKUP=off` removes the latter.
 
 ## Quick start
 
@@ -98,6 +102,12 @@ Three rules are optional, and Keymaker says which one is missing instead of fail
 `DELETE /me/api/credential/*` for revoking keys, `GET /me/api/application` for listing the
 applications holding no key, and `DELETE /me/api/application/*` for deleting those. Never grant
 this key `/me/*` or `/*`.
+
+A seventh rule, `PUT /me/api/credential/*`, lets Keymaker change the allowed addresses of your
+keys. The links below leave it out on purpose: the same rule can widen the reach of any key, so
+Keymaker's audit flags a key holding it, this one included, as able to change access to the
+account. Add it on the OVHcloud page if you want that trade, or follow the link Keymaker shows
+when you ask to edit addresses without it.
 
 Each link below opens the OVHcloud page of one endpoint with those rules filled in. Take the
 one matching the region of your account, as the official SDKs name it.

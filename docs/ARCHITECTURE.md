@@ -24,7 +24,9 @@ file needs fixing.
   application, and the application secret never travels through the API: keys are issued on
   the OVHcloud `createToken` page, in the reader's own browser.
 - It does not change the access rules of an existing key. The API has no endpoint for it, so
-  "editing" a key is a replacement: a new key, then the revocation of the old one.
+  "editing" a key is a replacement: a new key, then the revocation of the old one. The allowed
+  addresses are the one field of a key the API lets anyone write, and the only one Keymaker
+  changes in place.
 - It does not manage OAuth2 service accounts or IAM policies.
 - It does not administer any other OVHcloud service.
 - It drives a single account per instance.
@@ -105,6 +107,8 @@ Every request goes through the same chain of handlers, outermost first:
 | `DELETE /api/credentials/{id}` | Revokes one credential. |
 | `POST /api/credentials/inactive/revocations` | Revokes every expired or refused credential. The request carries no list. |
 | `POST /api/credentials/current/retirement` | Ends the credential in use, as a way out. The request names no credential. |
+| `POST /api/credentials/{id}/addresses/preview` | Runs every check on a list of allowed addresses and returns it as it would be stored, without writing it. |
+| `PUT /api/credentials/{id}/addresses` | Runs the same checks again and replaces the allowed addresses of one credential. |
 | `GET /api/address` | The public address of the process, when the lookup is enabled. |
 | `POST /api/handoff` | Validates a set of access rules and returns the `createToken` link that carries them. |
 | `GET /` | The embedded interface. |
@@ -128,14 +132,15 @@ that makes it; no request parameter ever becomes a URL.
 | `GET` | `/me/api/application/{id}` | Reading an application the account owns |
 | `GET` | `/me/api/credential/{id}/application` | Reading an application the account does not own, such as the OVHcloud API console |
 | `DELETE` | `/me/api/credential/{id}` | Revoking a credential |
+| `PUT` | `/me/api/credential/{id}` | Changing the addresses a credential accepts, with a body holding `allowedIPs` alone |
 | `DELETE` | `/me/api/application/{id}` | Deleting an application that holds no credential |
 | `GET` | `/1.0/` and the `*.json` schemas it lists | Building the route catalogue, without authentication |
 
 Accepted endpoints are `ovh-eu`, `ovh-ca` and `ovh-us`. The Kimsufi and SoYouStart entries of
 the `go-ovh` table resolve to hosts outside `api.ovh.com` and are refused.
 
-The management key needs these rules, declared in `ovh.ManagementRules`. A test ties every rule
-to a call the client makes, and every call under `/me` to a rule.
+The management key needs these rules, declared in `ovh.ManagementRules`. A test ties every rule,
+`ovh.AddressRule` included, to a call the client makes, and every call under `/me` to a rule.
 
 ```text
 GET    /me/api/credential
@@ -150,6 +155,14 @@ DELETE /me/api/application/*     optional: without it, revocation is disabled
 optional: without them the affected screen says which rule is missing instead of showing a
 refused call.
 
+`PUT /me/api/credential/*`, declared as `ovh.AddressRule`, is a seventh rule the tool can use and
+does not ask for. It changes the addresses any key accepts, which can widen the reach of any key,
+so the audit reports a key holding it as able to change access to the account. The link that
+issues a management key leaves it out, so that a new key does not carry that finding unasked.
+`ovh.UsableRules` adds it to the six, and is what the credential in use is compared with: a key
+holding it is not told it holds more than it needs. Without it, the address editor is shown out
+of reach with the reason and a link that asks for it.
+
 Some constraints of the API shape the interface:
 
 - The access rules of a credential cannot be changed after it is issued, hence replacement
@@ -157,6 +170,11 @@ Some constraints of the API shape the interface:
 - The `createToken` page accepts access rules in its query string, but not the name, the
   description, the validity or the allowed addresses. The reader fills those in on that page,
   and a replacement lists the addresses of the replaced key so they can be typed again.
+- In the body of `PUT /me/api/credential/{id}`, only `allowedIPs` is accepted; any other field
+  is refused as unknown. The API refuses a bare address, clears host bits, keeps repeated blocks
+  and accepts `0.0.0.0/0`. `null` and an empty list both lift the restriction. A change takes
+  effect within seconds, and a call refused for its address gets the same answer as a missing
+  rule.
 - An access rule cannot carry a named parameter. `/domain/zone/{zoneName}` becomes
   `/domain/zone/*`, which covers every zone. The substitution is done by the backend and shown
   in the interface.
@@ -215,6 +233,26 @@ behind, and otherwise calls `POST /auth/logout`, which needs no rule and expires
 deletes the application instead: tried on a real account, that stops the key but leaves it
 listed as validated, a key that reads as live and opens nothing. Afterwards the interface makes
 no further call and says what is left of the key.
+
+### Addresses
+
+The address editor sends the list as typed, one entry per line. The backend puts it in the form
+the API stores it in: a bare address becomes a single-host block, host bits are cleared, and a
+repeated block is kept once. It refuses an entry that is not an address or a block, a block of
+length zero, which restricts nothing, and more than 64 blocks. The interface shows the result and
+asks for confirmation; saving takes the same path again rather than trusting the preview, since
+the key or the address of the process may have changed in between. Only a validated credential
+is edited.
+
+The credential in use gets one more check. Tried on a real account, a key restricted away from
+its own address is locked out for good: it can make no call at all, not even the one that would
+undo the change, nor log itself out. So a list for the credential in use must cover the address
+the process is seen from, looked up at that moment. The OVHcloud API hosts answer over IPv4 only,
+like the lookup, so both see the same address as long as they leave the same way. With the
+lookup switched off the credential in use is not restricted from here, which the inventory says
+beforehand; lifting its restriction stays possible, since an empty list cannot lock it out. The
+identity is read from the API for each request, as for a revocation, and a request that cannot
+read it writes nothing.
 
 ### Route catalogue
 
@@ -309,16 +347,17 @@ session serves rather than from a copy in the interface.
   attribute and group, by the handler itself. Types holding a secret have no `String` or
   `MarshalJSON` method, and `forbidigo` rejects `fmt.Print`, so nothing bypasses the handler.
   The HTTP server's own error log goes through the same handler.
-- Revocations are logged at info level with the credential identifier, failures at warn or
-  error level. There is no separate or persistent audit log: collecting the process output is
-  left to whoever runs it.
+- Revocations and address changes are logged at info level with the credential identifier,
+  failures at warn or error level. There is no separate or persistent audit log: collecting the
+  process output is left to whoever runs it.
 
 ### Outbound connections
 
 - The OVHcloud API host of the configured endpoint.
-- `https://api.ipify.org`, only when the reader asks for the public address, with a 5-second
-  timeout, a 64-byte answer limit and a strict address parse. `KEYMAKER_IP_LOOKUP=off` removes
-  the ability. The destination is a constant, not a setting.
+- `https://api.ipify.org`, only when the reader asks for the public address or restricts the
+  credential in use, with a 5-second timeout, a 64-byte answer limit and a strict address
+  parse. `KEYMAKER_IP_LOOKUP=off` removes the ability. The destination is a constant, not a
+  setting.
 
 ### What Keymaker never does
 
@@ -326,6 +365,9 @@ session serves rather than from a copy in the interface.
 - Receive, display or log the values of a key it helps create.
 - Revoke the credential it authenticates with, except when asked to, through its way out.
 - Revoke a set of keys named by the browser.
+- Restrict the credential it authenticates with to a list that leaves out the address it is
+  seen from.
+- Change anything about a key but its allowed addresses.
 - Call a URL taken from a request.
 - Load a script, a style, a font or an image from outside the binary.
 - Send telemetry.

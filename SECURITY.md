@@ -71,10 +71,15 @@ The details, and how each point is implemented, are in
 - **Revocation guards.** The credential Keymaker authenticates with cannot be revoked. A single
   revocation requires the identifier to be typed. The bulk revocation only touches expired and
   refused keys, selected by the server.
+- **Address guard.** The credential Keymaker authenticates with is only restricted to a list
+  covering the address the process is seen from, looked up at the moment of the change. With the
+  lookup switched off, it is not restricted from here at all.
 - **Closed outbound set.** The OVHcloud API of the configured endpoint, and `api.ipify.org` only
-  when the reader asks for the public address. `KEYMAKER_IP_LOOKUP=off` removes that call.
+  when the reader asks for the public address or restricts the key Keymaker uses.
+  `KEYMAKER_IP_LOOKUP=off` removes that call.
 - **Least privilege.** The management key needs read rules on credentials and applications, and
-  an optional delete rule on credentials. Never grant it `/me/*` or `/*`.
+  optional delete rules. The rule that changes the addresses of a key is left out of the key
+  Keymaker suggests, since it can widen the reach of any key. Never grant it `/me/*` or `/*`.
 - **Hardened image.** Distroless, non-root, meant to run with a read-only filesystem, no
   capabilities and `no-new-privileges`.
 

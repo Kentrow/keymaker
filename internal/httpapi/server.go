@@ -65,6 +65,7 @@ type server struct {
 	// managementKeyURL is resolved once at startup: the endpoint cannot change while the
 	// process runs, and a request is a poor moment to discover it is unsupported.
 	managementKeyURL string
+	addressKeyURL    string
 
 	catalog  catalog.Catalog
 	resolver publicip.Resolver
@@ -96,6 +97,9 @@ func New(opts Options) http.Handler {
 	if link, err := ovh.CreateTokenURL(opts.Endpoint, ovh.ManagementRules); err == nil {
 		s.managementKeyURL = link
 	}
+	if link, err := ovh.CreateTokenURL(opts.Endpoint, ovh.UsableRules()); err == nil {
+		s.addressKeyURL = link
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET "+healthPath, health)
@@ -108,6 +112,8 @@ func New(opts Options) http.Handler {
 	mux.HandleFunc("DELETE /api/credentials/{id}", s.revoke)
 	mux.HandleFunc("POST /api/credentials/inactive/revocations", s.revokeInactive)
 	mux.HandleFunc("POST /api/credentials/current/retirement", s.retire)
+	mux.HandleFunc("POST /api/credentials/{id}/addresses/preview", s.previewAddresses)
+	mux.HandleFunc("PUT /api/credentials/{id}/addresses", s.setAddresses)
 	mux.HandleFunc("GET /api/address", s.publicAddress)
 	mux.HandleFunc("POST /api/handoff", s.handoff)
 	mux.Handle("GET /", http.FileServerFS(opts.Assets))
