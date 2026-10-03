@@ -65,6 +65,8 @@ Revocations and deletions apply to its memory and are forgotten on restart.
   response, with every identifier and credential replaced by a placeholder.
 - **Documentation.** Keep `README.md` and `README.fr.md` in step: a change to one is made in
   the other in the same pull request. Update `docs/ARCHITECTURE.md` when the design changes.
+  Markdown is checked in CI against `.markdownlint-cli2.jsonc`; to run the same check locally,
+  `npx markdownlint-cli2 $(git ls-files '*.md')`.
 - **Changelog.** A change a user would notice gets an entry under `## [Unreleased]` in
   [CHANGELOG.md](CHANGELOG.md), in the `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed` or
   `Security` group, written for users rather than for reviewers.
