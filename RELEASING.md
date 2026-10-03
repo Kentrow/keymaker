@@ -38,6 +38,17 @@ example and in the Compose file:
 grep -n "keymaker:[0-9]" README.md README.fr.md   # four lines, all on the new version
 ```
 
+Then refresh the route catalogue embedded in the binary. It is what an instance shows when it
+cannot read the API index, and what the demo runs on, so each release ships a recent one:
+
+```bash
+make snapshot     # prints the number of routes and branches it captured
+git diff --stat internal/catalog/snapshot.json.gz
+```
+
+The tests check every sensitive branch of the audit against it, so a branch the API removed
+shows up in step 3.
+
 ## 2. Read the notes the workflow will publish
 
 The workflow copies the section of `CHANGELOG.md` under the version heading, and fails when it

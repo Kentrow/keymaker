@@ -15,6 +15,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Filter a key whose application was deleted as inoperative rather than as active.
 - Stop reporting a rule that ends in a slash without a wildcard, such as `PUT /me/api/credential/`, as able to change account access: it names no route.
 
+### Changed
+
+- Refresh the route catalogue embedded in the binary: 4656 routes, read on 2026-10-03.
+
 ## [0.5.0] - 2026-10-03
 
 ### Added
