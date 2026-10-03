@@ -16,6 +16,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Open the explorer on the branches of the API, each with its number of routes, rather than on four thousand routes in alphabetical order.
+- Take the palette from the mascot, its navy for the ink and its cyan for the accent, on a slightly warm background.
+- Set the screen titles and the small labels in the monospace face, and widen the type scale so that titles, text and labels stand apart.
 
 ## [0.4.0] - 2026-10-03
 

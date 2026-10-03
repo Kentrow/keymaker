@@ -2,25 +2,27 @@
    SPDX-License-Identifier: Apache-2.0 */
 
 :root {
-  /* Neutrals carry a cool cast rather than being grey: it is what keeps a surface from
-     looking dirty next to the accent, and it is the one palette decision the whole screen
-     rests on. Every step is dark enough on its own background to be read, --text-faint
-     included, which is why it stops at a mid slate and not a light one. */
-  --bg: #f8fafc;
+  /* The palette is the mascot's: its navy, #18324a, is the ink, and its cyan, #35b5e5, is
+     the accent. The neutrals lean towards that navy rather than being grey, and the page
+     behind the surfaces is a touch warm, so that white panels read as paper on a desk and
+     not as a framework's stock slate. Every step is dark enough on its own background to be
+     read, --text-faint included. */
+  --bg: #f6f6f2;
   --surface: #ffffff;
-  --surface-sunken: #f1f5f9;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --text: #0f172a;
-  --text-soft: #475569;
-  --text-faint: #5f6d82;
+  --surface-sunken: #eff2f2;
+  --border: #e1e5e6;
+  --border-strong: #c6ced3;
+  --text: #18324a;
+  --text-soft: #46596b;
+  --text-faint: #5b6c7c;
 
-  /* One accent, and one step darker for the pressed and hovered states. Tinting by hand
-     rather than with a filter keeps the hover legible in both themes, where brightness
-     moves in opposite directions. */
-  --accent: #2563eb;
-  --accent-strong: #1d4ed8;
-  --accent-soft: #eff6ff;
+  /* The mascot's cyan is too light to carry text on white, so the light theme takes it a
+     few steps darker, and the dark theme uses it as drawn. One step further for the pressed
+     and hovered states, tinted by hand rather than with a filter so that the hover stays
+     legible in both themes, where brightness moves in opposite directions. */
+  --accent: #0b7cab;
+  --accent-strong: #08648b;
+  --accent-soft: #e8f5fa;
   --accent-text: #ffffff;
 
   --risk: #c81e1e;
@@ -32,9 +34,9 @@
 
   /* Depth comes from a hairline border first and a shadow second. The large one is for
      what floats above the page and nothing else. */
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 16px 40px -12px rgba(15, 23, 42, 0.22), 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 1px 2px rgba(24, 50, 74, 0.05);
+  --shadow: 0 1px 3px rgba(24, 50, 74, 0.07), 0 1px 2px rgba(24, 50, 74, 0.04);
+  --shadow-lg: 0 16px 40px -12px rgba(24, 50, 74, 0.25), 0 2px 8px rgba(24, 50, 74, 0.06);
 
   color-scheme: light;
 
@@ -47,6 +49,22 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-10: 40px;
+
+  /* Two faces, both from the system, since nothing may be fetched from outside the binary.
+     The tool is about paths, methods and identifiers, all set in monospace; setting the
+     titles and the small labels of the chrome in the same face is what makes it read as an
+     instrument rather than as a dashboard. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* A type scale with contrast: labels that are small, text that is read, titles that are
+     plainly larger, so that the hierarchy does not rest on colour and spacing alone. */
+  --text-label: 10.5px;
+  --text-sm: 12.5px;
+  --text-base: 14px;
+  --text-title: 16px;
+  --text-heading: 19px;
+  --text-screen: 26px;
 
   /* The header sticks, so anything else that sticks has to know how tall it is. */
   --topbar: 64px;
@@ -69,18 +87,18 @@
    once, because a spacing step does not change with the light. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #080c14;
-    --surface: #0f1522;
-    --surface-sunken: #161d2c;
-    --border: #1e2637;
-    --border-strong: #2c3648;
-    --text: #e8edf5;
-    --text-soft: #a3b0c2;
-    --text-faint: #7b8798;
-    --accent: #60a5fa;
-    --accent-strong: #93c5fd;
-    --accent-soft: #12203a;
-    --accent-text: #06111f;
+    --bg: #08121c;
+    --surface: #0e1b28;
+    --surface-sunken: #142333;
+    --border: #1c2e40;
+    --border-strong: #2a4157;
+    --text: #e6eef4;
+    --text-soft: #a4b5c3;
+    --text-faint: #7f92a3;
+    --accent: #35b5e5;
+    --accent-strong: #72cdef;
+    --accent-soft: #0d2a3b;
+    --accent-text: #04141e;
     --risk: #f87171;
     --risk-soft: #2a1414;
     --caution: #fbbf24;
@@ -95,18 +113,18 @@
 }
 
 :root[data-theme="dark"] {
-    --bg: #080c14;
-    --surface: #0f1522;
-    --surface-sunken: #161d2c;
-    --border: #1e2637;
-    --border-strong: #2c3648;
-    --text: #e8edf5;
-    --text-soft: #a3b0c2;
-    --text-faint: #7b8798;
-    --accent: #60a5fa;
-    --accent-strong: #93c5fd;
-    --accent-soft: #12203a;
-    --accent-text: #06111f;
+    --bg: #08121c;
+    --surface: #0e1b28;
+    --surface-sunken: #142333;
+    --border: #1c2e40;
+    --border-strong: #2a4157;
+    --text: #e6eef4;
+    --text-soft: #a4b5c3;
+    --text-faint: #7f92a3;
+    --accent: #35b5e5;
+    --accent-strong: #72cdef;
+    --accent-soft: #0d2a3b;
+    --accent-text: #04141e;
     --risk: #f87171;
     --risk-soft: #2a1414;
     --caution: #fbbf24;
@@ -131,12 +149,12 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font: var(--text-base)/1.55 var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 .mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 0.92em;
 }
 
@@ -162,7 +180,7 @@ body {
    dark and stroked white, so one of the two always reads against the surface behind it. */
 .mark { height: 35px; width: auto; display: block; }
 
-.name { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+.name { font-family: var(--font-mono); font-size: 17px; font-weight: 600; letter-spacing: -0.03em; }
 
 .tools { display: flex; align-items: center; gap: var(--space-2); }
 
@@ -301,7 +319,7 @@ main {
 }
 
 .state p { margin: 0 0 4px; }
-.state .headline { color: var(--text); font-weight: 550; }
+.state .headline { color: var(--text); font-weight: 600; }
 .state.failure { border-left: 3px solid var(--risk); }
 .state.failure .headline { color: var(--risk); }
 
@@ -426,8 +444,11 @@ main {
   align-items: center;
   gap: var(--space-3);
   margin: var(--space-5) 0 0;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--text-faint);
   white-space: nowrap;
 }
@@ -557,7 +578,7 @@ main {
   transform: translateY(-50%);
   min-width: 18px;
   padding: 0 5px;
-  font: 500 11.5px/18px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font: 500 11.5px/18px var(--font-mono);
   text-align: center;
   color: var(--text-faint);
   border: 1px solid var(--border-strong);
@@ -600,6 +621,18 @@ main {
   font-size: 12.5px;
   font-weight: 500;
   color: var(--text-soft);
+}
+
+/* The filters share the monospace face and the small capitals of the labels on a key, so that
+   everything that names a field of the inventory reads alike. Only the label: the wrapper of a
+   search box or a select is a span too, and the value inside stays in the text face. A label
+   in a dialog is a sentence, and keeps its case. */
+.toolbar .field > span:first-child {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
 }
 
 /* Inactive keys are dead weight rather than exposure, so the offer to clear them sits
@@ -777,7 +810,7 @@ main {
 
 .head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
 
-.head h2 { margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
+.head h2 { margin: 0; font-size: var(--text-title); font-weight: 600; letter-spacing: -0.01em; }
 
 .pill {
   display: inline-block;
@@ -892,9 +925,10 @@ main {
 .meta > div { display: flex; flex-direction: column; gap: 2px; }
 
 .meta dt {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--text-faint);
 }
 
@@ -913,20 +947,21 @@ main {
   align-items: baseline;
   gap: var(--space-3);
   margin-bottom: var(--space-2);
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--text-faint);
 }
 
-.rules-head button { text-transform: none; letter-spacing: normal; }
+.rules-head button { font-family: var(--font-sans); font-size: var(--text-sm); text-transform: none; letter-spacing: normal; }
 
 .rules ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
 
 .rules li { display: flex; align-items: baseline; gap: var(--space-2); }
 
 .rules code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 12.5px;
   color: var(--text);
   overflow-wrap: anywhere;
@@ -1082,7 +1117,7 @@ button.working .icon { animation: turn 900ms linear infinite; }
 }
 
 .menu button:hover { background: var(--surface-sunken); color: var(--text); }
-.menu button.chosen { color: var(--accent); font-weight: 550; }
+.menu button.chosen { color: var(--accent); font-weight: 600; }
 
 /* Actions */
 
@@ -1151,7 +1186,7 @@ button.quiet.muted:hover { background: var(--surface); color: var(--text-soft); 
 
 .dialog[open] { animation: rise var(--normal) var(--ease); }
 
-.dialog::backdrop { background: rgba(11, 14, 20, 0.55); }
+.dialog::backdrop { background: rgba(8, 18, 28, 0.55); }
 
 .dialog-body { padding: var(--space-6); }
 
@@ -1162,7 +1197,7 @@ html:has(.dialog[open]) { overflow: hidden; }
   from { opacity: 0; transform: translateY(6px) scale(0.985); }
 }
 
-.dialog h2 { margin: 0; font-size: 17px; font-weight: 620; }
+.dialog h2 { margin: 0; font-size: var(--text-heading); font-weight: 600; letter-spacing: -0.01em; }
 
 .subject {
   display: flex;
@@ -1171,7 +1206,7 @@ html:has(.dialog[open]) { overflow: hidden; }
   margin: var(--space-3) 0 0;
 }
 
-.subject-name { font-weight: 550; }
+.subject-name { font-weight: 600; }
 
 .warning {
   margin: var(--space-3) 0 var(--space-5);
@@ -1200,9 +1235,12 @@ html:has(.dialog[open]) { overflow: hidden; }
 .explorer-intro h1:focus { outline: none; }
 
 .explorer-intro h1 {
-  font-size: 1.15rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-screen);
   font-weight: 600;
-  margin: 0 0 var(--space-2);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin: 0 0 var(--space-3);
 }
 
 .explorer-intro p {
@@ -1318,7 +1356,7 @@ html:has(.dialog[open]) { overflow: hidden; }
 }
 
 .route-path code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.86rem;
   color: var(--text);
   word-break: break-all;
@@ -1363,7 +1401,7 @@ html:has(.dialog[open]) { overflow: hidden; }
 .operation:hover { background: var(--surface-sunken); }
 
 .purpose {
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   color: var(--text-soft);
 }
 
@@ -1392,14 +1430,14 @@ html:has(.dialog[open]) { overflow: hidden; }
    filled form free to mean something. */
 .method {
   --verb: var(--text-faint);
-  --verb-ink: #0f172a;
+  --verb-ink: #18324a;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 62px;
   padding: 2px 8px;
   flex: none;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1467,7 +1505,7 @@ html:has(.dialog[open]) { overflow: hidden; }
 }
 
 .selection-head h2 {
-  font-size: 0.95rem;
+  font-size: var(--text-title);
   font-weight: 600;
   margin: 0;
 }
@@ -1498,7 +1536,7 @@ html:has(.dialog[open]) { overflow: hidden; }
 }
 
 .rule .path {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.78rem;
 }
 
@@ -1589,7 +1627,7 @@ html:has(.dialog[open]) { overflow: hidden; }
   align-items: center;
   gap: var(--space-3);
   margin: 0 0 var(--space-3);
-  font-size: 0.95rem;
+  font-size: var(--text-title);
   font-weight: 600;
 }
 
@@ -1748,8 +1786,9 @@ button:disabled {
 }
 
 .guide-kind {
-  font-size: 11px;
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
