@@ -8,6 +8,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-03
+
 ### Added
 
 - Add two shortcuts to the inventory: `/` to search, and Escape to clear the filters.
@@ -135,7 +137,8 @@ First public release.
 - Harden response headers.
 - Redact the application secret and the consumer key from every log record.
 
-[Unreleased]: https://github.com/kentrow/keymaker/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/kentrow/keymaker/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/kentrow/keymaker/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/kentrow/keymaker/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/kentrow/keymaker/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/kentrow/keymaker/compare/v0.2.0...v0.3.0
