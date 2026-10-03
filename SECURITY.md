@@ -68,7 +68,9 @@ The details, and how each point is implemented, are in
   process.
 - **Redacted logs.** The application secret and the consumer key are removed from every log
   record by the logging pipeline itself.
-- **Revocation guards.** The credential Keymaker authenticates with cannot be revoked. A single
+- **Revocation guards.** The ordinary revocation and the bulk revocation refuse the credential
+  Keymaker authenticates with, checked against the API at the moment of the call. It can only
+  be ended on purpose, through its own way out, "Revoke and leave", which names no key. A single
   revocation requires the identifier to be typed. The bulk revocation only touches expired and
   refused keys, selected by the server.
 - **Address guard.** The credential Keymaker authenticates with is only restricted to a list

@@ -8,6 +8,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Say in SECURITY.md that the key in use can be ended on purpose through "Revoke and leave", and only there.
+
 ## [0.5.0] - 2026-10-03
 
 ### Added
