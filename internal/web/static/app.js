@@ -60,6 +60,21 @@ const statusTone = status => {
   return 'inactive'
 }
 
+// How many routes each branch holds, read once per catalogue. A route belongs to every
+// branch its path starts with, which is what choosing that branch then lists.
+const countBranches = (branches, routes) => {
+  const known = new Set(branches)
+  const counts = {}
+  for (const route of routes) {
+    const segments = route.path.split('/')
+    for (let end = 2; end <= segments.length; end++) {
+      const prefix = segments.slice(0, end).join('/')
+      if (known.has(prefix)) counts[prefix] = (counts[prefix] || 0) + 1
+    }
+  }
+  return counts
+}
+
 const dictionaries = {
   en: {
     quickFilters: 'Quick filters',
@@ -341,6 +356,9 @@ const dictionaries = {
       return total === 1 ? '1 route' : `${total} routes`
     },
     routesEmpty: 'No route matches.',
+    branchesShown: n => `${n} branches of the API. Start from one, or search all of them.`,
+    branchRoutes: n => n === 1 ? '1 route' : `${n} routes`,
+    branchesBack: 'All branches',
     selectionTitle: 'Selected rules',
     selectionEmpty: 'Nothing selected. Choose an operation on a route to add it.',
     selectionCount: n => n === 1 ? '1 rule' : `${n} rules`,
@@ -666,6 +684,9 @@ const dictionaries = {
       return total === 1 ? '1 route' : `${total} routes`
     },
     routesEmpty: 'Aucune route ne correspond.',
+    branchesShown: n => `${n} branches de l’API. Partez de l’une d’elles, ou cherchez dans toutes.`,
+    branchRoutes: n => n === 1 ? '1 route' : `${n} routes`,
+    branchesBack: 'Toutes les branches',
     selectionTitle: 'Droits retenus',
     selectionEmpty: 'Rien de retenu. Choisissez une opération sur une route pour l’ajouter.',
     selectionCount: n => n <= 1 ? `${n} droit` : `${n} droits`,
@@ -794,6 +815,7 @@ document.addEventListener('alpine:init', () => {
     routeMethod: '',
     routeDeprecated: false,
     routeBudget: routeBatch,
+    branchCounts: {},
     selection: [],
     copyNotice: '',
     handoffUrl: '',
@@ -1898,6 +1920,7 @@ document.addEventListener('alpine:init', () => {
           branches: payload.branches || [],
           routes: payload.routes || []
         }
+        this.branchCounts = countBranches(this.catalogue.branches, this.catalogue.routes)
       } catch (failure) {
         this.catalogueError = this.labels.unreachable
       } finally {
@@ -1990,6 +2013,45 @@ document.addEventListener('alpine:init', () => {
     // and "/dedicated/cluster" being two of them while "/me/api" is part of one.
     get branchOptions () {
       return this.catalogue.branches
+    },
+
+    // The explorer opens on the branches rather than on four thousand routes in alphabetical
+    // order, which begin with /allDom: people think of their account as /me, /domain or
+    // /cloud. A search reaches every branch at once, so typing skips this step.
+    get branchLanding () {
+      return this.routeBranch === '' && this.routeSearch.trim() === ''
+    },
+
+    get routeListing () {
+      return !this.branchLanding
+    },
+
+    get routesNone () {
+      return this.routeListing && this.found.empty
+    },
+
+    get routesGrowing () {
+      return this.routeListing && this.found.more
+    },
+
+    // A branch the index names but no route sits under leads nowhere, so it is left out.
+    get branchEntries () {
+      return this.catalogue.branches.filter(branch => this.branchCounts[branch]).map(branch => ({
+        branch,
+        count: this.labels.branchRoutes(this.branchCounts[branch] || 0)
+      }))
+    },
+
+    get branchesLabel () {
+      return this.labels.branchesShown(this.branchEntries.length)
+    },
+
+    pickBranch () {
+      this.routeBranch = this.entry.branch
+    },
+
+    clearBranch () {
+      this.routeBranch = ''
     },
 
     get methodOptions () {

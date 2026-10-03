@@ -13,6 +13,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Add two shortcuts to the inventory: `/` to search, and Escape to clear the filters.
 - Add a control that unfolds the access rules of every key at once, for an audit pass.
 
+### Changed
+
+- Open the explorer on the branches of the API, each with its number of routes, rather than on four thousand routes in alphabetical order.
+
 ## [0.4.0] - 2026-10-03
 
 ### Added
