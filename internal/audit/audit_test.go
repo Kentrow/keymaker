@@ -421,3 +421,20 @@ func TestAKeyHoldingExactlyWhatIsNeededHasNoSurplus(t *testing.T) {
 		t.Errorf("surplus = %v, want none", got)
 	}
 }
+
+// A rule cut short of its wildcard, the way a link pasted without its last character ends, names
+// no route: on a real account it was refused everywhere. It is not reported as reaching what the
+// complete rule would.
+func TestARuleEndingInASlashReachesNothing(t *testing.T) {
+	cut := wellKept()
+	cut.Rules = []credential.AccessRule{{Method: "PUT", Path: "/me/api/credential/"}}
+	if got := codes(Inspect(cut, now)); slices.Contains(got, AccountControl) {
+		t.Errorf("findings = %v, want no %s for a rule that names no route", got, AccountControl)
+	}
+
+	whole := wellKept()
+	whole.Rules = []credential.AccessRule{{Method: "PUT", Path: "/me/api/credential/*"}}
+	if got := codes(Inspect(whole, now)); !slices.Contains(got, AccountControl) {
+		t.Errorf("findings = %v, want %s for the complete rule", got, AccountControl)
+	}
+}
