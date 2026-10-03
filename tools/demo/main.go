@@ -235,6 +235,9 @@ func newStore(now time.Time) *store {
 	cron := credential.Application{ID: 7115, Key: "demo0000000000a7", Name: "legacy-cron", Description: "nightly export"}
 	console := credential.Application{ID: 7190, Name: "API console", Description: "the web console of the API", External: true}
 	leftover := credential.Application{ID: 7116, Key: "demo0000000000b8", Name: "old-backup", Description: "left behind by a revoked key"}
+	// Deleted from the console: the API still lists its key as validated, and can no longer
+	// say what it was called.
+	deleted := credential.Application{ID: 7117, Deleted: true}
 
 	zone := []credential.AccessRule{
 		{Method: http.MethodGet, Path: "/domain/zone/*"},
@@ -283,6 +286,10 @@ func newStore(now time.Time) *store {
 				Rules:      []credential.AccessRule{{Method: http.MethodGet, Path: "/me/order"}},
 				AllowedIPs: ip("192.0.2.30/32"),
 				CreatedAt:  now.Add(-400 * day), ExpiresAt: now.Add(-40 * day), LastUsedAt: now.Add(-41 * day)},
+			// Still listed as validated, although its application was deleted and it opens nothing.
+			{ID: 118821500, Status: credential.StatusValidated, Application: deleted,
+				Rules:     []credential.AccessRule{{Method: http.MethodGet, Path: "/me/order"}},
+				CreatedAt: now.Add(-30 * day), ExpiresAt: now.Add(60 * day), LastUsedAt: now.Add(-3 * day)},
 			// Issued through an application the account does not own, with nothing to report.
 			{ID: 118821400, Status: credential.StatusValidated, Application: console,
 				Rules:      []credential.AccessRule{{Method: http.MethodGet, Path: "/me"}},

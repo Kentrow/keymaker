@@ -56,7 +56,10 @@ func TestTheDemoShowsEveryFinding(t *testing.T) {
 
 	var inventory struct {
 		Credentials []struct {
-			Status   string `json:"status"`
+			Status      string `json:"status"`
+			Application struct {
+				Deleted bool `json:"deleted"`
+			} `json:"application"`
 			Findings []struct {
 				Code string `json:"code"`
 			} `json:"findings"`
@@ -69,8 +72,9 @@ func TestTheDemoShowsEveryFinding(t *testing.T) {
 	get(t, handler, "/api/inventory", &inventory)
 
 	shown := map[string]bool{}
-	inactive := false
+	inactive, orphaned := false, false
 	for _, c := range inventory.Credentials {
+		orphaned = orphaned || c.Application.Deleted
 		for _, finding := range c.Findings {
 			shown[finding.Code] = true
 		}
@@ -83,6 +87,9 @@ func TestTheDemoShowsEveryFinding(t *testing.T) {
 	}
 	if !inactive {
 		t.Error("no inactive key in the demo, so the sweep that revokes them never shows")
+	}
+	if !orphaned {
+		t.Error("no key whose application was deleted in the demo, so how one reads never shows")
 	}
 	if inventory.Summary.Examined-inventory.Summary.Flagged < 1 {
 		t.Error("every key of the demo is flagged, so it never shows what a sound key looks like")

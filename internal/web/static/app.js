@@ -180,6 +180,9 @@ const dictionaries = {
     never: 'never',
     noExpiry: 'never',
     unnamedApplication: 'Unnamed application',
+    deletedApplication: 'Deleted application',
+    orphanedStatus: 'inoperative',
+    orphanedNote: 'The application of this key was deleted. OVHcloud still lists the key with its old status, but refuses every call made with it. Revoking it clears the inventory and cuts no access.',
     noDescriptionText: 'No description.',
     rulesCount: n => n === 1 ? '1 access rule' : `${n} access rules`,
     showAll: 'show all',
@@ -500,6 +503,9 @@ const dictionaries = {
     never: 'jamais',
     noExpiry: 'jamais',
     unnamedApplication: 'Application sans nom',
+    deletedApplication: 'Application supprimée',
+    orphanedStatus: 'inopérante',
+    orphanedNote: 'L’application de cette clé a été supprimée. OVHcloud liste encore la clé avec son ancien statut, mais refuse tout appel fait avec elle. La révoquer nettoie l’inventaire et ne coupe aucun accès.',
     noDescriptionText: 'Aucune description.',
     rulesCount: n => n <= 1 ? `${n} droit d’accès` : `${n} droits d’accès`,
     showAll: 'tout afficher',
@@ -1421,7 +1427,7 @@ document.addEventListener('alpine:init', () => {
       return this.inactiveKeys.map(item => ({
         key: item.id,
         reference: '#' + item.id,
-        title: item.application.name || this.labels.unnamedApplication,
+        title: this.applicationName(item),
         status: this.labels.statuses[item.status] || item.status,
         statusClass: `pill status ${statusTone(item.status)}`
       }))
@@ -1597,7 +1603,8 @@ document.addEventListener('alpine:init', () => {
             id: item.application.id,
             name: item.application.name,
             description: item.application.description,
-            external: Boolean(item.application.external)
+            external: Boolean(item.application.external),
+            deleted: Boolean(item.application.deleted)
           },
           createdAt: item.createdAt,
           expiresAt: item.expiresAt,
@@ -1615,7 +1622,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     reportCsv () {
-      const header = ['id', 'status', 'in_use', 'application_id', 'application', 'external', 'created', 'expires', 'last_used', 'allowed_ips', 'rules', 'findings']
+      const header = ['id', 'status', 'in_use', 'application_id', 'application', 'external', 'application_deleted', 'created', 'expires', 'last_used', 'allowed_ips', 'rules', 'findings']
       const rows = this.reportData().credentials.map(item => [
         item.id,
         item.status,
@@ -1623,6 +1630,7 @@ document.addEventListener('alpine:init', () => {
         item.application.id,
         item.application.name,
         item.application.external,
+        item.application.deleted,
         item.createdAt || '',
         item.expiresAt || '',
         item.lastUsedAt || '',
@@ -2273,7 +2281,7 @@ document.addEventListener('alpine:init', () => {
 
     get confirmingTitle () {
       const found = this.confirmingCredential
-      return found ? (found.application.name || this.labels.unnamedApplication) : ''
+      return found ? (this.applicationName(found)) : ''
     },
 
     get confirmingReference () {
@@ -2467,7 +2475,7 @@ document.addEventListener('alpine:init', () => {
     get applicationOptions () {
       const names = new Set()
       for (const item of this.credentials) {
-        names.add(item.application.name || this.labels.unnamedApplication)
+        names.add(this.applicationName(item))
       }
 
       const options = [{ value: '', label: this.labels.anyApplication }]
@@ -2500,8 +2508,14 @@ document.addEventListener('alpine:init', () => {
     // counts side by side is what made the old header read as more keys than the account
     // holds. An expired, refused or pending key is not audited, so it is in none of them:
     // counted as nothing flagged, a key that grants nothing was the reassuring figure.
+    // A key whose application was deleted reads as validated and opens nothing.
+    applicationName (item) {
+      if (item.application.name) return item.application.name
+      return item.application.deleted ? this.labels.deletedApplication : this.labels.unnamedApplication
+    },
+
     bandOf (item) {
-      if (item.status !== 'validated') return 'unexamined'
+      if (item.status !== 'validated' || item.application.deleted) return 'unexamined'
       if (item.findings.some(finding => finding.severity === 'risk')) return 'risk'
       return item.findings.length ? 'watch' : 'clean'
     },
@@ -2530,7 +2544,7 @@ document.addEventListener('alpine:init', () => {
     matches (item, needle) {
       if (this.status !== '' && item.status !== this.status) return false
 
-      const name = item.application.name || this.labels.unnamedApplication
+      const name = this.applicationName(item)
       if (this.application !== '' && name !== this.application) return false
 
       if (this.finding !== '' && !item.findings.some(finding => finding.code === this.finding)) return false
@@ -2555,7 +2569,8 @@ document.addEventListener('alpine:init', () => {
       const open = Boolean(this.expanded[item.id])
       const folded = this.view === 'list' ? 0 : collapsedRules
       const rules = open ? item.rules : item.rules.slice(0, folded)
-      const inert = item.status === 'expired' || item.status === 'refused'
+      const orphaned = Boolean(item.application.deleted)
+      const inert = item.status === 'expired' || item.status === 'refused' || orphaned
       const edit = item.editAddresses || { allowed: false, reason: 'inactive' }
 
       const classes = ['credential']
@@ -2566,14 +2581,17 @@ document.addEventListener('alpine:init', () => {
         id: item.id,
         self: item.self,
         external: Boolean(item.application.external),
-        title: item.application.name || this.labels.unnamedApplication,
+        title: this.applicationName(item),
         reference: '#' + item.id,
         // A missing description is already a finding on a usable key; the sentence stands in
         // only where the audit said nothing, on a key it does not examine.
-        description: item.application.description ||
-          (item.findings.some(finding => finding.code === 'no-description') ? '' : this.labels.noDescriptionText),
-        statusLabel: this.labels.statuses[item.status] || item.status,
-        statusClass: `pill status ${statusTone(item.status)}`,
+        description: orphaned
+          ? ''
+          : item.application.description ||
+            (item.findings.some(finding => finding.code === 'no-description') ? '' : this.labels.noDescriptionText),
+        orphaned,
+        statusLabel: orphaned ? this.labels.orphanedStatus : this.labels.statuses[item.status] || item.status,
+        statusClass: `pill status ${orphaned ? 'inactive' : statusTone(item.status)}`,
         cardClass: classes.join(' '),
         hasFindings: item.findings.length > 0,
         findings: item.findings.map(finding => ({

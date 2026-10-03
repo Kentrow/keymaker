@@ -88,6 +88,10 @@ type applicationResponse struct {
 	// External says the application is not the account's own, typically the OVHcloud API
 	// console, so the interface can say where a key came from rather than show it unnamed.
 	External bool `json:"external"`
+
+	// Deleted says the application no longer exists. The key under it is still listed with
+	// its old status but opens nothing, so the interface does not present it as live.
+	Deleted bool `json:"deleted"`
 }
 
 type ruleResponse struct {
@@ -263,6 +267,7 @@ func describe(c credential.Credential, current *credential.Credential, found []a
 			Name:        c.Application.Name,
 			Description: c.Application.Description,
 			External:    c.Application.External,
+			Deleted:     c.Application.Deleted,
 		},
 		Rules:      rules,
 		AllowedIPs: allowed,

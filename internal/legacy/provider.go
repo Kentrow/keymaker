@@ -362,6 +362,11 @@ func (p *Provider) resolveApplications(ctx context.Context, credentials []creden
 // gets a 404 there, and those tend to be the oldest keys with the widest rules. The credential
 // route answers for both, so it is the fallback; it costs one call per such application, since
 // the caller reads each application once.
+//
+// When both routes answer 404, the application was deleted. The credential route says so in
+// as many words, and the credential is still listed, with the status it had, although every
+// call made with it is refused. Any other failure leaves the application unread rather than
+// calling it deleted: a credential read as dead is one the reader may revoke.
 func (p *Provider) application(ctx context.Context, c credential.Credential) credential.Application {
 	found, err := p.client.Application(ctx, c.Application.ID)
 	if err == nil {
@@ -369,6 +374,9 @@ func (p *Provider) application(ctx context.Context, c credential.Credential) cre
 	}
 
 	viaCredential, fallback := p.client.CredentialApplication(ctx, c.ID)
+	if ovh.StatusCode(err) == http.StatusNotFound && ovh.StatusCode(fallback) == http.StatusNotFound {
+		return credential.Application{ID: c.Application.ID, Deleted: true}
+	}
 	if fallback != nil {
 		p.logger.WarnContext(ctx, "the application of a credential could not be read",
 			"credential", c.ID, "application", c.Application.ID, "error", errors.Join(err, fallback))

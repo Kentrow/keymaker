@@ -48,6 +48,11 @@ type Application struct {
 	// console: a credential was issued to the account through it, but the application
 	// belongs to someone else and cannot be read or managed from here.
 	External bool
+
+	// Deleted marks an application that no longer exists while a credential still points at
+	// it. Deleting an application stops its credentials, but the API keeps listing them with
+	// their status unchanged, validated included, until they expire: they open nothing.
+	Deleted bool
 }
 
 // Credential is an issued key as the inventory displays it.

@@ -32,8 +32,10 @@ d’application et une consumer key.
   autorisées, leurs dates de création, d’expiration et de dernier usage, et l’application à
   laquelle elles appartiennent, y compris les applications que le compte ne possède pas, comme
   la console API OVHcloud. La clé utilisée par Keymaker est signalée, et chaque droit qu’elle
-  porte au-delà de ce dont Keymaker a besoin est nommé. L’inventaire entier, avec ses constats,
-  se télécharge en rapport JSON ou CSV, qui ne contient aucune valeur de clé.
+  porte au-delà de ce dont Keymaker a besoin est nommé. Une clé dont l’application a été
+  supprimée, qu’OVHcloud continue de lister comme active, est montrée comme n’ouvrant plus rien.
+  L’inventaire entier, avec ses constats, se télécharge en rapport JSON ou CSV, qui ne contient
+  aucune valeur de clé.
 - **Audit** qui signale les clés qui atteignent tout le compte, peuvent en modifier les accès
   ou atteignent la facturation et les paiements, fonctionnent depuis n’importe quelle adresse,
   n’expirent jamais ou expirent dans moins d’une semaine, n’ont jamais servi, dorment depuis six

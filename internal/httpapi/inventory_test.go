@@ -265,3 +265,38 @@ func TestAManagementKeyWithExactlyTheNeededRulesIsNotFlagged(t *testing.T) {
 		}
 	}
 }
+
+// A key whose application was deleted is still listed as validated, but opens nothing. The
+// interface is told so, the summary does not count it among the keys the audit read, and
+// nothing but its revocation is offered.
+func TestAKeyWhoseApplicationWasDeletedIsReportedAsSuch(t *testing.T) {
+	provider := &fakeProvider{
+		current: credential.Credential{ID: 1, Status: credential.StatusValidated, Rules: ovh.UsableRules()},
+		credentials: []credential.Credential{
+			{ID: 1, Status: credential.StatusValidated, Rules: ovh.UsableRules(), Application: credential.Application{ID: 7, Name: "keymaker"}},
+			{ID: 2, Status: credential.StatusValidated, Application: credential.Application{ID: 476522, Deleted: true}},
+		},
+	}
+	payload := decodeInventory(t, newTestServer(t, provider))
+
+	if payload.Summary.Examined != 1 {
+		t.Errorf("examined = %d, want 1", payload.Summary.Examined)
+	}
+	for _, c := range payload.Credentials {
+		if c.ID != 2 {
+			continue
+		}
+		if !c.Application.Deleted {
+			t.Error("the application is not reported as deleted")
+		}
+		if len(c.Findings) != 0 {
+			t.Errorf("findings = %v, want none", c.Findings)
+		}
+		if !c.Revoke.Allowed {
+			t.Errorf("revocation = %+v, want it offered", c.Revoke)
+		}
+		if c.EditAddresses != (offerResponse{Reason: reasonInactive}) {
+			t.Errorf("address editor = %+v, want it left out as inactive", c.EditAddresses)
+		}
+	}
+}

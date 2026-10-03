@@ -31,8 +31,9 @@ a consumer key.
 - **Inventory** of every key on the account, with its access rules, allowed addresses,
   creation, expiry and last use, and the application it belongs to, including applications
   the account does not own, such as the OVHcloud API console. The key Keymaker itself uses is
-  marked, and any rule it holds beyond what Keymaker needs is named. The whole inventory, with
-  its findings, downloads as a JSON or CSV report that holds no key value.
+  marked, and any rule it holds beyond what Keymaker needs is named. A key whose application
+  was deleted, which OVHcloud keeps listing as active, is shown as opening nothing. The whole
+  inventory, with its findings, downloads as a JSON or CSV report that holds no key value.
 - **Audit** that flags keys reaching the whole account, able to change who can access it or
   reaching billing and payments, working from any address, never expiring or expiring within a
   week, never used, dormant for six months, created by OVHcloud support rather than by you,

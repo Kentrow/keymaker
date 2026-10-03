@@ -150,6 +150,28 @@ func TestOnlyUsableKeysAreExamined(t *testing.T) {
 	}
 }
 
+// The API keeps a key listed as validated after its application is deleted, but refuses every
+// call made with it. Read as live, it would be reported for its address and expiry while it can
+// do nothing, and counted among the keys nothing is wrong with.
+func TestAKeyWhoseApplicationWasDeletedIsNotExamined(t *testing.T) {
+	c := wellKept()
+	c.Application.Deleted = true
+	c.AllowedIPs = nil
+
+	if Examines(c) {
+		t.Error("a key whose application was deleted is examined")
+	}
+	if got := Inspect(c, now); len(got) != 0 {
+		t.Errorf("findings = %v, want none", codes(got))
+	}
+
+	twin := c
+	twin.ID = 2
+	if got := Twins([]credential.Credential{c, twin}); len(got) != 0 {
+		t.Errorf("twins = %v, want none", got)
+	}
+}
+
 // A key nobody validated opens nothing yet, and an inventory of keys is where anyone would
 // look for it. It is read rather than skipped, so that the account holder knows what sits
 // there waiting for one click.

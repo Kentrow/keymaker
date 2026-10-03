@@ -22,6 +22,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 
 - Flag a key allowed from `0.0.0.0/0` or `::/0` as accepting any address: those blocks restrict nothing.
+- Show a key whose application was deleted as inoperative, out of the audit, instead of as a live key: OVHcloud keeps listing it with its old status.
 
 ## [0.3.1] - 2026-09-30
 
