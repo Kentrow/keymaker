@@ -1670,6 +1670,28 @@ document.addEventListener('alpine:init', () => {
       this.band = ''
     },
 
+    // Two shortcuts, and only on the inventory: / to search and Escape to clear the filters,
+    // which is most of what anyone does on a screen they reopen every few weeks. A key typed
+    // into a field stays that field's, and Escape belongs to an open dialog or menu first.
+    shortcut (event) {
+      if (this.screen !== 'inventory' || this.retired !== null || this.languagesOpen) return
+      if (event.ctrlKey || event.metaKey || event.altKey || document.querySelector('dialog[open]')) return
+
+      const field = event.target.closest && event.target.closest('input, textarea, select, [contenteditable]')
+      if (event.key === '/' && !field) {
+        event.preventDefault()
+        this.$refs.search.focus()
+        return
+      }
+      if (event.key === 'Escape' && this.filtering && (!field || field === this.$refs.search)) {
+        this.clearFilters()
+      }
+    },
+
+    get searchHinted () {
+      return this.search === ''
+    },
+
     // A screen change is a new page to the reader. It starts at the top, where the warning of a
     // replacement sits, rather than at the height the previous screen was scrolled to, and the
     // title of the new screen takes the focus so that a keyboard or a screen reader lands where
