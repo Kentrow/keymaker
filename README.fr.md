@@ -23,6 +23,18 @@
 > par OVHcloud. OVHcloud est une marque de son propriétaire, citée ici uniquement pour
 > identifier l’API avec laquelle l’outil fonctionne.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/inventory-fr-dark.png">
+    <img src="docs/images/inventory-fr-light.png"
+         alt="L’inventaire : le compte réparti par niveau, les filtres, les premières clés.">
+  </picture>
+</p>
+
+<p align="center">
+  L’inventaire, capturé avec <code>make demo</code> : chaque clé, nom et adresse y est inventé.
+</p>
+
 ## Fonctionnalités
 
 Keymaker gère les clés d’API OVHcloud classiques : une clé d’application, un secret

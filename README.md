@@ -23,6 +23,18 @@
 > OVHcloud. OVHcloud is a trademark of its owner, used here only to identify the API this
 > tool works with.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/inventory-en-dark.png">
+    <img src="docs/images/inventory-en-light.png"
+         alt="The inventory: the account split by band, the quick filters, the first keys.">
+  </picture>
+</p>
+
+<p align="center">
+  The inventory, taken with <code>make demo</code>: every key, name and address in it is invented.
+</p>
+
 ## Features
 
 Keymaker works with classic OVHcloud API keys: an application key, an application secret and
