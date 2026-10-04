@@ -180,7 +180,7 @@ docker run --rm \
   --read-only \
   --cap-drop=ALL \
   --security-opt no-new-privileges \
-  ghcr.io/kentrow/keymaker:0.5.1
+  ghcr.io/kentrow/keymaker:1
 ```
 
 Le processus affiche une adresse, jeton compris. Ouvrez-la : le jeton passe dans un cookie de
@@ -189,13 +189,17 @@ session et disparaît de la barre d’adresse. Arrêter le processus met fin à 
 `--user` exécute le conteneur sous votre identité, pour qu’il puisse lire un `ovh.conf` que vous
 seul pouvez lire. Sinon, l’image s’exécute sous son propre utilisateur non privilégié.
 
+Le tag `1` suit chaque version 1.x, que la [promesse de compatibilité](#compatibilité) rend
+sûres à prendre. Pour rester sur une version, nommez-la plutôt, par exemple
+`ghcr.io/kentrow/keymaker:1.0.0`.
+
 ### Ou avec Docker Compose
 
 ```yaml
 # compose.yaml
 services:
   keymaker:
-    image: ghcr.io/kentrow/keymaker:0.5.1
+    image: ghcr.io/kentrow/keymaker:1
     user: "${KEYMAKER_UID:?run export KEYMAKER_UID=$(id -u)}:${KEYMAKER_GID:?run export KEYMAKER_GID=$(id -g)}"
     ports:
       - "127.0.0.1:8080:8080"
@@ -219,7 +223,7 @@ Chaque image publiée porte une provenance de build et un SBOM, signés et attes
 Avec la [CLI GitHub](https://cli.github.com/) :
 
 ```bash
-gh attestation verify oci://ghcr.io/kentrow/keymaker:0.5.1 --repo kentrow/keymaker
+gh attestation verify oci://ghcr.io/kentrow/keymaker:1 --repo kentrow/keymaker
 ```
 
 Une vérification réussie prouve que l’image a été construite par le workflow de release de ce

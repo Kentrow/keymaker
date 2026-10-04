@@ -171,7 +171,7 @@ docker run --rm \
   --read-only \
   --cap-drop=ALL \
   --security-opt no-new-privileges \
-  ghcr.io/kentrow/keymaker:0.5.1
+  ghcr.io/kentrow/keymaker:1
 ```
 
 The process prints one address, token included. Open it: the token moves into a session cookie
@@ -180,13 +180,17 @@ and disappears from the address bar. Stopping the process ends the session.
 `--user` runs the container as you, so it can read an `ovh.conf` that only you can read. The
 image otherwise runs as its own unprivileged user.
 
+The tag `1` follows every 1.x release, which the [compatibility promise](#compatibility) keeps
+safe to take. To stay on one release, name it instead, for example
+`ghcr.io/kentrow/keymaker:1.0.0`.
+
 ### Or with Docker Compose
 
 ```yaml
 # compose.yaml
 services:
   keymaker:
-    image: ghcr.io/kentrow/keymaker:0.5.1
+    image: ghcr.io/kentrow/keymaker:1
     user: "${KEYMAKER_UID:?run export KEYMAKER_UID=$(id -u)}:${KEYMAKER_GID:?run export KEYMAKER_GID=$(id -g)}"
     ports:
       - "127.0.0.1:8080:8080"
@@ -210,7 +214,7 @@ Every release image carries a build provenance and an SBOM, signed and attested 
 With the [GitHub CLI](https://cli.github.com/):
 
 ```bash
-gh attestation verify oci://ghcr.io/kentrow/keymaker:0.5.1 --repo kentrow/keymaker
+gh attestation verify oci://ghcr.io/kentrow/keymaker:1 --repo kentrow/keymaker
 ```
 
 A successful check proves that the image was built by the release workflow of this repository,
