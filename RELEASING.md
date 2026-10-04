@@ -12,8 +12,9 @@ Releases are cut by the maintainer. The steps below assume the `gh` CLI is logge
 
 - **Patch** (`0.3.1`): fixes only, security fixes included.
 - **Minor** (`0.4.0`): anything a user can see that is not a fix.
-- Before 1.0 no major tag is published, so `0` never moves under anyone. The image gets
-  `X.Y.Z`, `X.Y` and `latest`.
+- **Major** (`2.0.0`): anything that breaks what the Compatibility section of the README lists.
+- The image gets `X.Y.Z`, `X.Y`, `X` and `latest`. Releases before 1.0 published no major tag,
+  so `0` never moved under anyone.
 
 ## 1. Prepare the release branch
 
@@ -31,11 +32,11 @@ Then, in `CHANGELOG.md`:
 - at the bottom, point `[Unreleased]` at `compare/vX.Y.Z...HEAD` and add
   `[X.Y.Z]: https://github.com/kentrow/keymaker/compare/vPREVIOUS...vX.Y.Z`.
 
-And in both `README.md` and `README.fr.md`, replace the previous image tag in the `docker run`
-example and in the Compose file:
+The READMEs point at the major tag, `ghcr.io/kentrow/keymaker:1`, and do not change with a
+release; only a new major version updates them:
 
 ```bash
-grep -n "keymaker:[0-9]" README.md README.fr.md   # every line on the new version
+grep -n "keymaker:[0-9]" README.md README.fr.md   # every line on the major of this release
 ```
 
 Then refresh the route catalogues embedded in the binary, one per region. They are what an
@@ -93,7 +94,7 @@ git add -A
 git commit -m "chore: release X.Y.Z"
 git push -u origin chore/release-X.Y.Z
 gh pr create --base main --title "chore: release X.Y.Z" \
-  --body "Release notes for X.Y.Z and the image tag in both READMEs."
+  --body "Release notes for X.Y.Z."
 gh pr checks --watch
 gh pr merge --squash --delete-branch
 ```
@@ -121,7 +122,8 @@ gh attestation verify oci://ghcr.io/kentrow/keymaker:X.Y.Z --repo kentrow/keymak
 ```
 
 `--version` names the release and the commit of the tag. The image index lists both platforms,
-each with an attestation manifest, and `X.Y.Z`, `X.Y` and `latest` share one digest.
+each with an attestation manifest, and `X.Y.Z`, `X.Y`, `X` and `latest` share one digest. The
+READMEs point at `X`, so that tag is the one a reader actually pulls.
 
 ## 8. After the release
 

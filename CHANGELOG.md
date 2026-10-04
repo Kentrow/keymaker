@@ -8,6 +8,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-04
+
+The first stable release. From here on, every 1.x release keeps what the Compatibility section of the README lists as it is, and the image gains the major tag `1`, which follows them.
+
 ### Added
 
 - State in both READMEs what every 1.x release keeps stable, and how to check that an image was built by this repository.
@@ -170,7 +174,8 @@ First public release.
 - Harden response headers.
 - Redact the application secret and the consumer key from every log record.
 
-[Unreleased]: https://github.com/kentrow/keymaker/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/kentrow/keymaker/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/kentrow/keymaker/compare/v0.5.1...v1.0.0
 [0.5.1]: https://github.com/kentrow/keymaker/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/kentrow/keymaker/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/kentrow/keymaker/compare/v0.3.1...v0.4.0
