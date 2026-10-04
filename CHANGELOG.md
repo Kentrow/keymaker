@@ -8,6 +8,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Add a `keymaker healthcheck` command, and declare it as the `HEALTHCHECK` of the image, so that Docker and Compose report the container as healthy without a shell or a client in it.
+
 ### Changed
 
 - Draw the inventory forty keys at a time as it is scrolled: with five hundred keys, a change of filter or view took most of a second and now takes a tenth of one.

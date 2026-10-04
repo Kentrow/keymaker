@@ -45,6 +45,9 @@ ENV KEYMAKER_ADDR=0.0.0.0:8080
 EXPOSE 8080
 USER nonroot:nonroot
 
-# No HEALTHCHECK instruction: the image carries no shell and no HTTP client to run one with.
-# GET /healthz is served for orchestrators and probes that bring their own.
+# The image carries no shell and no HTTP client, so the binary checks itself: the healthcheck
+# command asks GET /healthz on the loopback and exits 0 or 1. Orchestrators that bring their
+# own probe can still call /healthz directly.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD ["/keymaker", "healthcheck"]
+
 ENTRYPOINT ["/keymaker"]

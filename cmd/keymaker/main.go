@@ -70,6 +70,12 @@ func versionLine() string {
 }
 
 func run(args []string, stdout io.Writer) error {
+	// Checked before anything is loaded: the health check runs beside a server that already
+	// holds the configuration, and needs none of it.
+	if len(args) > 0 && args[0] == "healthcheck" {
+		return healthcheck(environment("KEYMAKER_ADDR", defaultAddr))
+	}
+
 	flags := flag.NewFlagSet("keymaker", flag.ContinueOnError)
 	showVersion := flags.Bool("version", false, "print the version and exit")
 	if err := flags.Parse(args); err != nil {
