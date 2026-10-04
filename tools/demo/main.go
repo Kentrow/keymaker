@@ -9,6 +9,7 @@
 // API. Revocations and deletions apply to its memory only and are forgotten on restart.
 //
 //	go run ./tools/demo
+//	go run ./tools/demo -keys 500    # and a large account on top of them
 //
 // It is not part of the binary nor of the image: the Docker build context only lets cmd/ and
 // internal/ in.
@@ -37,6 +38,7 @@ import (
 
 func main() {
 	addr := flag.String("addr", "127.0.0.1:8081", "address to listen on")
+	keys := flag.Int("keys", 0, "invented keys to add, to see the interface at the size of a large account")
 	flag.Parse()
 
 	token, err := httpapi.NewToken()
@@ -49,7 +51,9 @@ func main() {
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	handler, err := newHandler(newStore(time.Now()), token, csrf, logger)
+	store := newStore(time.Now())
+	store.pad(*keys, time.Now())
+	handler, err := newHandler(store, token, csrf, logger)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -297,5 +301,57 @@ func newStore(now time.Time) *store {
 				CreatedAt:  now.Add(-20 * day), ExpiresAt: now.Add(60 * day), LastUsedAt: now.Add(-5 * day)},
 		},
 		applications: []credential.Application{demo, dns, iam, ticket, draft, backup, cron, leftover},
+	}
+}
+
+// pad adds n ordinary keys, a dozen to an application, so that the interface can be looked at
+// with as many keys as a large account holds. Their findings are spread by their position, so
+// that every band and most filters hold some of them, and every address comes from the ranges
+// reserved for documentation.
+func (s *store) pad(n int, now time.Time) {
+	day := 24 * time.Hour
+	pool := [][]credential.AccessRule{
+		{{Method: http.MethodGet, Path: "/domain/zone/*"}},
+		{{Method: http.MethodGet, Path: "/dedicated/server/*"}, {Method: http.MethodPost, Path: "/dedicated/server/*/reboot"}},
+		{{Method: http.MethodGet, Path: "/cloud/project/*"}},
+		{{Method: http.MethodGet, Path: "/me/bill"}},
+		{{Method: http.MethodGet, Path: "/*"}},
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range n {
+		group := int64(i / 12)
+		application := credential.Application{
+			ID:          8000 + group,
+			Key:         fmt.Sprintf("demo%012x", 0xc0000+group),
+			Name:        fmt.Sprintf("service-%03d", group),
+			Description: "an invented service",
+		}
+		if i%12 == 0 {
+			s.applications = append(s.applications, application)
+		}
+
+		c := credential.Credential{
+			ID:          int64(119000000 + i),
+			Status:      credential.StatusValidated,
+			Application: application,
+			Rules:       pool[i%len(pool)],
+			AllowedIPs:  []netip.Prefix{netip.PrefixFrom(netip.AddrFrom4([4]byte{198, 51, 100, byte(1 + i%250)}), 32)},
+			CreatedAt:   now.Add(-time.Duration(30+i%300) * day),
+			ExpiresAt:   now.Add(time.Duration(60+i%200) * day),
+			LastUsedAt:  now.Add(-time.Duration(i%40) * day),
+		}
+		switch {
+		case i%17 == 0:
+			c.Status, c.ExpiresAt = credential.StatusExpired, now.Add(-day)
+		case i%13 == 0:
+			c.LastUsedAt = now.Add(-200 * day)
+		case i%11 == 0:
+			c.ExpiresAt = time.Time{}
+		case i%7 == 0:
+			c.AllowedIPs = nil
+		}
+		s.credentials = append(s.credentials, c)
 	}
 }

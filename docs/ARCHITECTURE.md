@@ -125,6 +125,11 @@ A signed read that fails before any answer was received, a dropped connection in
 tried once more after half a second. An answer is final, a refusal included, and a write is
 never repeated, since it may have reached the API even when its answer was lost.
 
+The one answer that is not final is `429 Too Many Requests`: the API did not carry the call
+out. A transport under the SDK waits as long as `Retry-After` asks, a second when it names no
+delay and never more than ten, and the call is then sent again, signed anew, up to four times
+in all. Writes are sent again too, since a call refused for its rate did nothing.
+
 | Method | Route | Used for |
 | --- | --- | --- |
 | `GET` | `/auth/currentCredential` | Identifying the credential Keymaker authenticates with |
