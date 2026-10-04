@@ -56,7 +56,12 @@ func (p pacing) delay(header string, now time.Time) time.Duration {
 	wait := p.fallback
 	header = strings.TrimSpace(header)
 	if seconds, err := strconv.Atoi(header); err == nil && seconds >= 0 {
-		wait = time.Duration(seconds) * time.Second
+		// Compared in seconds first: a delay of billions of seconds would overflow a
+		// Duration and come out negative, which would mean no wait at all.
+		wait = p.ceiling
+		if seconds < int(p.ceiling/time.Second) {
+			wait = time.Duration(seconds) * time.Second
+		}
 	} else if at, err := http.ParseTime(header); err == nil {
 		wait = at.Sub(now)
 	}
