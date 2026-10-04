@@ -231,7 +231,9 @@ is given: it ignores `~/.ovh.conf`, `/etc/ovh.conf` and the `OVH_*` environment 
 ### Health check
 
 `GET /healthz` answers `ok` without the access token, for orchestrators and probes. The image
-has no shell, so it declares no `HEALTHCHECK` of its own.
+declares a `HEALTHCHECK` that runs `keymaker healthcheck`: the binary asks that route on the
+loopback and exits 0 or 1, since the image has no shell and no HTTP client. `docker ps` and
+Compose show the container as healthy without any further setting.
 
 ## Building from source
 

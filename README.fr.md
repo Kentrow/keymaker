@@ -240,8 +240,10 @@ d’environnement `OVH_*`.
 
 ### Contrôle de santé
 
-`GET /healthz` répond `ok` sans jeton d’accès, pour les orchestrateurs et les sondes. L’image ne
-contient pas de shell et ne déclare donc pas de `HEALTHCHECK`.
+`GET /healthz` répond `ok` sans jeton d’accès, pour les orchestrateurs et les sondes. L’image
+déclare un `HEALTHCHECK` qui lance `keymaker healthcheck` : le binaire interroge cette route en
+local et sort avec le code 0 ou 1, puisque l’image ne contient ni shell ni client HTTP.
+`docker ps` et Compose affichent l’état du conteneur sans autre réglage.
 
 ## Compiler depuis les sources
 

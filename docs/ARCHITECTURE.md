@@ -98,7 +98,7 @@ Every request goes through the same chain of handlers, outermost first:
 
 | Route | Purpose |
 | --- | --- |
-| `GET /healthz` | Fixed `ok` body for probes. Discloses no version, configuration or state. |
+| `GET /healthz` | Fixed `ok` body for probes. Discloses no version, configuration or state. The image's `HEALTHCHECK` asks it through `keymaker healthcheck`, which reads no configuration and dials the loopback. |
 | `GET /api/session` | Page token, endpoint, version, whether the address lookup is enabled, and the link that issues a management key. |
 | `GET /api/inventory` | Every credential with its application, findings and revocation offer, plus summary counts. |
 | `GET /api/applications` | Every application of the account with how many credentials point at it, so the interface can show those holding none. |
@@ -380,6 +380,9 @@ session serves rather than from a copy in the interface.
   credential in use, with a 5-second timeout, a 64-byte answer limit and a strict address
   parse. `KEYMAKER_IP_LOOKUP=off` removes the ability. The destination is a constant, not a
   setting.
+
+The `keymaker healthcheck` command, which the image runs as its `HEALTHCHECK`, makes one more
+call, to `/healthz` on the loopback of the address it listens on. It never leaves the container.
 
 ### What Keymaker never does
 
