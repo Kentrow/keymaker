@@ -747,6 +747,10 @@ const collapsedRules = 3
 // reader reaches the end of it rather than all at once.
 const routeBatch = 80
 
+// The same for the keys of the inventory. A card weighs far more than a route row: with five
+// hundred keys, drawing them all took most of a second at every change of filter.
+const keyBatch = 40
+
 // How far below the fold the end of the list is treated as reached, so the next rows are
 // there before the reader arrives at the gap.
 const lookahead = 600
@@ -822,6 +826,7 @@ document.addEventListener('alpine:init', () => {
     routeMethod: '',
     routeDeprecated: false,
     routeBudget: routeBatch,
+    keyBudget: keyBatch,
     selection: [],
     copyNotice: '',
     handoffUrl: '',
@@ -837,6 +842,10 @@ document.addEventListener('alpine:init', () => {
       this.requestSession()
       this.load()
       this.observeRoutes()
+      this.observeKeys()
+      for (const choice of ['search', 'status', 'application', 'finding', 'band', 'sort', 'view']) {
+        this.$watch(choice, () => this.resetKeys())
+      }
       for (const filter of ['routeSearch', 'routeBranch', 'routeMethod', 'routeDeprecated']) {
         this.$watch(filter, () => this.resetRoutes())
       }
@@ -987,7 +996,7 @@ document.addEventListener('alpine:init', () => {
 
     get rulesFoldable () {
       const folded = this.view === 'list' ? 0 : collapsedRules
-      return this.visible.some(item => item.rules.length > folded)
+      return this.matched.some(item => item.rules.length > folded)
     },
 
     get allRulesLabel () {
@@ -2154,6 +2163,32 @@ document.addEventListener('alpine:init', () => {
       })
     },
 
+    // A new filter, sort or view is a new list, read from its top. A refresh is not: the reader
+    // keeps the keys already drawn and the place they were reading.
+    resetKeys () {
+      this.keyBudget = keyBatch
+    },
+
+    growKeys () {
+      if (!this.keysGrowing) return
+      this.keyBudget += keyBatch
+      requestAnimationFrame(() => {
+        const end = document.getElementById('key-end')
+        if (!end) return
+        if (end.getBoundingClientRect().top < window.innerHeight + lookahead) this.growKeys()
+      })
+    },
+
+    observeKeys () {
+      const end = document.getElementById('key-end')
+      if (!end || !window.IntersectionObserver) return
+
+      const observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) this.growKeys()
+      }, { rootMargin: `${lookahead}px` })
+      observer.observe(end)
+    },
+
     // Growing on reaching the end of the list rather than on a button: the reader is
     // scrolling, and a button would be one more thing to notice before carrying on.
     observeRoutes () {
@@ -2495,15 +2530,15 @@ document.addEventListener('alpine:init', () => {
     },
 
     get hasRows () {
-      return this.ready && this.visible.length > 0
+      return this.ready && this.matched.length > 0
     },
 
     get empty () {
-      return this.ready && this.credentials.length > 0 && this.visible.length === 0
+      return this.ready && this.credentials.length > 0 && this.matched.length === 0
     },
 
     get countLabel () {
-      return this.labels.shown(this.visible.length, this.credentials.length)
+      return this.labels.shown(this.matched.length, this.credentials.length)
     },
 
     // Compact, pressable, and scannable in one pass: a label and its count. The sentence
@@ -2685,7 +2720,9 @@ document.addEventListener('alpine:init', () => {
       ]
     },
 
-    get visible () {
+    // Every key the filters keep, in order. The counts and the controls read this; the cards
+    // drawn are the first of them only.
+    get matched () {
       const needle = this.search.trim().toLowerCase()
       const matched = this.credentials.filter(item => this.matches(item, needle))
 
@@ -2694,7 +2731,15 @@ document.addEventListener('alpine:init', () => {
       } else {
         matched.sort((a, b) => this.used(b) - this.used(a))
       }
-      return matched.map(item => this.present(item))
+      return matched
+    },
+
+    get visible () {
+      return this.matched.slice(0, this.keyBudget).map(item => this.present(item))
+    },
+
+    get keysGrowing () {
+      return this.hasRows && this.keyBudget < this.matched.length
     },
 
     // The three bands partition the usable keys: each is in exactly one. Showing overlapping
