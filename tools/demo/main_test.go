@@ -148,3 +148,26 @@ func TestTheDemoKeepsTheGuardsOfTheRealProvider(t *testing.T) {
 		t.Errorf("the retired key is still listed: %v", err)
 	}
 }
+
+// A large account is a few hundred more keys of the same kind, which the server lists and the
+// audit reads like the others.
+func TestTheDemoGrowsToALargeAccount(t *testing.T) {
+	store := newStore(time.Now())
+	before := len(store.credentials)
+	store.pad(500, time.Now())
+
+	handler, err := newHandler(store, "token", "csrf", slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var inventory struct {
+		Credentials []struct {
+			ID int64 `json:"id"`
+		} `json:"credentials"`
+	}
+	get(t, handler, "/api/inventory", &inventory)
+
+	if got := len(inventory.Credentials); got != before+500 {
+		t.Errorf("credentials = %d, want %d", got, before+500)
+	}
+}

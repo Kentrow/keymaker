@@ -61,11 +61,18 @@ func NewAPIClient(account config.Account, httpClient *http.Client) (*APIClient, 
 		return nil, errors.New("management credential is missing an application key, an application secret or a consumer key")
 	}
 
+	paced := *httpClient
+	next := httpClient.Transport
+	if next == nil {
+		next = http.DefaultTransport
+	}
+	paced.Transport = pacing{next: next, fallback: rateLimitWait, ceiling: rateLimitCeiling}
+
 	client := &sdk.Client{
 		AppKey:      account.Management.ApplicationKey,
 		AppSecret:   account.Management.ApplicationSecret,
 		ConsumerKey: account.Management.ConsumerKey,
-		Client:      httpClient,
+		Client:      &paced,
 		Timeout:     requestTimeout,
 		UserAgent:   userAgent,
 	}
@@ -105,7 +112,8 @@ func StatusCode(err error) int {
 // is final, and only reads are repeated: a write may have reached the API even when its
 // answer was lost.
 func (c *APIClient) get(ctx context.Context, path string, into any) error {
-	err := c.sdk.GetWithContext(ctx, path, into)
+	read := func() error { return c.sdk.GetWithContext(ctx, path, into) }
+	err := paced(read)
 	if err == nil || StatusCode(err) != 0 || ctx.Err() != nil {
 		return err
 	}
@@ -117,7 +125,19 @@ func (c *APIClient) get(ctx context.Context, path string, into any) error {
 		return err
 	case <-timer.C:
 	}
-	return c.sdk.GetWithContext(ctx, path, into)
+	return paced(read)
+}
+
+// paced sends a call, and again while the API refuses it for its rate, up to
+// rateLimitAttempts in all. The transport has waited as long as asked by the time the refusal
+// arrives here. A call refused that way was not carried out, so a write is as safe to send
+// again as a read, which is not true of a call whose answer was lost.
+func paced(call func() error) error {
+	err := call()
+	for attempt := 1; attempt < rateLimitAttempts && StatusCode(err) == http.StatusTooManyRequests; attempt++ {
+		err = call()
+	}
+	return err
 }
 
 func (c *APIClient) CurrentCredential(ctx context.Context) (credential.Credential, error) {
@@ -158,7 +178,7 @@ func (c *APIClient) CredentialApplication(ctx context.Context, id int64) (creden
 }
 
 func (c *APIClient) DeleteCredential(ctx context.Context, id int64) error {
-	return c.sdk.DeleteWithContext(ctx, CredentialPath(id), nil)
+	return paced(func() error { return c.sdk.DeleteWithContext(ctx, CredentialPath(id), nil) })
 }
 
 func (c *APIClient) SetAllowedIPs(ctx context.Context, id int64, allowed []netip.Prefix) error {
@@ -168,11 +188,11 @@ func (c *APIClient) SetAllowedIPs(ctx context.Context, id int64, allowed []netip
 	for _, prefix := range allowed {
 		body.AllowedIPs = append(body.AllowedIPs, prefix.String())
 	}
-	return c.sdk.PutWithContext(ctx, CredentialPath(id), body, nil)
+	return paced(func() error { return c.sdk.PutWithContext(ctx, CredentialPath(id), body, nil) })
 }
 
 func (c *APIClient) Logout(ctx context.Context) error {
-	return c.sdk.PostWithContext(ctx, "/auth/logout", nil, nil)
+	return paced(func() error { return c.sdk.PostWithContext(ctx, "/auth/logout", nil, nil) })
 }
 
 func (c *APIClient) ListApplicationIDs(ctx context.Context) ([]int64, error) {
@@ -192,7 +212,7 @@ func (c *APIClient) Application(ctx context.Context, id int64) (credential.Appli
 }
 
 func (c *APIClient) DeleteApplication(ctx context.Context, id int64) error {
-	return c.sdk.DeleteWithContext(ctx, ApplicationPath(id), nil)
+	return paced(func() error { return c.sdk.DeleteWithContext(ctx, ApplicationPath(id), nil) })
 }
 
 func (c *APIClient) Index(ctx context.Context) ([]byte, error) {

@@ -42,7 +42,9 @@ KEYMAKER_CONFIG=~/ovh.conf KEYMAKER_LOG_LEVEL=debug ./bin/keymaker
 
 Without an account, or to see a finding your account does not have, `make demo` runs the real
 server and interface on invented keys, one of each finding among them, and never calls the API.
-Revocations and deletions apply to its memory and are forgotten on restart.
+Revocations and deletions apply to its memory and are forgotten on restart. To see the
+interface at the size of a large account, `go run ./tools/demo -keys 500` adds that many
+invented keys.
 
 ## Workflow
 
