@@ -8,6 +8,7 @@
   <a href="https://github.com/kentrow/keymaker/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/kentrow/keymaker/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/kentrow/keymaker/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kentrow/keymaker"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/kentrow/keymaker"><img alt="Scorecard" src="https://api.scorecard.dev/projects/github.com/kentrow/keymaker/badge"></a>
 </p>
 
 <p align="center">
