@@ -230,6 +230,8 @@ gh attestation verify oci://ghcr.io/kentrow/keymaker:1 --repo kentrow/keymaker
 Une vérification réussie prouve que l’image a été construite par le workflow de release de ce
 dépôt, à partir du commit étiqueté qu’elle nomme, et qu’elle n’a pas été modifiée depuis. Elle
 ne prouve pas que le code est sans bug : elle dit ce que vous exécutez, pas que c’est juste.
+Chaque release GitHub porte aussi cette provenance signée sous forme de fichier,
+`keymaker-X.Y.Z.intoto.jsonl`.
 
 ## Configuration
 

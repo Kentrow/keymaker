@@ -89,13 +89,21 @@ jobs:
           provenance: mode=max
           sbom: true
 
-      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+      - id: provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
+      # The signed provenance also goes on the release itself, as a file: it is where tools that
+      # do not query the registry or the attestation store, the OpenSSF Scorecard among them,
+      # look for it.
       - name: Create the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$TAG" --verify-tag --title "$TAG" --notes-file "${RUNNER_TEMP}/release-notes.md"
+          BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+        run: |
+          provenance="${RUNNER_TEMP}/keymaker-${TAG#v}.intoto.jsonl"
+          cp "$BUNDLE" "$provenance"
+          gh release create "$TAG" --verify-tag --title "$TAG" --notes-file "${RUNNER_TEMP}/release-notes.md" "$provenance"

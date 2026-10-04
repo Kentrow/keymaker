@@ -121,6 +121,9 @@ docker buildx imagetools inspect ghcr.io/kentrow/keymaker:X.Y.Z
 gh attestation verify oci://ghcr.io/kentrow/keymaker:X.Y.Z --repo kentrow/keymaker
 ```
 
+The release page carries one file, `keymaker-X.Y.Z.intoto.jsonl`: the same signed provenance,
+for tools that look for it there.
+
 `--version` names the release and the commit of the tag. The image index lists both platforms,
 each with an attestation manifest, and `X.Y.Z`, `X.Y`, `X` and `latest` share one digest. The
 READMEs point at `X`, so that tag is the one a reader actually pulls.
