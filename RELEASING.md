@@ -35,7 +35,7 @@ And in both `README.md` and `README.fr.md`, replace the previous image tag in th
 example and in the Compose file:
 
 ```bash
-grep -n "keymaker:[0-9]" README.md README.fr.md   # four lines, all on the new version
+grep -n "keymaker:[0-9]" README.md README.fr.md   # every line on the new version
 ```
 
 Then refresh the route catalogues embedded in the binary, one per region. They are what an

@@ -10,6 +10,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- State in both READMEs what every 1.x release keeps stable, and how to check that an image was built by this repository.
 - Add a `keymaker healthcheck` command, and declare it as the `HEALTHCHECK` of the image, so that Docker and Compose report the container as healthy without a shell or a client in it.
 
 ### Changed
