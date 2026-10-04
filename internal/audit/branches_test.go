@@ -14,9 +14,11 @@ import (
 
 // A branch written with a typo protects nothing and fails nowhere: the audit simply never
 // raises it. Every entry is held against the published catalogue shipped with the build, for
-// its path and for each method it names.
+// its path and for each method it names. The ovh-eu catalogue is the reference: it publishes
+// every product the other regions do, and a branch a smaller region lacks is simply one the
+// audit never raises there.
 func TestEverySensitiveBranchExistsInTheCatalogue(t *testing.T) {
-	snapshot, err := catalog.Embedded()
+	snapshot, err := catalog.Embedded("ovh-eu")
 	if err != nil {
 		t.Fatalf("read the embedded catalogue: %v", err)
 	}

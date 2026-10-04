@@ -111,7 +111,7 @@ func run(args []string, stdout io.Writer) error {
 		return err
 	}
 
-	routes := routeCatalogue(client, logger)
+	routes := routeCatalogue(client, account.Endpoint, logger)
 
 	public, err := baseURL(addr, os.Getenv("KEYMAKER_PUBLIC_URL"))
 	if err != nil {
@@ -165,8 +165,10 @@ func run(args []string, stdout io.Writer) error {
 	return serve(srv, logger)
 }
 
-func routeCatalogue(client *ovh.APIClient, logger *slog.Logger) *catalog.Remote {
-	embedded, err := catalog.Embedded()
+// routeCatalogue falls back on the catalogue of the region the account belongs to: the
+// regions do not publish the same API, and the routes of another would read as the account's.
+func routeCatalogue(client *ovh.APIClient, endpoint string, logger *slog.Logger) *catalog.Remote {
+	embedded, err := catalog.Embedded(endpoint)
 	if err != nil {
 		// A corrupt embedded snapshot is a build defect, not an operating condition. The
 		// explorer is unusable until the refresh lands, and everything else still works,

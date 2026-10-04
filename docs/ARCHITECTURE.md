@@ -40,7 +40,8 @@ Keymaker writes nothing to disk. There is no database, no cache directory and no
 - The management credential lives in memory for the length of the run.
 - The access token and the page token are generated at every start and never stored. Stopping
   the process ends every session.
-- The route catalogue is held in memory; the copy embedded in the binary is the fallback.
+- The route catalogue is held in memory; the copy of the configured region embedded in the
+  binary is the fallback.
 - Interface preferences (language, theme, layout) are kept in the browser's local storage.
   They say nothing about the account.
 
@@ -59,7 +60,7 @@ Keymaker writes nothing to disk. There is no database, no cache directory and no
 | `internal/logging` | A `slog` handler that removes registered secrets from every log record. |
 | `internal/publicip` | Optional lookup of the public address the process is seen from. |
 | `internal/web` | The embedded interface: `index.html`, `app.js`, `app.css`, Alpine.js (CSP build) and icons. |
-| `tools/snapshotgen` | Maintainer tool that regenerates `internal/catalog/snapshot.json.gz`. |
+| `tools/snapshotgen` | Maintainer tool that regenerates the catalogue of each region in `internal/catalog/snapshots/`. |
 | `tools/demo` | The real server and interface on invented keys, one of each finding, with no call to the API. Outside the Docker build context, so never in the image. |
 
 The only third-party Go dependency is `github.com/ovh/go-ovh`, which signs requests and
@@ -279,9 +280,9 @@ read it writes nothing.
 At startup, the index and every schema it lists are fetched with at most eight calls in flight.
 A refresh is all or nothing: a branch that fails to load discards the whole attempt, because a
 missing route would read as a route the API does not offer. A failed refresh is retried after
-10 seconds, 30 seconds, 1 minute, then every 5 minutes. Until one succeeds, the embedded
-snapshot is served, and the interface shows its date. A request that arrives before the first
-refresh finishes waits for it at most 15 seconds.
+10 seconds, 30 seconds, 1 minute, then every 5 minutes. Until one succeeds, the snapshot of
+the configured region embedded in the binary is served, and the interface shows its date. A
+request that arrives before the first refresh finishes waits for it at most 15 seconds.
 
 ### Audit
 

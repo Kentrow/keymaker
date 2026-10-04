@@ -66,7 +66,7 @@ func main() {
 // newHandler assembles the real server around the store, the way cmd/keymaker does around
 // the API client.
 func newHandler(store *store, token, csrf string, logger *slog.Logger) (http.Handler, error) {
-	snapshot, err := catalog.Embedded()
+	snapshot, err := catalog.Embedded("ovh-eu")
 	if err != nil {
 		return nil, fmt.Errorf("read the embedded catalogue: %w", err)
 	}
