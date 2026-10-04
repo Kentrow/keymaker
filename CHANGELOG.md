@@ -8,6 +8,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Draw the inventory forty keys at a time as it is scrolled: with five hundred keys, a change of filter or view took most of a second and now takes a tenth of one.
+
 ### Fixed
 
 - Count the routes of each branch in the explorer with the method and deprecation filters applied, as the list it opens does.

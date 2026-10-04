@@ -1289,7 +1289,7 @@ html:has(.dialog[open]) { overflow: hidden; }
 
 /* The foot of the list, watched rather than shown: reaching it is what asks for the next
    rows. It keeps a height so it can be reached at all. */
-.route-end { height: var(--space-4); }
+.list-end { height: var(--space-4); }
 
 .route {
   background: var(--surface);
