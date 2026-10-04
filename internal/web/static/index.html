@@ -102,7 +102,7 @@
 
     <p class="state" x-show="loading" x-text="labels.loading"></p>
 
-    <div class="state done" x-show="noticed">
+    <div class="state done" x-ref="notice" tabindex="-1" x-show="noticed">
       <p class="headline" x-text="notice"></p>
     </div>
 
@@ -688,7 +688,7 @@
         <p class="warning" x-text="labels.addressesHint"></p>
         <label class="field">
           <span x-text="labels.addressesField"></span>
-          <textarea class="mono" rows="5" x-model="addressText" autocomplete="off" spellcheck="false"></textarea>
+          <textarea class="mono" rows="5" x-ref="addressField" x-model="addressText" autocomplete="off" spellcheck="false"></textarea>
         </label>
         <button type="button" class="link" x-show="addressLookup" x-on:click="addMyAddress" x-text="labels.addressesAddMine"></button>
       </div>
@@ -708,7 +708,7 @@
         <button type="button" class="quiet" x-show="addressEditing" x-on:click="cancelAddresses" x-text="labels.cancel"></button>
         <button type="button" class="primary" x-show="addressEditing" x-bind:disabled="addressBusy" x-on:click="previewAddresses" x-text="addressContinueLabel"></button>
         <button type="button" class="quiet" x-show="addressReviewing" x-on:click="editAddressesAgain" x-text="labels.addressesBack"></button>
-        <button type="button" class="primary" x-show="addressReviewing" x-bind:disabled="addressBusy" x-on:click="saveAddresses" x-text="addressSaveLabel"></button>
+        <button type="button" class="primary" x-ref="addressSave" x-show="addressReviewing" x-bind:disabled="addressBusy" x-on:click="saveAddresses" x-text="addressSaveLabel"></button>
       </div>
     </div>
   </dialog>
