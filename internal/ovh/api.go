@@ -66,18 +66,19 @@ func NewAPIClient(account config.Account, httpClient *http.Client) (*APIClient, 
 		return nil, errors.New("management credential is missing an application key, an application secret or a consumer key")
 	}
 
-	paced := *httpClient
+	// A copy, so that the client handed in keeps the transport it came with.
+	withPacing := *httpClient
 	next := httpClient.Transport
 	if next == nil {
 		next = http.DefaultTransport
 	}
-	paced.Transport = pacing{next: next, fallback: rateLimitWait, ceiling: rateLimitCeiling}
+	withPacing.Transport = pacing{next: next, fallback: rateLimitWait, ceiling: rateLimitCeiling}
 
 	client := &sdk.Client{
 		AppKey:      account.Management.ApplicationKey,
 		AppSecret:   account.Management.ApplicationSecret,
 		ConsumerKey: account.Management.ConsumerKey,
-		Client:      &paced,
+		Client:      &withPacing,
 		Timeout:     requestTimeout,
 		UserAgent:   userAgent,
 	}
