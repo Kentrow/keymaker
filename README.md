@@ -9,6 +9,7 @@
   <a href="https://github.com/kentrow/keymaker/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kentrow/keymaker"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/Kentrow/keymaker"><img alt="Scorecard" src="https://api.scorecard.dev/projects/github.com/Kentrow/keymaker/badge"></a>
+  <a href="https://www.bestpractices.dev/projects/15213"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/15213/badge"></a>
 </p>
 
 <p align="center">
