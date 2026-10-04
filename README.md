@@ -204,6 +204,19 @@ export KEYMAKER_UID=$(id -u) KEYMAKER_GID=$(id -g)
 docker compose up
 ```
 
+### Check where the image comes from
+
+Every release image carries a build provenance and an SBOM, signed and attested by GitHub.
+With the [GitHub CLI](https://cli.github.com/):
+
+```bash
+gh attestation verify oci://ghcr.io/kentrow/keymaker:0.5.1 --repo kentrow/keymaker
+```
+
+A successful check proves that the image was built by the release workflow of this repository,
+from the tagged commit it names, and has not been changed since. It does not prove that the
+code is free of bugs: it tells you what you run, not that it is right.
+
 ## Configuration
 
 ### `ovh.conf`
@@ -222,11 +235,13 @@ is given: it ignores `~/.ovh.conf`, `/etc/ovh.conf` and the `OVH_*` environment 
 | `KEYMAKER_IP_LOOKUP` | enabled | `off` removes the public address lookup, so the OVHcloud API is the only host contacted. |
 | `KEYMAKER_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`. `debug` adds one line per request, without its query string. |
 
-### Flags
+### Command line
 
-| Flag | Purpose |
+| Command | Purpose |
 | --- | --- |
-| `--version` | Print the version, commit and build date, then exit. |
+| `keymaker` | Start the server. |
+| `keymaker --version` | Print the version, commit and build date, then exit. |
+| `keymaker healthcheck` | Ask `GET /healthz` of the running server on the loopback, and exit 0 when it answers. |
 
 ### Health check
 
@@ -234,6 +249,33 @@ is given: it ignores `~/.ovh.conf`, `/etc/ovh.conf` and the `OVH_*` environment 
 declares a `HEALTHCHECK` that runs `keymaker healthcheck`: the binary asks that route on the
 loopback and exits 0 or 1, since the image has no shell and no HTTP client. `docker ps` and
 Compose show the container as healthy without any further setting.
+
+## Compatibility
+
+From 1.0, Keymaker follows [semantic versioning](https://semver.org/), and every 1.x release
+keeps the following as they are:
+
+- the `ovh.conf` format and the keys it reads: `endpoint`, `application_key`,
+  `application_secret` and `consumer_key`;
+- the `KEYMAKER_*` environment variables, their defaults and the values they accept;
+- the command line: `keymaker`, `--version` and `healthcheck`;
+- `GET /healthz`, its path and its `ok` answer;
+- the image: its name, its tags (`X.Y.Z`, `X.Y`, `X` and `latest`), its platforms
+  (`linux/amd64` and `linux/arm64`), port 8080, and running as an unprivileged user on a
+  read-only root filesystem, as the commands above start it;
+- the access rules a management key needs: a 1.x release may only make use of a new rule as an
+  optional one, without which everything that worked keeps working;
+- the downloadable report: fields may be added, and existing ones keep their name and meaning.
+
+Everything else may change in a minor release: the interface and its layout, the `/api/*`
+routes it talks to, the wording and shape of log lines, and the audit, which may raise new
+findings. Something on the list above that has to go is first deprecated, in a release whose
+notes say so and which logs a warning when it is used, and removed in 2.0 at the earliest.
+
+Keymaker is tried on `ovh-eu`. `ovh-ca` and `ovh-us` go through the same code and are supported
+on a best-effort basis; a report on either is welcome in
+[#50](https://github.com/kentrow/keymaker/issues/50). The interface needs a current browser:
+the latest two major versions of Chrome, Edge, Firefox or Safari.
 
 ## Building from source
 

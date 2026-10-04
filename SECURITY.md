@@ -5,8 +5,10 @@ and taken seriously.
 
 ## Supported versions
 
-While Keymaker is in `0.x`, only the latest minor release receives security fixes. Upgrade to
-it before reporting, and mention the version you run (`keymaker --version`).
+From 1.0, the latest minor release of the latest major version receives security fixes, as
+the latest minor release did during `0.x`. A release in 1.x changes nothing that the
+[compatibility promise](README.md#compatibility) covers, so moving to the latest one is always
+safe. Upgrade to it before reporting, and mention the version you run (`keymaker --version`).
 
 ## Reporting a vulnerability
 
