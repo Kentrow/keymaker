@@ -1118,6 +1118,10 @@ button.quiet.muted:hover { background: var(--surface); color: var(--text-soft); 
 .state.replacing .headline { color: var(--accent); }
 
 .state.done { border-left: 3px solid var(--ok); }
+
+/* The notice takes the focus after an action that removed its own button, so that it is read
+   out; it is not a control, so it draws no ring. */
+.state:focus { outline: none; }
 .state.done .headline { color: var(--ok); }
 
 /* Confirmation */

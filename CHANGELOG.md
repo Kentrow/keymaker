@@ -10,6 +10,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Count the routes of each branch in the explorer with the method and deprecation filters applied, as the list it opens does.
+- Hand the focus to the outcome after a revocation or a deletion removes the button that opened it, and keep it inside the address dialog between its two steps.
 - Fall back on the route catalogue of the configured region, rather than on the ovh-eu one for every region: ovh-ca publishes 3556 routes and ovh-us 1990, against 4656 for ovh-eu.
 - Wait out a `429 Too Many Requests` from the API, as long as `Retry-After` asks within ten seconds, and send the call again, rather than failing the listing of a large account.
 

@@ -60,12 +60,13 @@ const statusTone = status => {
   return 'inactive'
 }
 
-// How many routes each branch holds, read once per catalogue. A route belongs to every
-// branch its path starts with, which is what choosing that branch then lists.
-const countBranches = (branches, routes) => {
+// How many routes each branch holds among those kept, which is what choosing that branch then
+// lists. A route belongs to every branch its path starts with.
+const countBranches = (branches, routes, kept) => {
   const known = new Set(branches)
   const counts = {}
   for (const route of routes) {
+    if (!kept(route)) continue
     const segments = route.path.split('/')
     for (let end = 2; end <= segments.length; end++) {
       const prefix = segments.slice(0, end).join('/')
@@ -74,6 +75,10 @@ const countBranches = (branches, routes) => {
   }
   return counts
 }
+
+// The counts of the branch grid, kept for one combination of catalogue and filters: the grid
+// reads them on every redraw, and they only change when one of those does.
+let branchTallies = { key: '', counts: {} }
 
 const dictionaries = {
   en: {
@@ -817,7 +822,6 @@ document.addEventListener('alpine:init', () => {
     routeMethod: '',
     routeDeprecated: false,
     routeBudget: routeBatch,
-    branchCounts: {},
     selection: [],
     copyNotice: '',
     handoffUrl: '',
@@ -1045,6 +1049,7 @@ document.addEventListener('alpine:init', () => {
         this.notice = gone ? this.wordProblem(payload) : this.labels.revoked('#' + target)
         if (this.replacing && this.replacing.id === target) this.dropReplacement()
         await this.load()
+        this.settleFocus()
       } catch (failure) {
         this.confirmError = this.labels.unreachable
       } finally {
@@ -1146,9 +1151,12 @@ document.addEventListener('alpine:init', () => {
       this.addressEditError = ''
     },
 
+    // The button that moves between the two steps disappears with its step, so the focus is
+    // placed on what the next step is about rather than left to fall out of the dialog.
     editAddressesAgain () {
       this.addressPlan = null
       this.addressEditError = ''
+      this.whenShown(() => this.$refs.addressField, field => field.focus())
     },
 
     // The address is the one the process is seen from, which is the one that matters when the
@@ -1175,7 +1183,9 @@ document.addEventListener('alpine:init', () => {
     // reader confirms that result, and saving runs the same checks again.
     async previewAddresses () {
       const plan = await this.sendAddresses('POST', `/api/credentials/${this.addressing.id}/addresses/preview`)
-      if (plan) this.addressPlan = plan
+      if (!plan) return
+      this.addressPlan = plan
+      this.whenShown(() => this.$refs.addressSave, save => save.focus())
     },
 
     async saveAddresses () {
@@ -1205,6 +1215,7 @@ document.addEventListener('alpine:init', () => {
           // dialog goes back to it.
           this.addressPlan = null
           this.addressEditError = this.wordProblem(payload)
+          this.whenShown(() => this.$refs.addressField, field => field.focus())
           return null
         }
         return { addresses: payload.addresses || [], seenFrom: payload.seenFrom || '' }
@@ -1379,6 +1390,7 @@ document.addEventListener('alpine:init', () => {
         this.appSweepAsked = false
         this.notice = this.appSweepOutcome(payload)
         await this.loadApplications()
+        this.settleFocus()
       } catch (failure) {
         this.appSweepError = this.labels.unreachable
       } finally {
@@ -1444,6 +1456,7 @@ document.addEventListener('alpine:init', () => {
         this.deletingApplication = null
         this.notice = gone ? this.wordProblem(payload) : this.labels.appDeleted(target.reference)
         await this.loadApplications()
+        this.settleFocus()
       } catch (failure) {
         this.applicationError = this.labels.unreachable
       } finally {
@@ -1528,6 +1541,7 @@ document.addEventListener('alpine:init', () => {
         this.sweepAsked = false
         this.notice = this.sweepOutcome(payload)
         await this.load()
+        this.settleFocus()
       } catch (failure) {
         this.sweepError = this.labels.unreachable
       } finally {
@@ -1772,6 +1786,20 @@ document.addEventListener('alpine:init', () => {
       if (frames > 0) requestAnimationFrame(() => this.whenShown(find, act, frames - 1))
     },
 
+    // An action that removes the control which opened it, a revoked key or a deleted application,
+    // leaves the focus on nothing once its dialog has closed and the list been redrawn: a
+    // keyboard starts over from the top of the page, and a screen reader says nothing. The
+    // notice reporting the outcome takes the focus then, and is read out with it. Checked two
+    // frames later, once the removed control is really gone; a focus that found a home of its
+    // own is left there.
+    settleFocus () {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const active = document.activeElement
+        if (active && active !== document.body && active.isConnected) return
+        this.whenShown(() => this.$refs.notice, notice => notice.focus())
+      }))
+    },
+
     showInventory () {
       this.switchScreen('inventory')
     },
@@ -1922,7 +1950,6 @@ document.addEventListener('alpine:init', () => {
           branches: payload.branches || [],
           routes: payload.routes || []
         }
-        this.branchCounts = countBranches(this.catalogue.branches, this.catalogue.routes)
       } catch (failure) {
         this.catalogueError = this.labels.unreachable
       } finally {
@@ -2036,11 +2063,25 @@ document.addEventListener('alpine:init', () => {
       return this.routeListing && this.found.more
     },
 
-    // A branch the index names but no route sits under leads nowhere, so it is left out.
+    // A route is counted when the list a branch opens would show it: with an operation of the
+    // chosen method, and not only deprecated ones unless those are asked for. The grid and the
+    // list it leads to then agree.
+    get branchCounts () {
+      const key = [this.catalogue.taken, this.catalogue.routes.length, this.routeMethod, this.routeDeprecated].join('|')
+      if (branchTallies.key !== key) {
+        const kept = route => route.operations.some(operation =>
+          (this.routeDeprecated || !operation.deprecated) && (!this.routeMethod || operation.method === this.routeMethod))
+        branchTallies = { key, counts: countBranches(this.catalogue.branches, this.catalogue.routes, kept) }
+      }
+      return branchTallies.counts
+    },
+
+    // A branch no route the filters keep sits under leads nowhere, so it is left out.
     get branchEntries () {
-      return this.catalogue.branches.filter(branch => this.branchCounts[branch]).map(branch => ({
+      const counts = this.branchCounts
+      return this.catalogue.branches.filter(branch => counts[branch]).map(branch => ({
         branch,
-        count: this.labels.branchRoutes(this.branchCounts[branch] || 0)
+        count: this.labels.branchRoutes(counts[branch])
       }))
     },
 
