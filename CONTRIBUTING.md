@@ -28,6 +28,8 @@ without network access; a test that needs a credential is a bug in the test.
 | `make test` | Run the tests with the race detector and coverage |
 | `make lint` | Check `gofmt`, `go mod tidy` and run golangci-lint |
 | `make vuln` | Run govulncheck |
+| `make markdown` | Check the Markdown files against `.markdownlint-cli2.jsonc` (needs `npx`) |
+| `make check` | Run every check CI runs, in its order: lint, Markdown, tests, govulncheck |
 | `make fuzz` | Explore every fuzz target, 30 seconds each, or `FUZZTIME` |
 | `make snapshot` | Regenerate the embedded API catalogue |
 | `make demo` | Run the interface on invented data, without an OVHcloud account |
@@ -58,8 +60,9 @@ invented keys.
 4. Open a pull request against `main` and fill in the checklist. The pull request title follows
    Conventional Commits too, because pull requests are squash-merged and the title becomes the
    commit message.
-5. CI must pass: formatting, `go mod tidy`, golangci-lint, tests, govulncheck, CodeQL and the
-   multi-architecture image build.
+5. CI must pass: formatting, `go mod tidy`, golangci-lint, Markdown, tests, govulncheck, CodeQL
+   and the multi-architecture image build. `make check` runs the same checks locally, but for
+   CodeQL and the image, before you open the pull request.
 
 ## What every change needs
 
@@ -112,10 +115,19 @@ binary, with no build step. Alpine.js is vendored in its CSP build, which evalua
 expression strings: a directive may only name a property or a method, and anything computed
 belongs in `app.js`. This is what keeps the content security policy free of `unsafe-eval`.
 
-Since nothing compiles these files, `go test ./internal/web` checks them: duplicated or unused
-CSS classes, undeclared custom properties, directives holding expressions, calls to undefined
-methods, unused members, error codes the backend does not send, and any resource loaded from
-outside the binary.
+Since nothing compiles these files, `go test ./internal/web` checks them, and refuses things no
+other Go project refuses. Each of these mistakes has shipped once and failed silently in a
+browser, which is why they fail loudly here. When one of them stops you:
+
+| A failure about | What it means, and the usual fix |
+| --- | --- |
+| a directive holding an expression | Alpine's CSP build cannot evaluate it. Move the logic into a getter or a method of `app.js`, and name that in the markup. |
+| a label defined and asked for nowhere, or asked for and defined nowhere | Every label exists in both `en` and `fr`, and is shown somewhere. Add the missing translation, or remove a label no screen uses any more. |
+| a CSS class unused, unstyled, defined twice, or used as a modifier and as a component | Remove the leftover rule or class, or rename one of the two so they do not collide. |
+| a custom property read but not declared, or declared but not read | Declare it in the `:root` blocks of `app.css`, or remove it. |
+| a method called but not defined, or a member or top-level declaration nothing reads | Define the method, or remove what a removed screen left behind. |
+| an error code or a finding code | The codes the backend sends and the audit raises must be exactly those the dictionaries word, in both languages. Add the wording, or remove a code that is no longer sent. |
+| a resource loaded from outside the binary | No CDN, font, script or image from elsewhere: vendor it under `static/`, or use a data URI. |
 
 A new audit finding needs a key in `tools/demo` that raises it: `go test ./tools/demo` fails
 until there is one, so that every finding can be seen before it ships.

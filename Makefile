@@ -30,10 +30,12 @@ TOOLCHAIN := $(shell awk '/^toolchain/ {print $$2}' go.mod)
 
 .DEFAULT_GOAL := help
 
-.PHONY: help build test lint vuln fuzz snapshot demo docker
+.PHONY: help check build test lint markdown vuln fuzz snapshot demo docker
 
 help: ## List the available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+check: lint markdown test vuln ## Run every check CI runs, in its order: what a pull request is held to
 
 build: ## Build the keymaker binary into ./bin
 	CGO_ENABLED=0 go build -trimpath -ldflags "$(LDFLAGS)" -o bin/keymaker ./cmd/keymaker
@@ -45,6 +47,10 @@ lint: ## Check formatting, module tidiness and run golangci-lint
 	@test -z "$$(gofmt -l .)" || (gofmt -l . && exit 1)
 	go mod tidy -diff
 	golangci-lint run ./...
+
+markdown: ## Check the Markdown files against .markdownlint-cli2.jsonc, as CI does (needs npx)
+	@command -v npx >/dev/null || { echo "npx not found: install Node.js to check the Markdown as CI does"; exit 1; }
+	npx --yes markdownlint-cli2 $$(git ls-files '*.md')
 
 vuln: ## Check dependencies and the standard library against the Go vulnerability database
 	GOTOOLCHAIN=$(TOOLCHAIN) go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
