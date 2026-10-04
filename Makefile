@@ -12,13 +12,25 @@ LDFLAGS := -s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.dat
 
 GOVULNCHECK_VERSION ?= v1.8.0
 
+# How long make fuzz explores each target. go test already replays their seeds, and the inputs
+# a run has found to fail, on every run; this is for looking further.
+FUZZTIME ?= 30s
+FUZZ_TARGETS := \
+	./internal/config:FuzzParse \
+	./internal/catalog:FuzzParseIndex \
+	./internal/catalog:FuzzParseSchema \
+	./internal/httpapi:FuzzReadAddresses \
+	./internal/ovh:FuzzParsePrefix \
+	./internal/ovh:FuzzCredentialDecoding \
+	./internal/ovh:FuzzRetryAfter
+
 # govulncheck has to run on the toolchain the module declares: a binary built with an older Go
 # cannot load packages that require a newer one.
 TOOLCHAIN := $(shell awk '/^toolchain/ {print $$2}' go.mod)
 
 .DEFAULT_GOAL := help
 
-.PHONY: help build test lint vuln snapshot demo docker
+.PHONY: help build test lint vuln fuzz snapshot demo docker
 
 help: ## List the available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -36,6 +48,12 @@ lint: ## Check formatting, module tidiness and run golangci-lint
 
 vuln: ## Check dependencies and the standard library against the Go vulnerability database
 	GOTOOLCHAIN=$(TOOLCHAIN) go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
+
+fuzz: ## Explore every fuzz target for FUZZTIME each (30s by default)
+	@set -e; for target in $(FUZZ_TARGETS); do \
+		echo "$${target#*:}"; \
+		go test "$${target%%:*}" -run '^$$' -fuzz "^$${target#*:}$$" -fuzztime $(FUZZTIME); \
+	done
 
 snapshot: ## Regenerate the embedded API catalogue from the live OVHcloud API
 	go run ./tools/snapshotgen

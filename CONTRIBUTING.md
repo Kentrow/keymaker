@@ -28,6 +28,7 @@ without network access; a test that needs a credential is a bug in the test.
 | `make test` | Run the tests with the race detector and coverage |
 | `make lint` | Check `gofmt`, `go mod tidy` and run golangci-lint |
 | `make vuln` | Run govulncheck |
+| `make fuzz` | Explore every fuzz target, 30 seconds each, or `FUZZTIME` |
 | `make snapshot` | Regenerate the embedded API catalogue |
 | `make demo` | Run the interface on invented data, without an OVHcloud account |
 | `make docker` | Build the image for the local platform |

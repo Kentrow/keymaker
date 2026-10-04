@@ -116,6 +116,7 @@ func TestRetryAfterIsReadInBothFormsAndBounded(t *testing.T) {
 		"3":                             3 * time.Second,
 		" 0 ":                           0,
 		"3600":                          10 * time.Second,
+		"9999999999":                    10 * time.Second,
 		"-5":                            time.Second,
 		"soon":                          time.Second,
 		"Sun, 04 Oct 2026 12:00:04 GMT": 4 * time.Second,

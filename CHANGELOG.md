@@ -8,6 +8,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Wait the longest allowed when the API asks for a `Retry-After` of billions of seconds, rather than not at all: the delay overflowed.
+
 ## [1.0.0] - 2026-10-04
 
 The first stable release. From here on, every 1.x release keeps what the Compatibility section of the README lists as it is, and the image gains the major tag `1`, which follows them.
