@@ -220,7 +220,8 @@ gh attestation verify oci://ghcr.io/kentrow/keymaker:1 --repo kentrow/keymaker
 
 A successful check proves that the image was built by the release workflow of this repository,
 from the tagged commit it names, and has not been changed since. It does not prove that the
-code is free of bugs: it tells you what you run, not that it is right.
+code is free of bugs: it tells you what you run, not that it is right. Each release on GitHub
+also carries the same signed provenance as a file, `keymaker-X.Y.Z.intoto.jsonl`.
 
 ## Configuration
 

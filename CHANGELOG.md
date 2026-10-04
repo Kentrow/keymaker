@@ -8,6 +8,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Attach the signed provenance of the image to each GitHub release, as `keymaker-X.Y.Z.intoto.jsonl`.
+
 ### Fixed
 
 - Wait the longest allowed when the API asks for a `Retry-After` of billions of seconds, rather than not at all: the delay overflowed.
