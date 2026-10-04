@@ -8,6 +8,9 @@ import (
 	"log/slog"
 	"strings"
 	"testing"
+
+	"github.com/kentrow/keymaker/internal/catalog"
+	"github.com/kentrow/keymaker/internal/ovh"
 )
 
 func entry(t *testing.T, addr, public, token string) (string, error) {
@@ -105,5 +108,15 @@ func TestAnUnknownFlagIsRefused(t *testing.T) {
 	var out bytes.Buffer
 	if err := run([]string{"--nope"}, &out); err == nil {
 		t.Error("an unknown flag was accepted")
+	}
+}
+
+// Every endpoint a configuration may name has a fallback catalogue of its own. An endpoint
+// added without one would start with an explorer that cannot open.
+func TestEverySupportedEndpointHasItsOwnFallbackCatalogue(t *testing.T) {
+	for _, endpoint := range ovh.SupportedEndpoints() {
+		if _, err := catalog.Embedded(endpoint); err != nil {
+			t.Errorf("%s: %v", endpoint, err)
+		}
 	}
 }

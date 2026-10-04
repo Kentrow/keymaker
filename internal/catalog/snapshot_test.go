@@ -9,8 +9,17 @@ import (
 	"time"
 )
 
+// regions are the endpoints a catalogue is embedded for.
+var regions = []string{"ovh-eu", "ovh-ca", "ovh-us"}
+
 func TestTheEmbeddedCatalogueDecodesAndCoversTheAPI(t *testing.T) {
-	snapshot, err := Embedded()
+	for _, region := range regions {
+		t.Run(region, func(t *testing.T) { decodesAndCoversTheAPI(t, region) })
+	}
+}
+
+func decodesAndCoversTheAPI(t *testing.T, region string) {
+	snapshot, err := Embedded(region)
 	if err != nil {
 		t.Fatalf("Embedded: %v", err)
 	}
@@ -23,7 +32,7 @@ func TestTheEmbeddedCatalogueDecodesAndCoversTheAPI(t *testing.T) {
 	if len(snapshot.Routes) < 1000 {
 		t.Fatalf("routes = %d, want the whole API; the snapshot looks truncated", len(snapshot.Routes))
 	}
-	if len(snapshot.Branches) < 50 {
+	if len(snapshot.Branches) < 30 {
 		t.Errorf("branches = %d, want the index of the API; the explorer offers them as a filter", len(snapshot.Branches))
 	}
 	if !slices.Contains(snapshot.Branches, "/me") {
@@ -32,7 +41,13 @@ func TestTheEmbeddedCatalogueDecodesAndCoversTheAPI(t *testing.T) {
 }
 
 func TestTheEmbeddedCatalogueKnowsTheRoutesThisProjectUses(t *testing.T) {
-	snapshot, err := Embedded()
+	for _, region := range regions {
+		t.Run(region, func(t *testing.T) { knowsTheRoutesThisProjectUses(t, region) })
+	}
+}
+
+func knowsTheRoutesThisProjectUses(t *testing.T, region string) {
+	snapshot, err := Embedded(region)
 	if err != nil {
 		t.Fatalf("Embedded: %v", err)
 	}
@@ -66,7 +81,7 @@ func TestTheEmbeddedCatalogueKnowsTheRoutesThisProjectUses(t *testing.T) {
 }
 
 func TestTheEmbeddedCatalogueIsRecentEnoughToBeWorthShipping(t *testing.T) {
-	snapshot, err := Embedded()
+	snapshot, err := Embedded("ovh-eu")
 	if err != nil {
 		t.Fatalf("Embedded: %v", err)
 	}
@@ -77,5 +92,26 @@ func TestTheEmbeddedCatalogueIsRecentEnoughToBeWorthShipping(t *testing.T) {
 	if age := time.Since(snapshot.Taken); age > 365*24*time.Hour {
 		t.Logf("the embedded catalogue is %d days old; regenerate it with go run ./tools/snapshotgen",
 			int(age.Hours()/24))
+	}
+}
+
+// The regions publish different APIs, so each embedded catalogue has to be its own: three
+// copies of one would bring back the fallback this layout exists to avoid.
+func TestEachRegionHasItsOwnCatalogue(t *testing.T) {
+	counts := map[int]string{}
+	for _, region := range regions {
+		snapshot, err := Embedded(region)
+		if err != nil {
+			t.Fatalf("Embedded(%s): %v", region, err)
+		}
+		if other, seen := counts[len(snapshot.Routes)]; seen {
+			t.Errorf("%s and %s hold the same number of routes, %d: one is likely a copy of the other",
+				region, other, len(snapshot.Routes))
+		}
+		counts[len(snapshot.Routes)] = region
+	}
+
+	if _, err := Embedded("kimsufi-eu"); err == nil {
+		t.Error("an endpoint with no embedded catalogue produced one")
 	}
 }

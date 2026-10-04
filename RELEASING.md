@@ -38,16 +38,17 @@ example and in the Compose file:
 grep -n "keymaker:[0-9]" README.md README.fr.md   # four lines, all on the new version
 ```
 
-Then refresh the route catalogue embedded in the binary. It is what an instance shows when it
-cannot read the API index, and what the demo runs on, so each release ships a recent one:
+Then refresh the route catalogues embedded in the binary, one per region. They are what an
+instance shows when it cannot read the API index, and the demo runs on the ovh-eu one, so each
+release ships recent ones:
 
 ```bash
-make snapshot     # prints the number of routes and branches it captured
-git diff --stat internal/catalog/snapshot.json.gz
+make snapshot     # prints the number of routes and branches captured for each region
+git diff --stat internal/catalog/snapshots/
 ```
 
-The tests check every sensitive branch of the audit against it, so a branch the API removed
-shows up in step 3.
+The tests check every sensitive branch of the audit against the ovh-eu catalogue, so a branch
+the API removed shows up in step 3.
 
 ## 2. Read the notes the workflow will publish
 

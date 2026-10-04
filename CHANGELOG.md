@@ -10,6 +10,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Fall back on the route catalogue of the configured region, rather than on the ovh-eu one for every region: ovh-ca publishes 3556 routes and ovh-us 1990, against 4656 for ovh-eu.
 - Wait out a `429 Too Many Requests` from the API, as long as `Retry-After` asks within ten seconds, and send the call again, rather than failing the listing of a large account.
 
 ## [0.5.1] - 2026-10-03

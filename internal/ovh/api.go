@@ -37,6 +37,11 @@ const (
 // not cover, and supporting them has not been decided.
 var supportedEndpoints = []string{"ovh-eu", "ovh-ca", "ovh-us"}
 
+// SupportedEndpoints lists the endpoints a configuration may name.
+func SupportedEndpoints() []string {
+	return slices.Clone(supportedEndpoints)
+}
+
 // APIClient is the Client implementation backed by the official SDK.
 type APIClient struct {
 	sdk         *sdk.Client
