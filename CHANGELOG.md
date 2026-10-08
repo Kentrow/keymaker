@@ -8,13 +8,23 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-08
+
 ### Added
 
 - Attach the signed provenance of the image to each GitHub release, as `keymaker-X.Y.Z.intoto.jsonl`.
 
+### Changed
+
+- Refresh the route catalogues embedded for every region.
+
 ### Fixed
 
 - Wait the longest allowed when the API asks for a `Retry-After` of billions of seconds, rather than not at all: the delay overflowed.
+
+### Security
+
+- Build with Go 1.27.2, which fixes vulnerabilities in `crypto/tls`, `net/http`, `net/textproto` and `os`.
 
 ## [1.0.0] - 2026-10-04
 
@@ -182,7 +192,8 @@ First public release.
 - Harden response headers.
 - Redact the application secret and the consumer key from every log record.
 
-[Unreleased]: https://github.com/kentrow/keymaker/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/kentrow/keymaker/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/kentrow/keymaker/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kentrow/keymaker/compare/v0.5.1...v1.0.0
 [0.5.1]: https://github.com/kentrow/keymaker/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/kentrow/keymaker/compare/v0.4.0...v0.5.0
