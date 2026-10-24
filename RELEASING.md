@@ -10,7 +10,8 @@ Releases are cut by the maintainer. The steps below assume the `gh` CLI is logge
 
 ## Which number
 
-- **Patch** (`0.3.1`): fixes only, security fixes included.
+- **Patch** (`0.3.1`): fixes only, security fixes included. One is due whenever the daily
+  Vulnerabilities workflow fails: the release rebuilds the image with the fixed Go or dependency.
 - **Minor** (`0.4.0`): anything a user can see that is not a fix.
 - **Major** (`2.0.0`): anything that breaks what the Compatibility section of the README lists.
 - The image gets `X.Y.Z`, `X.Y`, `X` and `latest`. Releases before 1.0 published no major tag,
