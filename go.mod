@@ -2,7 +2,7 @@ module github.com/kentrow/keymaker
 
 go 1.27.0
 
-toolchain go1.27.2
+toolchain go1.27.3
 
 require github.com/ovh/go-ovh v1.9.0
 
