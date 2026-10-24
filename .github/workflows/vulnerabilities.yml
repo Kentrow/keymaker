@@ -1,0 +1,33 @@
+name: Vulnerabilities
+
+# CI runs govulncheck on every push and pull request, so a vulnerability published in Go or a
+# dependency while nothing is being pushed would go unnoticed until the next change. This runs the
+# same check every day on main: a failed run is reported by GitHub to whoever maintains the
+# schedule, and calls for a patch release built with the fixed version.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GOVULNCHECK_VERSION: v1.8.0
+
+jobs:
+  govulncheck:
+    name: Known vulnerabilities
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Run govulncheck
+        run: go run "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}" ./...
