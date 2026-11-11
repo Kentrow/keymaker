@@ -8,6 +8,16 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-11-11
+
+### Changed
+
+- Refresh the route catalogues embedded for every region.
+
+### Security
+
+- Build with Go 1.27.4, whose `net/http` no longer lets a request body over the size limit crash the server through a race on the response headers (GO-2026-6859, CVE-2026-97054).
+
 ## [1.0.2] - 2026-10-24
 
 ### Changed
@@ -202,7 +212,8 @@ First public release.
 - Harden response headers.
 - Redact the application secret and the consumer key from every log record.
 
-[Unreleased]: https://github.com/kentrow/keymaker/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/kentrow/keymaker/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/kentrow/keymaker/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/kentrow/keymaker/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/kentrow/keymaker/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kentrow/keymaker/compare/v0.5.1...v1.0.0
