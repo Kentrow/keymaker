@@ -33,7 +33,7 @@ const (
 )
 
 // supportedEndpoints is deliberately narrower than the SDK table. The Kimsufi and
-// SoYouStart entries point at hosts outside api.ovh.com, which the outbound rule does
+// SoYouStart entries point at hosts on their own domains, which the outbound rule does
 // not cover, and supporting them has not been decided.
 var supportedEndpoints = []string{"ovh-eu", "ovh-ca", "ovh-us"}
 

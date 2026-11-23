@@ -147,7 +147,8 @@ in all. Writes are sent again too, since a call refused for its rate did nothing
 | `GET` | `/1.0/` and the `*.json` schemas it lists | Building the route catalogue, without authentication |
 
 Accepted endpoints are `ovh-eu`, `ovh-ca` and `ovh-us`. The Kimsufi and SoYouStart entries of
-the `go-ovh` table resolve to hosts outside `api.ovh.com` and are refused.
+the `go-ovh` table resolve to hosts on their own domains, `kimsufi.com` and `soyoustart.com`, and
+are refused.
 
 The management key needs these rules, declared in `ovh.ManagementRules`. A test ties every rule,
 `ovh.AddressRule` included, to a call the client makes, and every call under `/me` to a rule.

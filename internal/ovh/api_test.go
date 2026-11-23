@@ -294,8 +294,8 @@ func TestUnsupportedEndpointsAreRefused(t *testing.T) {
 
 func TestTheCreateTokenPageIsOnTheHostOfTheRegion(t *testing.T) {
 	cases := map[string]string{
-		"ovh-eu": "https://eu.api.ovh.com/createToken/",
-		"ovh-ca": "https://ca.api.ovh.com/createToken/",
+		"ovh-eu": "https://api.eu.ovhcloud.com/createToken/",
+		"ovh-ca": "https://api.ca.ovhcloud.com/createToken/",
 		"ovh-us": "https://api.us.ovhcloud.com/createToken/",
 	}
 
@@ -320,7 +320,7 @@ func TestTheCreateTokenLinkCarriesTheRulesReadably(t *testing.T) {
 		t.Fatalf("CreateTokenURL: %v", err)
 	}
 
-	want := "https://eu.api.ovh.com/createToken/" +
+	want := "https://api.eu.ovhcloud.com/createToken/" +
 		"?GET=/me/api/credential" +
 		"&GET=/me/api/credential/*" +
 		"&GET=/me/api/application" +
@@ -364,7 +364,7 @@ func TestAnUnusualRulePathIsEscaped(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateTokenURL: %v", err)
 	}
-	if want := "https://eu.api.ovh.com/createToken/?GET=/me/api%3Fx%3D1%26y%3D2%20z%23f"; got != want {
+	if want := "https://api.eu.ovhcloud.com/createToken/?GET=/me/api%3Fx%3D1%26y%3D2%20z%23f"; got != want {
 		t.Errorf("link = %q, want %q", got, want)
 	}
 }

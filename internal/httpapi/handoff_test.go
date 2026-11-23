@@ -41,7 +41,7 @@ func TestHandoffCarriesEveryRuleToThePageOfTheRegion(t *testing.T) {
 	}
 
 	got := decode[handoffResponse](t, rec).URL
-	if !strings.HasPrefix(got, "https://eu.api.ovh.com/createToken/?") {
+	if !strings.HasPrefix(got, "https://api.eu.ovhcloud.com/createToken/?") {
 		t.Fatalf("url = %q, want the page of the configured region", got)
 	}
 	for _, want := range []string{

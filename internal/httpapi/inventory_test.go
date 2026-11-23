@@ -88,7 +88,7 @@ func TestTheSessionCarriesTheSensitiveBranchesOfTheAudit(t *testing.T) {
 func TestTheSessionCarriesThePageThatIssuesAManagementKey(t *testing.T) {
 	got := decode[sessionResponse](t, request(t, newTestServer(t, inventoryFixture()), "/api/session", true)).ManagementKeyURL
 
-	if !strings.HasPrefix(got, "https://eu.api.ovh.com/createToken/?") {
+	if !strings.HasPrefix(got, "https://api.eu.ovhcloud.com/createToken/?") {
 		t.Fatalf("managementKeyUrl = %q, want the page of the configured region", got)
 	}
 	for _, rule := range []string{"GET=/me/api/credential", "DELETE=/me/api/credential/*"} {

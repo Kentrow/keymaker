@@ -137,11 +137,11 @@ Prenez celui qui correspond à la région de votre compte, telle que la nomment 
 
 **`ovh-eu`**
 
-<https://eu.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
+<https://api.eu.ovhcloud.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
 
 **`ovh-ca`**
 
-<https://ca.api.ovh.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
+<https://api.ca.ovhcloud.com/createToken/?GET=/me/api/credential&GET=/me/api/credential/*&GET=/me/api/application&GET=/me/api/application/*&DELETE=/me/api/credential/*&DELETE=/me/api/application/*>
 
 **`ovh-us`**
 
