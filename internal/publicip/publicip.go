@@ -11,7 +11,7 @@
 // The call is never made on its own. It happens when the reader asks for the address, or
 // restricts the credential the tool runs with, which cannot be done safely without knowing
 // it. The whole feature can be switched off, so that an instance can be run with nothing but
-// api.ovh.com on its outbound path.
+// the OVHcloud API on its outbound path.
 package publicip
 
 import (

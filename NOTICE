@@ -43,7 +43,7 @@ Data
 
 internal/catalog/snapshots/ and internal/catalog/testdata/ are derived from the
 public API descriptions (schemas) published by OVHcloud at
-https://eu.api.ovh.com/1.0/, https://ca.api.ovh.com/1.0/ and
+https://api.eu.ovhcloud.com/1.0/, https://api.ca.ovhcloud.com/1.0/ and
 https://api.us.ovhcloud.com/1.0/.
 
 -------------------------------------------------------------------------------

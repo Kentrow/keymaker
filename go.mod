@@ -4,7 +4,7 @@ go 1.27.0
 
 toolchain go1.27.4
 
-require github.com/ovh/go-ovh v1.9.0
+require github.com/ovh/go-ovh v1.10.0
 
 require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect

@@ -8,6 +8,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Reach the OVHcloud API at its new addresses, `api.eu.ovhcloud.com` for `ovh-eu` and `api.ca.ovhcloud.com` for `ovh-ca`, as go-ovh 1.10.0 does; an outbound filter that only lets `eu.api.ovh.com` or `ca.api.ovh.com` through needs the new name. The links that open the key creation page use the same addresses.
+
 ## [1.0.3] - 2026-11-11
 
 ### Changed
